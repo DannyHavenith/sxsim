@@ -1,0 +1,17 @@
+decode_and_dispatch<
+	 boost::mpl::vector2<
+		 instruction<
+			instruction_decoder<some_implementation>::word<513,bit_,register_,boost::mpl::void_>,
+			&some_implementation::setbit
+			>
+		,instruction<
+			instruction_decoder<some_implementation>::word<576,literal_,boost::mpl::void_,boost::mpl::void_>,
+			&some_implementation::mov_w_lit
+			> 
+	 >
+	,instruction_decoder<some_implementation>
+	,5>
+::call(int instruction=0x00000900, int full_instruction=0x00000941, instruction_decoder<some_implementation> & implementation={...})  Line 307	C++
+
+
+instruction\< word\<[^\>,]*,*{[^\>]*}\>,:b+impl\:\:{[^\>]+}\>
