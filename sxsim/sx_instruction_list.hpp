@@ -25,32 +25,32 @@ namespace micro_emulator
 		struct lit8_ 		:	masked_argument< 011111111> {};
 		struct addr8_ 		:	masked_argument< 011111111> {};
 		struct addr9_ 		:	masked_argument< 111111111> {};
-		struct cregister_	:	masked_argument< 000000111> {};
+		struct port_	:	masked_argument< 000000111> {};
 
 		typedef mpl::vector<
-//			instruction< word< 0111111111111>,			&impl::not_w>
+//			instruction< word< 111111111111>,			&impl::not_w>  // is xor_w_lit (%11111111)
 			instruction< word< 000001000001>,			&impl::iread>,
 			instruction< word< 000001000010>,			&impl::mov_w_m>,
 			instruction< word< 000001000011>,			&impl::mov_m_w>,
-			instruction< word< 010000000011>,			&impl::clc>,
+//			instruction< word< 010000000011>,			&impl::clc>, // is clrb_fr_bit
 			instruction< word< 000001000000>,			&impl::clr_w>,
-			instruction< word< 000000000100>,			&impl::clr_special_wdt>,
-			instruction< word< 000000000000>,			&impl::nop>,
-			instruction< word< 000000000010>,			&impl::mov_special_option_w>,
-			instruction< word< 000000000011>,			&impl::sleep>,
+//			instruction< word< 000000000100>,			&impl::clr_special_wdt>,// special, is also mov_special_rx_w
+//			instruction< word< 000000000000>,			&impl::nop>,//is mov_special_rx_w
+//			instruction< word< 000000000010>,			&impl::mov_special_option_w>, // is mov_special_rx_w
+//			instruction< word< 000000000011>,			&impl::sleep>, // special, is also mov_special_rx_w
 			instruction< word< 000000001100>,			&impl::ret>,
 			instruction< word< 000000001101>,			&impl::retp>,
 			instruction< word< 000000001110>,			&impl::reti>,
-			instruction< word< 000000001111>,			&impl::retiw>,
-			instruction< word< 010001000011>,			&impl::clz>,
-			instruction< word< 011000000010>,			&impl::skip>,
-			instruction< word< 011100000011>,			&impl::sc>
+			instruction< word< 000000001111>,			&impl::retiw>
+//			instruction< word< 010001000011>,			&impl::clz>, // clrb_fr_bit
+//			instruction< word< 011000000010>,			&impl::skip>, // is snb_fr_bit
+//			instruction< word< 011100000011>,			&impl::sc> // is sb_fr_bit
 		> i1;
 
 		typedef mpl::vector<
 			instruction< word< 000000010, lit3_>,		&impl::page>,
 			instruction< word< 000000011, lit3_>,		&impl::bank>,
-			instruction< word< 000000000, cregister_>,	&impl::mov_special_rx_w>,
+			instruction< word< 000000000, port_>,		&impl::mov_special_rx_w>,
 			instruction< word< 00000101 , lit4_>,		&impl::mov_m_lit>,
 			instruction< word< 0001110, register_>,		&impl::add_w_fr>,
 			instruction< word< 0001111, register_>,		&impl::add_fr_w>,
@@ -59,13 +59,13 @@ namespace micro_emulator
 			instruction< word< 0000011, register_>,		&impl::clr_fr>,
 			instruction< word< 0010010, register_>,		&impl::mov_w_not_fr>,
 			instruction< word< 0010011, register_>,		&impl::not_fr>,
-			instruction< word< 0000110, register_>,		&impl::mov_w_minus_minus_fr>,
+			instruction< word< 0000110, register_>,		&impl::mov_w_dec_fr>,
 			instruction< word< 0000111, register_>,		&impl::dec_fr>,
-			instruction< word< 0010110, register_>,		&impl::movsz_w_minus_minus_fr>,
+			instruction< word< 0010110, register_>,		&impl::movsz_w_dec_fr>,
 			instruction< word< 0010111, register_>,		&impl::decsz_fr>,
-			instruction< word< 0010100, register_>,		&impl::mov_w_plus_plus_fr>,
+			instruction< word< 0010100, register_>,		&impl::mov_w_inc_fr>,
 			instruction< word< 0010101, register_>,		&impl::inc_fr>,
-			instruction< word< 0011110, register_>,		&impl::movsz_w_plus_plus_fr>,
+			instruction< word< 0011110, register_>,		&impl::movsz_w_inc_fr>,
 			instruction< word< 0011111, register_>,		&impl::incsz_fr>,
 			instruction< word< 0001000, register_>,		&impl::or_w_fr>,
 			instruction< word< 0001001, register_>,		&impl::or_fr_w>,

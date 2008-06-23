@@ -24,14 +24,14 @@ struct sx_print
 	IMPLEMENT_INSTRUCTION( clr_special_wdt, (), ())
 	IMPLEMENT_INSTRUCTION( mov_w_not_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( not_fr,  (int arg_register),(arg_register))
-	IMPLEMENT_INSTRUCTION( mov_w_minus_minus_fr,  (int arg_register),(arg_register))
+	IMPLEMENT_INSTRUCTION( mov_w_dec_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( dec_fr,  (int arg_register),(arg_register))
-	IMPLEMENT_INSTRUCTION( movsz_w_minus_minus_fr,  (int arg_register),(arg_register))
+	IMPLEMENT_INSTRUCTION( movsz_w_dec_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( decsz_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( jmp,  (int addr9_),(addr9_))
-	IMPLEMENT_INSTRUCTION( mov_w_plus_plus_fr,  (int arg_register),(arg_register))
+	IMPLEMENT_INSTRUCTION( mov_w_inc_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( inc_fr,  (int arg_register),(arg_register))
-	IMPLEMENT_INSTRUCTION( movsz_w_plus_plus_fr,  (int arg_register),(arg_register))
+	IMPLEMENT_INSTRUCTION( movsz_w_inc_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( incsz_fr,  (int arg_register),(arg_register))
 	IMPLEMENT_INSTRUCTION( or_w_lit,  (int arg_lit8),(arg_lit8))
 	IMPLEMENT_INSTRUCTION( or_w_fr,  (int arg_register),(arg_register))
@@ -103,5 +103,5 @@ private:
 		const char * const name;
 	};
 };
-
+#undef IMPLEMENT_INSTRUCTION
 #endif //SX_PRINT_INCLUDED

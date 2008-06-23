@@ -115,7 +115,7 @@ namespace micro_emulator
 		// subtracting the sizes of the arguments from the known word
 		// size.
 		template< 
-			unsigned long opcode_dcb, // decimal coded binary opcode
+			unsigned long long opcode_dcb, // decimal coded binary opcode
 			typename arg1_type = mpl::void_,
 			typename arg2_type = mpl::void_,
 			typename arg3_type = mpl::void_

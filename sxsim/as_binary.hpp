@@ -10,7 +10,7 @@
 namespace binary_numbers
 {
 	namespace mpl = boost::mpl;
-template< unsigned long number, unsigned long source_radix>
+template< unsigned long long number, unsigned long source_radix>
 struct to_digits_impl
 {
 	typedef typename to_digits_impl< number/source_radix, source_radix>::type prefix;
@@ -23,7 +23,7 @@ struct to_digits_impl< 0, source_radix>
 	typedef mpl::vector_c<int> type;
 };
 
-template< unsigned long number, unsigned long source_radix = 10>
+template< unsigned long long number, unsigned long source_radix = 10>
 struct to_digits : 
 	mpl::eval_if_c< 
 		number == 0,
@@ -54,7 +54,7 @@ struct is_binary_digits :
 	>
 {};
 
-template< unsigned long number>
+template< unsigned long long number>
 struct to_binary_digits:
 	mpl::eval_if<
 		typename is_binary_digits< typename to_digits< number, 10>::type>::type,
@@ -63,7 +63,7 @@ struct to_binary_digits:
 	>
 {};
 
-template< unsigned long number, unsigned long source_radix = 10>
+template< unsigned long long number, unsigned long source_radix = 10>
 struct as_binary_impl : 
 	mpl::fold< 
 		typename to_digits< number, source_radix>::type,
@@ -72,7 +72,7 @@ struct as_binary_impl :
 	>
 {};
 
-template< unsigned long number>
+template< unsigned long long number>
 struct as_binary: 	
 	mpl::fold< 
 		typename to_binary_digits< number>::type,
