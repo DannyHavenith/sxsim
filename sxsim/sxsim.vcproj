@@ -181,7 +181,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\arithmetic_with_flags.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\as_binary.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\flags.hpp"
 				>
 			</File>
 			<File
@@ -194,6 +202,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sx_controller.hpp"
 				>
 			</File>
 			<File

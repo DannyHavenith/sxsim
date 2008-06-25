@@ -82,8 +82,8 @@ namespace micro_emulator
 			instruction< word< 0001100, register_>,		&impl::xor_w_fr>,
 			instruction< word< 0001101, register_>,		&impl::xor_fr_w>,
 			instruction< word< 0011001, register_>,		&impl::rr_fr>,
-//			instruction< word< 0000001, register_>,		&impl::jmp_w>,
-//			instruction< word< 0001111, register_>,		&impl::jmp_pc_plus_w>,
+//			instruction< word< 0000001, register_>,		&impl::jmp_w>, // these are just move pc, w and 
+//			instruction< word< 0001111, register_>,		&impl::jmp_pc_plus_w>,// add pc, w
 			instruction< word< 0100 , register_, bit_>, &impl::clrb_fr_bit>,
 			instruction< word< 0101 , register_, bit_>, &impl::setb_fr_bit>,
 			instruction< word< 0110 , register_, bit_>, &impl::snb_fr_bit>,

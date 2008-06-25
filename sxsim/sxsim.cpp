@@ -9,6 +9,7 @@
 #include "instruction_decoder.hpp"
 #include "sx_nop.hpp"
 #include "sx_print.hpp"
+#include "sx_controller.hpp"
 
 using namespace micro_emulator;
 
@@ -17,13 +18,13 @@ void print_instructions( const int (&instructions)[size])
 {
 	typedef instruction_decoder< 
 		sx_instruction_list<
-		sx_print
+		sx_nop
 		>
 	> sx_printer;
 	sx_printer printer;
 
 
-	for (int count = 1;
+	for (int count = 10000000;
 		count;
 		--count)
 	{
@@ -41,7 +42,7 @@ volatile int x = 0x02F3;
 int main(int argc, char* argv[])
 {
 	int instructions[] = {
-		0x403,
+		0x0018,
 		0x02F3,
 		0x0A10,
 		0x0C0A,
@@ -84,8 +85,12 @@ int main(int argc, char* argv[])
 
 	print_instructions( instructions);
 
+	std::cout << "press enter>" << std::endl;
+	std::cin.get();
+
+
 /* should translate to:
-clrb_fr_bit 3 0
+
 decsz_fr 19
 jmp 16
 mov_w_lit 10

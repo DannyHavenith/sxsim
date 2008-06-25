@@ -45,32 +45,6 @@ namespace micro_emulator
 		{
 		};
 
-/* partial specialization didn't work. using overloads instead.
-		template< class instruction>
-		struct decode_and_dispatch< call_node< instruction> >
-		{
-			static void call( int word, typename instruction_list::impl &implementation)
-			{
-				dispatch<instruction>( word, implementation);
-			}
-		};
-
-		template< int bit, typename on_zero, typename on_one>
-		struct decode_and_dispatch< decide_node< bit, on_zero, on_one> >
-		{
-			static void call( int word, typename instruction_list::impl &implementation)
-			{
-				if (word & (1<<bit))
-				{
-					decode_and_dispatch< on_one>::call( word, implementation);
-				}
-				else
-				{
-					decode_and_dispatch< on_zero>::call( word, implementation);
-				}
-			}
-		};
-*/
 		template< class T>
 		struct call_tag {};
 
