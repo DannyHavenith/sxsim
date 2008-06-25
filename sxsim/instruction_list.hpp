@@ -68,11 +68,15 @@ namespace micro_emulator
 	};
 
 	template< typename argument_sequence>
-	struct max_mask_size : 
-		mpl::deref< 
-		typename mpl::max_element< 
-		typename mpl::transform< argument_sequence, get_mask_size>::type  
-		>::type
+	struct max_mask_size :
+		mpl::eval_if<
+			mpl::empty< argument_sequence>,
+			mpl::int_<0>,
+			typename mpl::deref< 
+				typename mpl::max_element< 
+					typename mpl::transform< argument_sequence, get_mask_size>::type  
+				>::type
+			>
 		>
 	{
 	};

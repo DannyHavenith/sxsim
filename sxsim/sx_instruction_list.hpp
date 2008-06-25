@@ -82,8 +82,8 @@ namespace micro_emulator
 			instruction< word< 0001100, register_>,		&impl::xor_w_fr>,
 			instruction< word< 0001101, register_>,		&impl::xor_fr_w>,
 			instruction< word< 0011001, register_>,		&impl::rr_fr>,
-			instruction< word< 0000001, register_>,		&impl::jmp_w>,
-			instruction< word< 0001111, register_>,		&impl::jmp_pc_plus_w>,
+//			instruction< word< 0000001, register_>,		&impl::jmp_w>,
+//			instruction< word< 0001111, register_>,		&impl::jmp_pc_plus_w>,
 			instruction< word< 0100 , register_, bit_>, &impl::clrb_fr_bit>,
 			instruction< word< 0101 , register_, bit_>, &impl::setb_fr_bit>,
 			instruction< word< 0110 , register_, bit_>, &impl::snb_fr_bit>,
@@ -97,7 +97,15 @@ namespace micro_emulator
 			instruction< word< 101, addr9_>,			&impl::jmp>
 		> i2;
 
-		typedef i2 instructions;
+		/*
+		typedef mpl::vector<
+			instruction< word< 011, lit3_>,		&impl::bank>,
+			instruction< word< 010, lit3_>,		&impl::page>,
+			instruction< word< 00 , lit4_>,		&impl::mov_m_lit>
+		> instructions;*/
+
+		typedef mpl::joint_view< i1,i2> instructions;
+//		typedef i1 instructions;
 	};
 }
 #endif //SX_INSTRUCTION_LIST_INCLUDED

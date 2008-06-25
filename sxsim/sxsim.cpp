@@ -12,7 +12,6 @@
 
 using namespace micro_emulator;
 
-
 template< size_t size>
 void print_instructions( const int (&instructions)[size])
 {
@@ -22,6 +21,7 @@ void print_instructions( const int (&instructions)[size])
 		>
 	> sx_printer;
 	sx_printer printer;
+
 
 	for (int count = 1;
 		count;
@@ -34,6 +34,7 @@ void print_instructions( const int (&instructions)[size])
 			printer.feed( *i);
 		}
 	}
+
 }
 
 volatile int x = 0x02F3;
@@ -82,6 +83,48 @@ int main(int argc, char* argv[])
 	};
 
 	print_instructions( instructions);
+
+/* should translate to:
+clrb_fr_bit 3 0
+decsz_fr 19
+jmp 16
+mov_w_lit 10
+mov_fr_w 19
+test_fr 18
+snb_fr_bit 3 2
+jmp 16
+setb_fr_bit 3 0
+rr_fr 16
+rr_fr 17
+dec_fr 18
+snb_fr_bit 17 6
+clrb_fr_bit 5 1
+sb_fr_bit 17 6
+setb_fr_bit 5 1
+sb_fr_bit 5 0
+setb_fr_bit 3 0
+snb_fr_bit 5 0
+clrb_fr_bit 3 0
+test_fr 20
+sb_fr_bit 3 2
+jmp 28
+mov_w_lit 9
+sb_fr_bit 3 0
+mov_fr_w 20
+mov_w_lit 16
+mov_fr_w 21
+decsz_fr 21
+jmp 37
+mov_w_lit 10
+mov_fr_w 21
+dec_fr 20
+sb_fr_bit 3 2
+rr_fr 22
+snb_fr_bit 3 2
+setb_fr_bit 23 0
+mov_w_lit 89
+retiw
+*/
 
 	return 0;
 }

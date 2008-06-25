@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sx_memory.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sx_nop.hpp"
 				>
 			</File>
