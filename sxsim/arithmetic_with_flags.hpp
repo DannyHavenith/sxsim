@@ -6,8 +6,21 @@
 namespace arithmetic_with_flags
 {
 
-	template< int allowed_flags = sx_flags::Z | sx_flags::C | sx_flags::DC>
-	class flagged : public sx_flags_definition // use Z, DC and C
+	//
+	// implementation of some basic arithmetic that sets/resets
+	// flags.
+	//
+	// Objects of his class are typically instantiated on the fly, when some
+	// calculation needs to be performed and discarded right after that.
+	// An optimizing compiler will discard the object creation and only implement the 
+	// actual arithmetic.
+	//
+	// This implementation can modify Z (zero), C (carry) and DC (digit carry) flags.
+	//
+	// typical usage example:
+	//	flagged( some_value, my_flags) += 10; // add 10 to some value and set my flags.
+	//
+	class flagged : public sx_flags_definition // use Z, DC and C symbols
 	{
 
 	public:
@@ -29,6 +42,12 @@ namespace arithmetic_with_flags
 		{ //nop
 		}
 
+		flagged operator=( register_t data)
+		{
+			set( Z, !(data_ = data));
+			return *this;
+		}
+
 		flagged &operator+=( int rhs)
 		{
 			set( DC, ((data_ & DC_MASK) + (rhs & DC_MASK)) & ~DC_MASK);
@@ -45,7 +64,7 @@ namespace arithmetic_with_flags
 		{
 			set( DC, ((data_ & DC_MASK) - (rhs & DC_MASK)) & ~DC_MASK);
 
-			int result = data_ - rhs;
+			unsigned int result = data_ - rhs;
 
 			set( Z, !(data_ = result & CARRY_MASK));
 			set( C, result & ~CARRY_MASK);
@@ -55,24 +74,21 @@ namespace arithmetic_with_flags
 
 		flagged &operator|=( int rhs)
 		{
-			data_ |= rhs;
-			set( Z, !data_);
+			set( Z, !(data_ |= rhs));
 
 			return *this;
 		}
 
 		flagged &operator&=( int rhs)
 		{
-			data_ &= rhs;
-			set( Z, !data_);
+			set( Z, !(data_ &= rhs));
 
 			return *this;
 		}
 
 		flagged &operator^=( int rhs)
 		{
-			data_ ^= rhs;
-			set( Z, !data_);
+			set( Z, !(data_ ^= rhs));
 
 			return *this;
 		}
@@ -100,12 +116,13 @@ namespace arithmetic_with_flags
 
 		flagged &rr()
 		{
+			unsigned int result = data_;
 			if (get( C))
 			{
-				data_ |= LEFT_OUTSIDE_CARRY_MASK;
+				result |= LEFT_OUTSIDE_CARRY_MASK;
 			}
-			set( C, data_&1);
-			data_ = ((data_  >> 1) & CARRY_MASK);
+			set( C, result&1);
+			data_ = ((result >> 1) & CARRY_MASK);
 			return *this;
 		}
 
@@ -127,22 +144,19 @@ namespace arithmetic_with_flags
 
 		void set( int flag, int do_)
 		{
-			if (flag & allowed_flags)
+			if (do_)
 			{
-				if (do_)
-				{
-					flags_ |= flag;
-				}
-				else
-				{
-					flags_ &= ~flag;
-				}
+				flags_ |= flag;
+			}
+			else
+			{
+				flags_ &= ~flag;
 			}
 		}
 
 		bool get( int flag)
 		{
-			return (flags_ & ~flag) != 0;
+			return (flags_ & flag) != 0;
 		}
 
 

@@ -1,16 +1,58 @@
 #if !defined( SX_MEMORY_INCLUDED)
 #define SX_MEMORY_INCLUDED
 
+#include <algorithm>
+#include <boost/range.hpp>
+
 namespace micro_emulator 
 {
 
-	class sx_memory
+	class sx_rom
 	{
 	public:
-		sx_memory()
+		typedef unsigned short register_t;
+		typedef unsigned short address_t;
+		static const size_t memory_size = 4 * 1024;
+
+		template< typename Range>
+		explicit sx_rom( const Range &r, address_t offset = 0)
+		{
+			load( r, offset);
+		};
+
+		sx_rom()
+		{
+			std::fill_n( memory, memory_size, 0);
+		}
+
+		template< typename Range>
+		void load( const Range &r, address_t offset = 0)
+		{
+			std::copy( boost::begin(r), boost::end( r), memory + offset);
+		}
+
+		register_t operator()( address_t address) const
+		{
+			return memory[address];
+		}
+
+		void set( address_t address, register_t value)
+		{
+			memory[address] = value;
+		}
+
+	private:
+		register_t memory[memory_size];
+	};
+
+	class sx_ram
+	{
+	public:
+		sx_ram()
 			:bank_(0)
 		{
 		}
+
 		// typedefs
 		typedef unsigned char register_t;
 		typedef unsigned short address_t;
@@ -25,13 +67,15 @@ namespace micro_emulator
 		static const address_t RA	= 5;
 		static const address_t RB	= 6;
 		static const address_t RC	= 7;
+		static const address_t RD	= 8;
+		static const address_t RE	= 9;
 
 		void set_bank( register_t bank)
 		{
 			// set both FSR (for correctness) and
 			// the bank_ member (for speed)
 			bank_ = bank * 32;
-			memory[FSR] = (memory[FSR] & 0x1f) & (bank << 5);
+			memory[FSR] = (memory[FSR] & 0x1f) | (bank << 5);
 		}
 
 		void set( address_t address, register_t value)

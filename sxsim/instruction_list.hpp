@@ -30,7 +30,7 @@ namespace micro_emulator
 	struct trailing_zero_count;
 
 	//
-	// unsafe, because we cannot apply this one
+	// "unsafe", because we cannot apply this one
 	// on empty sequences
 	//
 	template< typename sequence>
@@ -51,7 +51,17 @@ namespace micro_emulator
 		>
 	{};
 
-	template< unsigned long bit_pattern>
+	//
+	// a masked argument is an argument (operand) that is part 
+	// of the instruction word. It can be retrieved by masking the
+	// instruction word and optionally shifting the result.
+	// For example: an argument 'bit' that specifies a bit to be set or reset
+	// that is always coded in bits 5-7 of an instruction word could be specified as
+	//     struct bit_ : public masked_argument< 000011100000> {};
+	//
+	// other classes, like the argument_harvester class of the instruction decoder can
+	// use these types to extract the data from an instruction word.
+	template< unsigned long long bit_pattern>
 	struct masked_argument 
 	{
 		typedef typename to_binary_digits< bit_pattern>::type bit_vector;
@@ -59,6 +69,9 @@ namespace micro_emulator
 		static const int mask = as_binary< bit_pattern>::value;
 	};
 
+	//
+	// meta-meta function that is used to extract the size of 
+	// an argument type.
 	struct get_mask_size
 	{
 		template< typename argument>
@@ -67,6 +80,9 @@ namespace micro_emulator
 		{};
 	};
 
+	//
+	// determine the maximum mask size of a sequence of masked
+	// arguments.
 	template< typename argument_sequence>
 	struct max_mask_size :
 		mpl::eval_if<
@@ -82,6 +98,14 @@ namespace micro_emulator
 	};
 
 
+	//
+	// the nary_member_func metafunction returns the 
+	// type of a member function pointer with 'arg_count'
+	// integer arguments. E.g. for arg_count == 2
+	// it returns "void (object_type::*)( int, int)"
+	//
+	// implemented for 0 <= arg_count <= 2
+	//
 	template< typename object_type, int arg_count>
 	struct nary_member_func
 	{};
@@ -115,9 +139,12 @@ namespace micro_emulator
 		// an instruction word type encodes the bit pattern of
 		// the opcode and any other arguments that are encoded 
 		// in the word. Every word must be the same size.
-		// the size (in bits) of the opcode pattern is calculated by
-		// subtracting the sizes of the arguments from the known word
-		// size.
+		//
+		// instantiations of this template are used together
+		// with the 'instruction' template (see below).
+		//
+		// see also sx_instruction_list.hpp
+		//
 		template< 
 			unsigned long long opcode_dcb, // decimal coded binary opcode
 			typename arg1_type = mpl::void_,
@@ -149,6 +176,12 @@ namespace micro_emulator
 			static const int opcode = as_binary<opcode_dcb>::value;
 		};
 
+		//
+		// an 'instruction' instantiation couples a 'word' definition (see above)
+		// with a member function of some object to be called.
+		// This is used by an instruction decoder, which uses the word pattern to
+		// decode an instruction word and then calls the specified member function.
+		//
 		template< 
 			typename word_pattern,
 			typename pattern_member_func< impl, word_pattern>::type ptr

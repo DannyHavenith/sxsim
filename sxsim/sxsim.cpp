@@ -18,24 +18,36 @@ void print_instructions( const int (&instructions)[size])
 {
 	typedef instruction_decoder< 
 		sx_instruction_list<
-		sx_nop
+		sx_controller
 		>
-	> sx_printer;
-	sx_printer printer;
+	> sx;
+	typedef instruction_decoder< 
+		sx_instruction_list<
+		sx_print
+		>
+	> printer_t;
 
+	sx controller;
+	printer_t printer;
 
-	for (int count = 10000000;
-		count;
-		--count)
+	controller.load_rom( instructions);
+	controller.set_pc( 0);
+
+	while (true)
 	{
-		for (const int *i = &instructions[0];
-			i!= &instructions[0] + size;
-			++i)
-		{
-			printer.feed( *i);
-		}
+			try
+			{
+				printer.feed( controller.get_rom()( controller.get_pc()));
+				controller.feed( controller.get_rom()( controller.get_pc()));
+			}
+			catch (const recoverable_error &e)
+			{
+				std::cerr << "error: " << e.what() << std::endl;
+			}
 	}
 
+
+	
 }
 
 volatile int x = 0x02F3;
