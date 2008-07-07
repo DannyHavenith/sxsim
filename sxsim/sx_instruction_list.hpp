@@ -5,7 +5,7 @@
 #include "instruction_list.hpp"
 
 // I'm adding this to the micro_emulator because I'm lazy and
-// for no other reason.
+// for no other reason (it should be in a dedicated sx-microcontroller namespace).
 namespace micro_emulator 
 {
 	namespace mpl = boost::mpl;

@@ -5,6 +5,9 @@
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 50
 
 #include <iostream>
+#include <fstream>
+#include <iomanip>
+#include "listing_parser.hpp"
 #include "sx_instruction_list.hpp"
 #include "instruction_decoder.hpp"
 #include "sx_nop.hpp"
@@ -12,137 +15,99 @@
 #include "sx_controller.hpp"
 
 using namespace micro_emulator;
+using namespace std;
 
-template< size_t size>
-void print_instructions( const int (&instructions)[size])
+typedef sx_nop impl;
+typedef sx_instruction_list< sx_nop> list;
+typedef instruction_decoder< list> decoder;
+
+
+void single_step( const listing_info &listing)
 {
-	typedef instruction_decoder< 
-		sx_instruction_list<
-		sx_controller
-		>
-	> sx;
-	typedef instruction_decoder< 
-		sx_instruction_list<
-		sx_print
-		>
-	> printer_t;
+	sx_controller sx;
+	typedef instruction_decoder< sx_instruction_list< sx_print> > print_decoder;
 
-	sx controller;
-	printer_t printer;
+	sx_print printer;
 
-	controller.load_rom( instructions);
-	controller.set_pc( 0);
-
-	while (true)
+	sx.load_rom( listing.instructions);
+	unsigned short last_known_address = 0;
+	try
 	{
-			try
+
+		//while (true)
+		{
+			for (int count = 500000000; count; --count) 
 			{
-				printer.feed( controller.get_rom()( controller.get_pc()));
-				controller.feed( controller.get_rom()( controller.get_pc()));
+				last_known_address = sx.get_pc();
+//				cout << setw(4) << hex << last_known_address << ":" << hex << setw(4) << sx.get_rom()( last_known_address) << ":" << listing.source_lines[ last_known_address] << "\n";
+//				print_decoder::feed( sx.get_rom()( last_known_address), printer);
+//				cout << std::endl;
+
+				sx.tick();
 			}
-			catch (const recoverable_error &e)
-			{
-				std::cerr << "error: " << e.what() << std::endl;
-			}
+		}
+	}
+	catch (const recoverable_error &e)
+	{
+		cerr << "error on address (" << last_known_address << "):" << e.what() << endl;
+		cerr << "source: " << listing.source_lines[ last_known_address] << endl;
 	}
 
 
-	
-}
 
-volatile int x = 0x02F3;
+}
+/**/
+
+
+/*
+template< typename T>
+void print_bits()
+{
+	cout << decoder::opcode_bit_at< T, 11>::type::value;
+	cout << decoder::opcode_bit_at< T, 10>::type::value;
+	cout << decoder::opcode_bit_at< T, 9>::type::value;
+	cout << decoder::opcode_bit_at< T, 8>::type::value;
+	cout << decoder::opcode_bit_at< T, 7>::type::value;
+	cout << decoder::opcode_bit_at< T, 6>::type::value;
+	cout << decoder::opcode_bit_at< T, 5>::type::value;
+	cout << decoder::opcode_bit_at< T, 4>::type::value;
+	cout << decoder::opcode_bit_at< T, 3>::type::value;
+	cout << decoder::opcode_bit_at< T, 2>::type::value;
+	cout << decoder::opcode_bit_at< T, 1>::type::value;
+	cout << decoder::opcode_bit_at< T, 0>::type::value;
+	cout << endl;
+}
+/**/
+
 int main(int argc, char* argv[])
 {
-	int instructions[] = {
-		0x0018,
-		0x02F3,
-		0x0A10,
-		0x0C0A,
-		0x0033,
-		0x0232,
-		0x0643,
-		0x0A10,
-		0x0503,
-		0x0330,
-		0x0331,
-		0x00F2,
-		0x06D1,
-		0x0425,
-		0x07D1,
-		0x0525,
-		0x0705,
-		0x0503,
-		0x0605,
-		0x0403,
-		0x0234,
-		0x0743,
-		0x0A1C,
-		0x0C09,
-		0x0703,
-		0x0034,
-		0x0C10,
-		0x0035,
-		0x02F5,
-		0x0A25,
-		0x0C0A,
-		0x0035,
-		0x00F4,
-		0x0743,
-		0x0336,
-		0x0643,
-		0x0517,
-		0x0C59,
-		0x000F	
-	};
 
-	print_instructions( instructions);
+	if (argc < 2)
+	{
+		cerr << "usage: sxsim <listfile>\n";
+		return -1;
+	}
 
-	std::cout << "press enter>" << std::endl;
-	std::cin.get();
+	ifstream listfile( argv[1]);
+	if (!listfile)
+	{
+		cerr << "could not open " << argv[1] << " for reading\n";
+		return -2;
+	}
+
+	listing_info listing = ParseListingFile( listfile);
+	
+	single_step( listing);
 
 
-/* should translate to:
+//	typedef list::instruction< list::word< 000000000, list::port_>, &impl::mov_special_rx_w> mov;
 
-decsz_fr 19
-jmp 16
-mov_w_lit 10
-mov_fr_w 19
-test_fr 18
-snb_fr_bit 3 2
-jmp 16
-setb_fr_bit 3 0
-rr_fr 16
-rr_fr 17
-dec_fr 18
-snb_fr_bit 17 6
-clrb_fr_bit 5 1
-sb_fr_bit 17 6
-setb_fr_bit 5 1
-sb_fr_bit 5 0
-setb_fr_bit 3 0
-snb_fr_bit 5 0
-clrb_fr_bit 3 0
-test_fr 20
-sb_fr_bit 3 2
-jmp 28
-mov_w_lit 9
-sb_fr_bit 3 0
-mov_fr_w 20
-mov_w_lit 16
-mov_fr_w 21
-decsz_fr 21
-jmp 37
-mov_w_lit 10
-mov_fr_w 21
-dec_fr 20
-sb_fr_bit 3 2
-rr_fr 22
-snb_fr_bit 3 2
-setb_fr_bit 23 0
-mov_w_lit 89
-retiw
-*/
+//	print_bits<mov>();
 
-	return 0;
+
+//	cout << decoder::has_at<3, 0>::apply<mov>::type::value << endl;
+
+	cout << "press enter>" << endl;
+	cin.get();
 }
 

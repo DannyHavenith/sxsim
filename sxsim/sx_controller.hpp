@@ -5,6 +5,7 @@
 #include <exception>
 #include <stack>
 #include <iostream>
+#include <boost/utility.hpp>
 
 #include "arithmetic_with_flags.hpp"
 #include "sx_memory.hpp"
@@ -18,33 +19,44 @@ namespace micro_emulator
 
 	struct recoverable_error : public std::runtime_error
 	{
-		recoverable_error( const char *what)
-			: std::runtime_error( what)
+		recoverable_error( const char *what, unsigned short program_counter)
+			: std::runtime_error( what),
+			pc( program_counter)
 		{
 		};
+
+		unsigned short pc;
 	};
 
 	struct stack_overflow_exception : public recoverable_error
 	{
-		stack_overflow_exception()
-			: recoverable_error( "stack overflow")
+		stack_overflow_exception( unsigned short pc)
+			: recoverable_error( "stack overflow", pc)
+		{
+		}
+	};
+
+	struct stack_underflow_exception : public recoverable_error
+	{
+		stack_underflow_exception(unsigned short pc)
+			: recoverable_error( "stack underflow", pc)
 		{
 		}
 	};
 
 	struct reti_outside_interrupt_exception : public recoverable_error
 	{
-		reti_outside_interrupt_exception()
-			: recoverable_error( "reti outside interrupt")
+		reti_outside_interrupt_exception(unsigned short pc)
+			: recoverable_error( "reti outside interrupt", pc)
 		{
 		}
 	};
 
-	struct sx_controller : public sx_flags_definition
+	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
 		typedef sx_ram::address_t address_t;
 
-		sx_controller()
+		sx_controller_impl()
 			:real_w(0), w( real_w), m(0), wdt(0),
 			pc_register( ram( sx_ram::PC)),
 			flags( ram( sx_ram::STATUS)),
@@ -62,6 +74,17 @@ namespace micro_emulator
 		}
 
 
+		unsigned long dec_nop_delay()
+		{
+			if (nop_delay)
+			{
+				return nop_delay--;
+			}
+			else
+			{
+				return nop_delay;
+			}
+		}
 
 		void set_pc( address_t new_pc)
 		{
@@ -72,6 +95,13 @@ namespace micro_emulator
 		address_t get_pc() const
 		{
 			return program_counter;
+		}
+
+		address_t inc_pc()
+		{
+			address_t ret = program_counter++;
+			update_pc();
+			return ret;
 		}
 
 		const sx_rom &get_rom() const
@@ -136,10 +166,9 @@ namespace micro_emulator
 			push( program_counter);
 			set_pc( arg_addr8 | ((address_t( ram( sx_ram::STATUS)) & 0x00e0) << 4));
 
-
 			if (stack.size() > sx_stack_size)
 			{
-				throw stack_overflow_exception();
+				throw stack_overflow_exception( stack.top());
 			}
 		}
 
@@ -329,12 +358,20 @@ namespace micro_emulator
 
 		void  ret()
 		{
+			if (stack.empty())
+			{
+				throw stack_underflow_exception( get_pc());
+			}
 			set_pc( pop());
 			set_nop_delay( 3);
 		}
 
 		void  retp()
 		{
+			if (stack.empty())
+			{
+				throw stack_underflow_exception( get_pc());
+			}
 			address_t return_address = pop();
 			set_pc( return_address);
 			// put bits 9-11 of the PC into bits 5-7 of status
@@ -347,7 +384,7 @@ namespace micro_emulator
 		{
 			if (!in_interrupt)
 			{
-				throw reti_outside_interrupt_exception();
+				throw reti_outside_interrupt_exception(get_pc());
 			}
 
 			in_interrupt = false;
@@ -395,6 +432,11 @@ namespace micro_emulator
 			m = arg_lit4;
 		}
 
+		bool do_rtcc()
+		{
+			// todo: do rtcc
+			return false;
+		}
 	private:
 
 		typedef sx_ram::register_t register_t;
@@ -409,7 +451,7 @@ namespace micro_emulator
 		};
 
 
-		register_t port_options[5][32];
+		register_t port_options[8][32];
 
 		static const size_t sx_stack_size = 8;
 		//static const address_t PORTA = 0;
@@ -476,6 +518,30 @@ namespace micro_emulator
 		sx_ram ram;
 		sx_rom rom;
 		stack_t stack;
+	};
+
+	class sx_controller : public sx_controller_impl
+	{
+		typedef instruction_decoder<
+				  sx_instruction_list< 
+					sx_controller_impl
+				  >
+				> decoder_t;
+
+	public:
+		void tick()
+		{
+			if (!dec_nop_delay())
+			{
+				sx_rom::register_t instruction = get_rom()( inc_pc());
+				instruction_decoder<sx_instruction_list< sx_controller_impl> >::feed( 
+					instruction, *this);
+			}
+
+			//
+			// handle realtime clock, if enabled.
+			do_rtcc();
+		}
 	};
 }
 #undef MEM

@@ -7,6 +7,7 @@
 #include <boost/mpl/back.hpp>
 #include <boost/mpl/front_inserter.hpp>
 #include <boost/mpl/not.hpp>
+#include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/empty.hpp>
@@ -40,7 +41,7 @@ namespace micro_emulator
 	struct instruction_decoder : public instruction_list::impl
 	{
 
-	private:
+	//private:
 		typedef int instruction_type;
 
 		// decide nodes are branches of the binary tree.
@@ -129,39 +130,50 @@ namespace micro_emulator
 				instruction::function_ptr(), 
 				fusion::push_front( 
 				argument_harvester< instruction::word::args>::harvest(code),
-				obj
+				&obj
 				)
-				);
+			);
 		}
 
-		//
-		// for an instruction with a given opcode (say "pppp") and 
-		// a given operand size (say 3), this metafunction returns the 
+				//
+		// An instruction word consists of opcode bits and operand
+		// bits, say "ppppaaa" where 'p' stands for an opcode bit 
+		// and 'a' stands for an operand bit.
+		// for an instruction with a given opcode (say, "pppp") and 
+		// a given operand size (say, 3), this metafunction returns the 
 		// opcode bit at a given position in an instruction word, as if 
-		// the opcode was defined as "000...000ppp222".
+		// the opcode was defined as "00...00ppp222".
+		
+		// reverse 'at' implementation returns the nth element from the
+		// right.
+		template < typename v, int bit>
+		struct reverse_at
+		{
+			typedef typename mpl::at_c< v, mpl::size< v>::type::value - 1 - bit>::type type;
+		};
+
 		template< typename instruction, int bit>
 		struct opcode_bit_at :
-			mpl::if_c< 
+			mpl::eval_if_c< //if bit falls in the operand region 
 				(bit < instruction::operand_size::value),
-				mpl::int_<2>,
-				typename mpl::eval_if_c<
+				mpl::int_<2>, // then return 2
+				typename mpl::eval_if_c< // else if bit is to the left of the opcode
 					(bit >= instruction::operand_size::value + mpl::size<typename instruction::bits>::type::value),
-					mpl::identity< mpl::int_<0> >,
-					mpl::at< 
+					mpl::int_<0> ,	// then return 0
+					reverse_at< 
 						typename instruction::bits,
-						mpl::int_< mpl::size< typename instruction::bits>::value - (bit - instruction::operand_size::value) - 1>
+						(bit - instruction::operand_size::value)
 					>
-				>::type
+				>
 			>
 		{};
-
 
 		template< int discriminating_bit, int value>
 		struct has_at 
 		{
 			template< typename instruction>
 			struct apply:
-				boost::is_same< 
+				mpl::equal_to< 
 					typename opcode_bit_at< instruction, discriminating_bit>::type,
 					mpl::int_<value>
 				>
@@ -188,14 +200,14 @@ namespace micro_emulator
 			// does not know whether to choose the first one or the second after finding an instruction that starts 
 			// with 101...
 
-			//typedef typename mpl::copy_if< instructions, has_at< discriminating_bit, 2>, mpl::front_inserter< mpl::list<> > >::type undefineds;
-			//BOOST_MPL_ASSERT(( mpl::empty<undefineds>::type));
+			typedef typename mpl::copy_if< instructions, has_at< discriminating_bit, 2>, mpl::front_inserter< mpl::list<> > >::type undefineds;
+			BOOST_MPL_ASSERT(( mpl::empty<undefineds>::type));
 
 			// the general case, were both sets are nonempty means we have to 
 			// analyse more bits to find which instruction we have.
 			// this means we enter a 'decide node' at this position.
 			template< typename left, typename right, typename enable = void>
-			struct mtree
+			struct make_node
 			{
 				typedef typename decide_node< 
 					discriminating_bit,
@@ -209,7 +221,7 @@ namespace micro_emulator
 			// that's an error.
 			//
 			template< typename left, typename right>
-			struct mtree< left, right, 
+			struct make_node< left, right, 
 				typename boost::enable_if< 
 					mpl::and_< 
 						mpl::empty< left>, 
@@ -226,7 +238,7 @@ namespace micro_emulator
 			// this bit (the discriminating_bit) to decode the instruction.
 			//
 			template< typename left, typename right>
-			struct mtree< left, right, 
+			struct make_node< left, right, 
 				typename boost::enable_if< 
 					mpl::and_< 
 						mpl::empty< left>, 
@@ -236,7 +248,7 @@ namespace micro_emulator
 			> : make_tree< right, discriminating_bit - 1, history * 10 + 1>{}; 
 
 			template< typename left, typename right>
-			struct mtree< left, right, 
+			struct make_node< left, right, 
 				typename boost::enable_if< 
 					mpl::and_< 
 						mpl::empty< right>, 
@@ -245,7 +257,7 @@ namespace micro_emulator
 				>::type 
 			> : make_tree< left, discriminating_bit - 1, history * 10>{}; 
 			
-			typedef typename mtree< zeros, ones>::type type;
+			typedef typename make_node< zeros, ones>::type type;
 		};
 
 		// if there's 1 instruction left in the set, just call it without testing any more bits.
@@ -262,8 +274,9 @@ namespace micro_emulator
 			BOOST_MPL_ASSERT(( mpl::false_));
 		};
 
-		// we shouldn't be here, there are no bits left to test on
-		// If this assert triggers, there are two identical non-argument expressions in the 
+		// we shouldn't be here, there are no bits left to test on and yet there are instructions left 
+		// to test.
+		// If this assert triggers, there are two identical non-argument instructions in the 
 		// instruction list.
 		template< typename instructions, unsigned long long history>
 		struct make_tree<instructions, -2, history, typename boost::enable_if< mpl::not_< mpl::empty< instructions> > >::type>
@@ -277,11 +290,12 @@ namespace micro_emulator
 
 		public:
 			// feed one instruction. 
-			// this instructin will be dispatched to the right member
+			// this instruction will be dispatched to the right member
 			// function
-			void feed( instruction_type word)
+			static void feed( instruction_type word, impl &implementation)
 			{
-				decode_and_call( word,	*this, call_tag< instruction_tree>());
+				//int x = make_tree<typename instruction_list::instructions, 3, 0>::zeros();
+				decode_and_call( word,	implementation, call_tag< instruction_tree>());
 			}
 	};
 }

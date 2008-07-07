@@ -25,17 +25,27 @@ namespace micro_emulator
 			std::fill_n( memory, memory_size, 0);
 		}
 
+		//
+		// load some data (in 'Range') into rom
+		//
 		template< typename Range>
 		void load( const Range &r, address_t offset = 0)
 		{
 			std::copy( boost::begin(r), boost::end( r), memory + offset);
 		}
 
+		//
+		// retrieve data word
+		//
 		register_t operator()( address_t address) const
 		{
 			return memory[address];
 		}
 
+		//
+		// set a value in the 'rom'
+		// usefull to replace instructions with breakpoints.
+		//
 		void set( address_t address, register_t value)
 		{
 			memory[address] = value;

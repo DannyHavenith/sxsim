@@ -44,7 +44,7 @@ namespace arithmetic_with_flags
 
 		flagged operator=( register_t data)
 		{
-			set( Z, !(data_ = data));
+			set( Z,  0 == (data_ = data));
 			return *this;
 		}
 
