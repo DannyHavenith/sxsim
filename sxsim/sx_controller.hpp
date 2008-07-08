@@ -12,6 +12,30 @@
 
 namespace micro_emulator
 {
+	namespace // unnamed
+	{
+		//
+		// very dedicated function to translate option register values 
+		// to rtcc prescaler values.
+		unsigned short quick_pow2( unsigned char val)
+		{
+			switch (val)
+			{
+			case 0: return 2; // actually pow2( val + 1)...
+			case 1: return 4;
+			case 2: return 8;
+			case 3: return 16;
+			case 4: return 32;
+			case 5: return 64;
+			case 6: return 128;
+			case 7: return 256;
+			default:
+				throw std::logic_error( "unexpected value for quick_pow2");
+				break;
+			};
+		}
+	}
+
 	using arithmetic_with_flags::flagged;
 	using binary_numbers::as_binary;
 
@@ -62,7 +86,11 @@ namespace micro_emulator
 			flags( ram( sx_ram::STATUS)),
 			in_interrupt(false),
 			sleeping( false),
-			nop_delay( 0)
+			nop_delay( 0),
+			enable_rtcc_interrupt(false),
+			rtcc_on_cycle( false),
+			rtcc_prescale( 256),
+			rtcc_prescale_counter( 256)
 		{
 			set_pc( 0x7ff);
 		}
@@ -107,6 +135,28 @@ namespace micro_emulator
 		const sx_rom &get_rom() const
 		{
 			return rom;
+		}
+		
+		const sx_ram &get_ram() const
+		{
+			return ram;
+		}
+
+		bool get_rtcc_on_cycle()
+		{
+			return rtcc_on_cycle;
+		}
+
+		void do_rtcc()
+		{
+			if (!(--rtcc_prescale_counter))
+			{
+				rtcc_prescale_counter = rtcc_prescale;
+				if (++ram( sx_ram::RTCC) == 0 && enable_rtcc_interrupt)
+				{
+					do_interrupt();
+				}
+			}
 		}
 
 		void  add_w_fr(int arg_register)
@@ -338,7 +388,26 @@ namespace micro_emulator
 
 		void  mov_special_rx_w(int arg_cregister)
 		{
-			port_options[arg_cregister][m] = w;
+			switch (arg_cregister)
+			{
+			case 2:
+				port_options[arg_cregister][0] = w;
+				set_option( w);
+				break;
+			case 3: 
+				sleep();
+				break;
+			case 4:
+				clear_wdt();
+				break;
+			case 0:
+			case 1:
+			case 5:
+			case 6:
+			case 7:
+				port_options[arg_cregister][m] = w;
+				break;
+			};
 		}
 
 		void  xor_w_lit(int arg_lit8)
@@ -376,7 +445,7 @@ namespace micro_emulator
 			set_pc( return_address);
 			// put bits 9-11 of the PC into bits 5-7 of status
 			const address_t status_mask = as_binary< 11100000>();
-			flags = (flags & ~status_mask) | ( (return_address >> 2) & status_mask);
+			flags = (flags & ~status_mask) | ( (return_address >> 4) & status_mask);
 			set_nop_delay( 3);
 		}
 
@@ -388,7 +457,10 @@ namespace micro_emulator
 			}
 
 			in_interrupt = false;
-			program_counter = interrupt_state.program_counter;
+			set_pc( interrupt_state.program_counter);
+			w = interrupt_state.w;
+			ram( sx_ram::FSR) = interrupt_state.fsr;
+			ram( sx_ram::STATUS) = interrupt_state.status;
 		}
 
 		void  retiw()
@@ -432,11 +504,22 @@ namespace micro_emulator
 			m = arg_lit4;
 		}
 
-		bool do_rtcc()
+		void do_interrupt()
 		{
-			// todo: do rtcc
-			return false;
+			if (!in_interrupt)
+			{
+				in_interrupt = true;
+				interrupt_state.program_counter = program_counter;
+				interrupt_state.w = w;
+				interrupt_state.fsr = ram( sx_ram::FSR);
+				interrupt_state.status = ram( sx_ram::STATUS);
+				ram( sx_ram::STATUS) &= 0x1f; // clear page bits.
+				set_pc(0);
+				set_nop_delay( 3);
+			}
 		}
+
+
 	private:
 
 		typedef sx_ram::register_t register_t;
@@ -444,7 +527,7 @@ namespace micro_emulator
 		typedef std::stack< sx_rom::address_t> stack_t;
 		struct stored_interrupt_state 
 		{
-			register_t program_counter;
+			sx_rom::address_t program_counter;
 			register_t w;
 			register_t status;
 			register_t fsr;
@@ -476,7 +559,6 @@ namespace micro_emulator
 			return (1<<bit);
 		}
 
-
 		//
 		// some instructions take more than one cycle.
 		// set a delay for such instructions
@@ -498,6 +580,28 @@ namespace micro_emulator
 			return value;
 		}
 
+		void clear_wdt()
+		{
+			wdt = 0;
+			// todo: actions on clear wdt
+		}
+
+		void set_option( int value)
+		{
+			// todo: implement bits 7, 
+			enable_rtcc_interrupt = (value & (1<<6)) == 0;
+			rtcc_on_cycle = (value & (1<<5)) == 0;
+			if ((value & (1<<3)) == 0)
+			{
+				rtcc_prescale = quick_pow2( value & 0x07);
+			}
+			else
+			{
+				rtcc_prescale = 1;
+			}
+			rtcc_prescale_counter = rtcc_prescale;
+		}
+
 		void push( address_t value)
 		{
 			stack.push( value);
@@ -512,9 +616,14 @@ namespace micro_emulator
 		bool sleeping;
 		unsigned long nop_delay;
 
+		bool enable_rtcc_interrupt;
+		bool rtcc_on_cycle;
+		short rtcc_prescale;
+		short rtcc_prescale_counter;
+
 		stored_interrupt_state interrupt_state;
 		int program_counter; // program_counter is not a single register.
-		register_t &pc_register;
+		register_t &pc_register; // ...but is reflected in ram...
 		sx_ram ram;
 		sx_rom rom;
 		stack_t stack;
@@ -531,16 +640,16 @@ namespace micro_emulator
 	public:
 		void tick()
 		{
+			//
+			// handle realtime clock, if enabled.
+			if (get_rtcc_on_cycle()) do_rtcc();
+
 			if (!dec_nop_delay())
 			{
 				sx_rom::register_t instruction = get_rom()( inc_pc());
 				instruction_decoder<sx_instruction_list< sx_controller_impl> >::feed( 
 					instruction, *this);
 			}
-
-			//
-			// handle realtime clock, if enabled.
-			do_rtcc();
 		}
 	};
 }

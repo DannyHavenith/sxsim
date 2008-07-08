@@ -73,13 +73,14 @@ struct as_binary_impl :
 {};
 
 template< unsigned long long number>
-struct as_binary: 	
-	mpl::fold< 
+struct as_binary 	
+{
+	typedef typename mpl::fold< 
 		typename to_binary_digits< number>::type,
 		mpl::int_<0>,
 		binary_advance
-	>
-{
+	>::type type;
+
 	static const int value = type::value;
 	operator unsigned int() {return value;}
 };

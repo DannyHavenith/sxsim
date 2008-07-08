@@ -34,17 +34,26 @@ void single_step( const listing_info &listing)
 	try
 	{
 
-		//while (true)
+		unsigned long counter = 50000000;
+		while (counter--)
 		{
-			for (int count = 500000000; count; --count) 
-			{
 				last_known_address = sx.get_pc();
-//				cout << setw(4) << hex << last_known_address << ":" << hex << setw(4) << sx.get_rom()( last_known_address) << ":" << listing.source_lines[ last_known_address] << "\n";
-//				print_decoder::feed( sx.get_rom()( last_known_address), printer);
-//				cout << std::endl;
-
+				// "breakpoint"
+				//if (last_known_address == 0)
+				//{
+			//		cout << "interrupt***";
+		//			cin.get();
+	//			}
+				//cout << setw(4) << hex << last_known_address << ":" << hex << setw(4) << sx.get_rom()( last_known_address) << ":" << listing.source_lines[ last_known_address] << "\n";
+				//print_decoder::feed( sx.get_rom()( last_known_address), printer);
+				//cout << std::endl;
+				//cin.get();
 				sx.tick();
-			}
+			
+				if (last_known_address == 0x0407)
+				{
+					cout << '.' << char(sx.get_ram()( 0x12));
+				}
 		}
 	}
 	catch (const recoverable_error &e)
@@ -98,14 +107,6 @@ int main(int argc, char* argv[])
 	listing_info listing = ParseListingFile( listfile);
 	
 	single_step( listing);
-
-
-//	typedef list::instruction< list::word< 000000000, list::port_>, &impl::mov_special_rx_w> mov;
-
-//	print_bits<mov>();
-
-
-//	cout << decoder::has_at<3, 0>::apply<mov>::type::value << endl;
 
 	cout << "press enter>" << endl;
 	cin.get();

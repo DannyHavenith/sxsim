@@ -292,10 +292,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
 				RelativePath=".\sx_controller.hpp"
 				>
 			</File>

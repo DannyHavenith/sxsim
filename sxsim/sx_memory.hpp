@@ -103,6 +103,11 @@ namespace micro_emulator
 			return cell( address);
 		}
 
+		const register_t &operator()( address_t address) const
+		{
+			return cell( address);
+		}
+
 	private:
 		register_t &cell( address_t address)
 		{
