@@ -28,7 +28,7 @@ namespace micro_emulator
 		struct lit8_ 		:	masked_argument< 011111111> {};
 		struct addr8_ 		:	masked_argument< 011111111> {};
 		struct addr9_ 		:	masked_argument< 111111111> {};
-		struct port_		:	masked_argument< 000000111> {};
+		struct port_		:	masked_argument< 000001111> {};
 		
 		typedef instruction_list< implementation> base;
 		typedef typename base::impl impl;
@@ -62,8 +62,8 @@ namespace micro_emulator
 		typedef mpl::vector<
 			base::instruction< base::word< 000000010, lit3_>,		&impl::page>,
 			base::instruction< base::word< 000000011, lit3_>,		&impl::bank>,
-			base::instruction< base::word< 000000000, port_>,		&impl::mov_special_rx_w>,
-			base::instruction< base::word< 00000101 , lit4_>,		&impl::mov_m_lit>,
+			base::instruction< base::word< 00000000,  port_>,		&impl::mov_special_rx_w>,
+			base::instruction< base::word< 00000101,  lit4_>,		&impl::mov_m_lit>,
 			base::instruction< base::word< 0001110, register_>,		&impl::add_w_fr>,
 			base::instruction< base::word< 0001111, register_>,		&impl::add_fr_w>,
 			base::instruction< base::word< 0001010, register_>,		&impl::and_w_fr>,
