@@ -6,13 +6,19 @@
 
 struct listing_info
 {
+	struct line
+	{
+		std::string line;
+		std::string 
+	}
 	listing_info()
 	{
 		std::fill( instructions, instructions + rom_size, 0x0fff);
 	}
 
 	static const size_t rom_size = 4 * 1024;
-	std::string source_lines[ rom_size];
+	int rom_to_textline[ rom_size];
+
 	unsigned short instructions[rom_size];
 };
 
