@@ -34,25 +34,16 @@ void single_step( const listing_info &listing)
 	try
 	{
 
-		unsigned long counter = 50000000;
+		unsigned long counter = 5000000;
 		while (counter--)
 		{
 				last_known_address = sx.get_pc();
-				// "breakpoint"
-				//if (last_known_address == 0)
-				//{
-			//		cout << "interrupt***";
-		//			cin.get();
-	//			}
 				//cout << setw(4) << hex << last_known_address << ":" << hex << setw(4) << sx.get_rom()( last_known_address) << ":" << listing.source_lines[ last_known_address] << "\n";
-				//print_decoder::feed( sx.get_rom()( last_known_address), printer);
-				//cout << std::endl;
-				//cin.get();
 				sx.tick();
 			
 				if (last_known_address == 0x0407)
 				{
-					cout << '.' << char(sx.get_ram()( 0x12));
+					cout << '.' << char(sx.get_ram().get_absolute( 0x50));
 				}
 		}
 	}
