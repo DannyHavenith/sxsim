@@ -23,7 +23,7 @@ listing_info ParseListingFile( std::istream &listing)
 	listing_info result;
 	string buffer;
 	
-	const sregex e = repeat<8>( _) >> (s1 = repeat<4>( xdigit)) >> +_s >> ( s2 = repeat<4>( xdigit)) >> !(repeat<6>( _s) >> ( s3 = *_));
+	const sregex e = repeat<8>( _) >> (s1 = repeat<4>( xdigit)) >> +_s >> ( s2 = repeat<4>( xdigit)) >> !(+_s >> ( s3 = repeat<4>( xdigit))) >> !(+_s >> ( s4 = repeat<4>( xdigit))) >> !(+_s >> ( s5 = repeat<4>( xdigit))) >> !(repeat<6>( _s) >> ( s6 = *_));
 	smatch match;
 	string last_source;
 	while (getline( listing, buffer))
@@ -31,16 +31,18 @@ listing_info ParseListingFile( std::istream &listing)
 		if (!buffer.empty() && regex_match( buffer, match, e))
 		{
 			unsigned short address = hex_to_int( match[1]);
-			unsigned short instruction = hex_to_int( match[2]);
-			result.instructions[ address] = instruction;
-			if (match[3])
+			if (match[6])
 			{
-				result.source_lines[ address] = match[3];
-				last_source = match[3];
+				last_source = match[6];
 			}
-			else
+			int n = 2;
+			while (n<6 && match[n])
 			{
+				unsigned short instruction = hex_to_int( match[n]);
+				result.instructions[ address] = instruction;
 				result.source_lines[ address] = last_source;
+				++address;
+				++n;
 			}
 		}
 	}
