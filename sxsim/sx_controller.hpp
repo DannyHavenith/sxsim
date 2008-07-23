@@ -93,6 +93,7 @@ namespace micro_emulator
 			rtcc_prescale_counter( 256)
 		{
 			set_pc( 0x7ff);
+			ram( sx_ram::STATUS) = 0;
 		}
 
 		template< typename Range>

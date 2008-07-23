@@ -36,6 +36,8 @@
 #include "wx/aui/aui.h"
 #include "wx/docview.h"
 #include "wx/docmdi.h"
+#include "wx/log.h"
+
 #include "sxgoui.xpm"
 #include "play.xpm"
 #include "stop.xpm"
@@ -109,7 +111,7 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 
 	controls_toolbar->AddTool(101, wxT("stop"), wxBitmap( stop_xpm));
 	controls_toolbar->AddTool(101, wxT("pause"), wxBitmap( pause_xpm));
-	controls_toolbar->AddTool(101, wxT("step"), wxBitmap( step_xpm));
+	controls_toolbar->AddTool(ID_SingleStep, wxT("step"), wxBitmap( step_xpm));
 	controls_toolbar->AddTool(101, wxT("play"), wxBitmap( play_xpm));
 	controls_toolbar->Realize();
 
@@ -117,7 +119,10 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 		Name(wxT("controls_toolbar")).Caption(wxT("Control Toolbar")).
 		ToolbarPane().Top().Row(1).
 		LeftDockable(true).RightDockable(true));
-    m_mgr.AddPane(new sxgo_listing_window( this, wxID_ANY, wxDefaultPosition, wxSize(400,300)), wxAuiPaneInfo().Name(wxT("text_content")));
+    m_mgr.AddPane(	new wxTextCtrl(this, wxID_ANY, "This will contain the register list",
+                          wxDefaultPosition, wxSize(400,300),  wxNO_BORDER | wxTE_MULTILINE), 
+					wxAuiPaneInfo().Name(wxT("text_content"))
+				);
 
 	// make some default perspectives
 	wxString perspective_all = m_mgr.SavePerspective();

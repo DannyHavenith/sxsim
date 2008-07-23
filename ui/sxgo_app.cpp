@@ -62,7 +62,7 @@ bool MyApp::OnInit()
 	m_docManager = new wxDocManager;
 	//// Create a template relating drawing documents to their views
 	(void) new wxDocTemplate((wxDocManager *) m_docManager, _T("sx listing"), _T("*.lst"), _T(""), _T("lst"), _T("Drawing Doc"), _T("Drawing View"),
-		CLASSINFO(TextEditDocument), CLASSINFO(sxgo_view));
+		CLASSINFO(sxgo_document), CLASSINFO(sxgo_view));
 
 	frame = new MyFrame((wxDocManager *) m_docManager, (wxFrame *) NULL,
 		_T("DocView Demo"), wxPoint(0, 0), wxSize(500, 400),

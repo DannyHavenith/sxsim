@@ -3,9 +3,14 @@
 
 #include "sxgo_app.hpp"
 #include "sxgo_view.hpp"
+#include "sxgo_doc.hpp"
 #include "sxgo_listing_window.hpp"
 
 IMPLEMENT_DYNAMIC_CLASS(sxgo_view, wxView)
+
+BEGIN_EVENT_TABLE(sxgo_view, wxView)
+	EVT_MENU(ID_SingleStep, sxgo_view::SingleStep)
+END_EVENT_TABLE()
 
 bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 {
@@ -46,3 +51,15 @@ bool sxgo_view::OnClose(bool deleteWindow)
 	return true;
 }
 
+void sxgo_view::SingleStep(wxCommandEvent& WXUNUSED(event))
+{
+	sxgo_document *doc = (sxgo_document *)GetDocument();
+	unsigned short address = doc->SingleStep();
+	textsw->JumpToAddress( address);
+}
+
+void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)
+{
+	sxgo_document *doc = (sxgo_document *)GetDocument();
+	textsw->SetListing( doc->GetListing());
+}

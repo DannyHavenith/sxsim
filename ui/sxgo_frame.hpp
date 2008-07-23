@@ -1,15 +1,9 @@
 #include "wx/aui/aui.h"
+#include "sxgo_event_definitions.hpp"
 
 class wxMenu;
-class MyFrame : public wxDocMDIParentFrame
+class MyFrame : public wxDocMDIParentFrame , public sxgo_event_definitions
 {
-	enum
-	{
-		ID_CreateTree = wxID_HIGHEST+1,
-		ID_CreatePerspective,
-		ID_CopyPerspectiveCode,
-		ID_FirstPerspective = ID_CreateTree+1000
-	};
 
 public:
 	MyFrame(wxDocManager *manager, wxFrame *frame, const wxString& title, const wxPoint& pos, const wxSize& size,

@@ -10,7 +10,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::xpressive;
 
-unsigned short hex_to_int(string str)
+unsigned short hex_to_int(const string &str)
 {
 	unsigned short num;
 	istringstream i(str);
@@ -22,8 +22,19 @@ listing_info ParseListingFile( std::istream &listing)
 {
 	listing_info result;
 	string buffer;
-	
-	const sregex e = repeat<8>( _) >> (s1 = repeat<4>( xdigit)) >> +_s >> ( s2 = repeat<4>( xdigit)) >> !(+_s >> ( s3 = repeat<4>( xdigit))) >> !(+_s >> ( s4 = repeat<4>( xdigit))) >> !(+_s >> ( s5 = repeat<4>( xdigit))) >> !(repeat<6>( _s) >> ( s6 = *_));
+
+	//
+	// regular expressions that matches lines of the form:
+	// linenr hex-address hex-codes assembly-source
+	const sregex e = 
+				repeat<8>( _)						// ignore first 8 characters (linenumers)
+			>>	(s1 = repeat<4>( xdigit)) >> +_s	// hex address
+			>>  (	s2 = repeat<4>( xdigit))		// hex assembly code
+			>> !(+_s >> ( s3 = repeat<4>( xdigit))) // optionally, more assembly codes (DW directive)
+			>> !(+_s >> ( s4 = repeat<4>( xdigit))) 
+			>> !(+_s >> ( s5 = repeat<4>( xdigit))) 
+			>> !(repeat<6>( _s) >> ( s6 = *_))		// source code line.
+			>> *_;									// eat anything that's left (newlines, etc)
 	smatch match;
 	int last_source = 0;
 	int current_source = 0;
@@ -34,7 +45,7 @@ listing_info ParseListingFile( std::istream &listing)
 			unsigned short address = hex_to_int( match[1]);
 			if (match[6])
 			{
-				result.source_lines[ address] = current_source;
+				result.address_to_line[ address] = current_source;
 				last_source = current_source;
 			}
 			int n = 2;
@@ -42,11 +53,12 @@ listing_info ParseListingFile( std::istream &listing)
 			{
 				unsigned short instruction = hex_to_int( match[n]);
 				result.instructions[ address] = instruction;
-				result.source_lines[ address] = last_source;
+				result.address_to_line[ address] = last_source;
 				++address;
 				++n;
 			}
 		}
+		result.lines.push_back( buffer);
 		++current_source;
 	}
 

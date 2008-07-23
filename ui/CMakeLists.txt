@@ -26,4 +26,6 @@
 
 # Make sure the linker can find the sxsim library once it is built.
 link_directories (${sxgo_BINARY_DIR}/sxsim)
+include_directories( ${sxgo_SOURCE_DIR}/sxsim)
+
 target_link_libraries (sxgoui sxsim)
