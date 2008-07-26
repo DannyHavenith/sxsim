@@ -30,12 +30,22 @@ bool sx_simulator::load_rom( const unsigned short (&instructions)[4096])
 	return true; 
 }
 
+void sx_simulator::set_breakpoint( address_type address, bool do_set)
+{
+	if (do_set)
+	{
+		emulator->set_breakpoint( address);
+	}
+	else
+	{
+		emulator->remove_breakpoint( address);
+	}
+		
+}
+
 unsigned short sx_simulator::run( unsigned long tick_count)
 {
-	while (tick_count--)
-	{
-			emulator->tick();
-	}
+	emulator->tick( tick_count);
 	return emulator->get_pc();
 }
 

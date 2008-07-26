@@ -47,9 +47,10 @@
 #include "sxgo_frame.hpp"
 #include "sxgo_app.hpp"
 #include "sxgo_listing_window.hpp"
+#include "sxgo_ram_window.hpp"
 
 
-
+MyFrame *MyFrame::main_frame = 0;
 
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
@@ -66,6 +67,7 @@ MyFrame::MyFrame(wxDocManager *manager, wxFrame *frame, const wxString& title,
 const wxPoint& pos, const wxSize& size, long type):
 wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFrame"))
 {
+	main_frame = this;
 	// tell wxAuiManager to manage this frame
 	m_mgr.SetManagedWindow(this);
 
@@ -112,16 +114,16 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	controls_toolbar->AddTool(101, wxT("stop"), wxBitmap( stop_xpm));
 	controls_toolbar->AddTool(101, wxT("pause"), wxBitmap( pause_xpm));
 	controls_toolbar->AddTool(ID_SingleStep, wxT("step"), wxBitmap( step_xpm));
-	controls_toolbar->AddTool(101, wxT("play"), wxBitmap( play_xpm));
+	controls_toolbar->AddTool(ID_Run, wxT("play"), wxBitmap( play_xpm));
 	controls_toolbar->Realize();
 
 	m_mgr.AddPane(controls_toolbar, wxAuiPaneInfo().
 		Name(wxT("controls_toolbar")).Caption(wxT("Control Toolbar")).
 		ToolbarPane().Top().Row(1).
 		LeftDockable(true).RightDockable(true));
-    m_mgr.AddPane(	new wxTextCtrl(this, wxID_ANY, "This will contain the register list",
-                          wxDefaultPosition, wxSize(400,300),  wxNO_BORDER | wxTE_MULTILINE), 
-					wxAuiPaneInfo().Name(wxT("text_content"))
+	m_ram_window = new sxgo_ram_window(this); 
+    m_mgr.AddPane(	m_ram_window, 
+					wxAuiPaneInfo().Name(wxT("ram window"))
 				);
 
 	// make some default perspectives
@@ -129,6 +131,11 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 
 	// "commit" all changes made to wxAuiManager
 	m_mgr.Update();
+}
+
+void MyFrame::UpdateAll( const sx_simulator::state &state)
+{
+	m_ram_window->Update( state);
 }
 
 MyFrame::~MyFrame()

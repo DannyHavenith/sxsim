@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 MESSAGE( "just checking")
 project(sxgo)
-
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREAD ON)
 FIND_PACKAGE( Boost 1.34.0 COMPONENTS mpl)

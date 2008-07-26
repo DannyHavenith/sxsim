@@ -92,27 +92,20 @@ namespace micro_emulator
 			rtcc_prescale( 256),
 			rtcc_prescale_counter( 256)
 		{
+			reset();
+		}
+
+		void reset()
+		{
 			set_pc( 0x7ff);
-			ram( sx_ram::STATUS) = 0;
+			ram( sx_ram::STATUS) = 0x0f;
+			m = 0x0f;
 		}
 
 		template< typename Range>
 		void load_rom( const Range &r, sx_rom::address_t offset = 0)
 		{
 			rom.load( r, offset);
-		}
-
-
-		unsigned long dec_nop_delay()
-		{
-			if (nop_delay)
-			{
-				return nop_delay--;
-			}
-			else
-			{
-				return nop_delay;
-			}
 		}
 
 		void set_pc( address_t new_pc)
@@ -131,6 +124,12 @@ namespace micro_emulator
 			address_t ret = program_counter++;
 			update_pc();
 			return ret;
+		}
+
+		void dec_pc()
+		{
+			--program_counter;
+			update_pc();
 		}
 
 		const sx_rom &get_rom() const
@@ -189,7 +188,6 @@ namespace micro_emulator
 		{
 			MEM &= ~bitmask(bit);
 		}
-
 
 		void  setb_fr_bit(int arg_register, int bit)
 		{
@@ -521,10 +519,29 @@ namespace micro_emulator
 		}
 
 
+	protected:
+		typedef unsigned long time_counter_t;
+
+		time_counter_t dec_nop_delay()
+		{
+			if (nop_delay)
+			{
+				return nop_delay--;
+			}
+			else
+			{
+				return nop_delay;
+			}
+		}
+
+		void reset_nop_delay()
+		{
+			nop_delay = 0;
+		}
+
 	private:
 
 		typedef sx_ram::register_t register_t;
-		typedef unsigned long time_counter_t;
 		typedef std::stack< sx_rom::address_t> stack_t;
 		struct stored_interrupt_state 
 		{
@@ -638,19 +655,85 @@ namespace micro_emulator
 				  >
 				> decoder_t;
 
+		static const sx_rom::register_t BREAKPOINT = 0x4f;
+		sx_rom shadow_rom;
+
+
 	public:
-		void tick()
+
+		template< typename Range>
+		void load_rom( const Range &r, sx_rom::address_t offset = 0)
+		{
+			sx_controller_impl::load_rom( r, offset);
+			shadow_rom.load( r, offset);
+		}
+
+		void set_breakpoint( address_t address)
+		{
+			shadow_rom.set( address, BREAKPOINT);
+		}
+
+		void remove_breakpoint( address_t address)
+		{
+			shadow_rom.set( address, get_rom()( address));
+		}
+
+		size_t tick()
 		{
 			//
 			// handle realtime clock, if enabled.
 			if (get_rtcc_on_cycle()) do_rtcc();
 
-			if (!dec_nop_delay())
+			reset_nop_delay();
+			sx_rom::register_t instruction = get_rom()( inc_pc());
+			decoder_t::feed( 
+				instruction, *this);
+
+			return 0;
+		}
+
+		//
+		// there are a few subtle differences between 'tick' and 'ticks'.
+		// The former always executes an instructon, whereas 'ticks' may break on 
+		// breakpoints.
+		// That is also why this function retrieves instructions from the shadow rom, 
+		// which may contain breakpoints.
+		//
+		size_t tick( size_t count)
+		{
+			// first instruction is always executed
+			if (count)
 			{
-				sx_rom::register_t instruction = get_rom()( inc_pc());
-				instruction_decoder<sx_instruction_list< sx_controller_impl> >::feed( 
-					instruction, *this);
+				tick();
+				--count;
 			}
+
+			// other instructions may be breakpoints.
+			while (count--)
+			{
+
+				//
+				// handle realtime clock, if enabled.
+				if (get_rtcc_on_cycle()) do_rtcc();
+
+
+
+				if (!dec_nop_delay())
+				{
+					sx_rom::register_t instruction = shadow_rom( inc_pc());
+					if (instruction == BREAKPOINT)
+					{
+						dec_pc();
+						break;
+					}
+
+					decoder_t::feed( 
+							instruction, *this
+						);
+				}
+			}
+
+			return count;
 		}
 	};
 }

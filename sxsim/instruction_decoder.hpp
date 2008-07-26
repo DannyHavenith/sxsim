@@ -57,6 +57,34 @@ namespace micro_emulator
 		template< class T>
 		struct call_tag {};
 
+		/* I only temporarily needed these to find bit-patterns that are not valid, or "official" instructions
+		/* which I used to define a 'breakpoint' instruction.
+		template< typename T>
+		static void report( int history, int last_bit, T*);
+
+		template< int bit, typename on_zero, typename on_one>
+		static void report( int history, int last_bit, decide_node< bit, on_zero, on_one> * )
+		{
+			if (bit != last_bit -1)
+			{
+				std::cout << "hole: " << history << " bits: " << last_bit - 1 << " to " << bit << std::endl;
+			}
+			report( history * 10, bit, (on_zero *)0);
+			report( history * 10 + 1, bit, (on_one*)0);
+		}
+
+		template< typename T>
+		static void report( int , int, call_node< T> *)
+		{
+		};
+
+
+		static void report()
+		{
+			report( 0, 12, (instruction_tree*)0);
+		}
+		*/
+
 		template< int bit, typename on_zero, typename on_one>
 		static void decode_and_call( 
 			instruction_type word, 

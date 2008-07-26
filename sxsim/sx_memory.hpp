@@ -59,7 +59,6 @@ namespace micro_emulator
 	{
 	public:
 		sx_ram()
-			:bank_(0)
 		{
 		}
 
@@ -82,9 +81,6 @@ namespace micro_emulator
 
 		void set_bank( register_t bank)
 		{
-			// set both FSR (for correctness) and
-			// the bank_ member (for speed)
-			bank_ = bank * 32;
 			memory[FSR] = (memory[FSR] & 0x1f) | (bank << 5);
 		}
 
@@ -113,16 +109,33 @@ namespace micro_emulator
 			return cell( address);
 		}
 
+		register_t get_internal( address_t address) const
+		{
+			return memory[address];
+		}
+
+		register_t get_absolute( address_t address) const
+		{
+			return memory[ absolute_to_internal( address)]; 
+		}
+
+		
 	private:
+
+		static address_t absolute_to_internal( address_t maddress) 
+		{
+			return (maddress&0x10)?maddress:(maddress & 0x0f);
+		}
+
 		register_t &cell( address_t address)
 		{
 			if (address == 0)
 			{
-				return memory[ memory[FSR]];
+				return memory[ absolute_to_internal(memory[FSR])];
 			}
 			else
 			{
-				return memory[ address + ((address & 0x10)?bank_:0)];
+				return memory[ address + ((address & 0x10)?(0xe0 & memory[FSR]):0)];
 			}
 		}
 
@@ -134,13 +147,11 @@ namespace micro_emulator
 			}
 			else
 			{
-				return memory[ address + ((address & 0x10)?bank_:0)];
+				return memory[ address + ((address & 0x10)?(0xe0 & memory[FSR]):0)];
 			}
 		}
 
-		int bank_;
 		register_t memory[ memory_size];
-
 	};
 
 }

@@ -65,7 +65,7 @@ bool MyApp::OnInit()
 		CLASSINFO(sxgo_document), CLASSINFO(sxgo_view));
 
 	frame = new MyFrame((wxDocManager *) m_docManager, (wxFrame *) NULL,
-		_T("DocView Demo"), wxPoint(0, 0), wxSize(500, 400),
+		_T("sxgo!"), wxPoint(0, 0), wxSize(500, 400),
 		wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 	SetTopWindow(frame);

@@ -26,11 +26,26 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 
 void sxgo_listing_window::JumpToAddress( unsigned short address)
 {
-	int line = listing.address_to_line[address];
+	int line = listing.GetLine(address);
 	MakeCellVisible( line, 1);
 	SetCellBackgroundColour( current_line, 1, *wxWHITE);
 	SetCellBackgroundColour( line, 1, *wxGREEN);
 	current_line = line;
 	::wxLogStatus( "At address %d, line %d", (int)address, (int) line);
 	Refresh();
+}
+
+bool sxgo_listing_window::ToggleBreakpoint( int line)
+{
+	wxString val = GetCellValue( line, 0);
+	if (val.empty())
+	{
+		val = "X";
+	}
+	else
+	{
+		val.clear();
+	}
+	SetCellValue( line, 0, val);
+	return !val.empty();
 }

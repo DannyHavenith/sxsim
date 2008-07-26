@@ -3,9 +3,9 @@
 
 #include "wx/docview.h"
 #include "listing_parser.hpp"
+#include "sx_simulator.hpp"
 #include <boost/scoped_ptr.hpp>
 
-class sx_simulator;
 class wxString;
 
 class sxgo_document: public wxDocument
@@ -17,6 +17,9 @@ public:
 	virtual wxInputStream& LoadObject(wxInputStream& stream);
 	listing_info GetListing() const;
 	unsigned short SingleStep();
+	unsigned short Run( unsigned long count);
+	void SetBreakpoint( unsigned short address, bool do_set = true);
+	sx_simulator::state GetState() const;
 
 private:
 	listing_info listing;

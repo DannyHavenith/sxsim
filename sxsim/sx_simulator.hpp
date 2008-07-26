@@ -34,6 +34,7 @@ public:
 	unsigned short run( unsigned long tick_count);
 	const state get_state() const;
 	void set_state( const state &new_state);
+	void set_breakpoint( address_type address, bool do_set = true);
 	void reset();
 private:
 	micro_emulator::sx_controller *emulator;

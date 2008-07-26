@@ -18,7 +18,7 @@ unsigned short hex_to_int(const string &str)
 	return num;
 }
 
-listing_info ParseListingFile( std::istream &listing)
+listing_info ParseListingFile( istream &listing)
 {
 	listing_info result;
 	string buffer;
@@ -33,8 +33,17 @@ listing_info ParseListingFile( std::istream &listing)
 			>> !(+_s >> ( s3 = repeat<4>( xdigit))) // optionally, more assembly codes (DW directive)
 			>> !(+_s >> ( s4 = repeat<4>( xdigit))) 
 			>> !(+_s >> ( s5 = repeat<4>( xdigit))) 
-			>> !(repeat<6>( _s) >> ( s6 = *_))		// source code line.
+			>> !(repeat<6>( _) >> ( s6 = *_))		// source code line.
 			>> *_;									// eat anything that's left (newlines, etc)
+
+	// regular expression that finds DS directives (and their address)
+	const sregex ds = 
+				repeat<8>( _)						// ignore first 8 characters (linenumers)
+			>>  ('=' >> (s1 = +_d))
+			>>  +_s >> ( s2 = +(~_s))
+			>>  +_s >> icase("ds")
+			>>  *_;
+
 	smatch match;
 	int last_source = 0;
 	int current_source = 0;
@@ -42,22 +51,30 @@ listing_info ParseListingFile( std::istream &listing)
 	{
 		if (!buffer.empty() && regex_match( buffer, match, e))
 		{
-			unsigned short address = hex_to_int( match[1]);
-			if (match[6])
+			if (match[1])
 			{
+				unsigned short address = hex_to_int( match[1]);
 				result.address_to_line[ address] = current_source;
 				last_source = current_source;
-			}
-			int n = 2;
-			while (n<6 && match[n])
-			{
-				unsigned short instruction = hex_to_int( match[n]);
-				result.instructions[ address] = instruction;
-				result.address_to_line[ address] = last_source;
-				++address;
-				++n;
+
+				int n = 2;
+				while (n<6 && match[n])
+				{
+					unsigned short instruction = hex_to_int( match[n]);
+					result.instructions[ address] = instruction;
+					result.address_to_line[ address] = last_source;
+					++address;
+					++n;
+				}
 			}
 		}
+
+		// if we find a data label (DS directive) add it to the info.
+		if ( regex_match( buffer, match, ds))
+		{
+			result.data_labels[ match[2]]= lexical_cast< unsigned short>( string( match[1]));
+		}
+
 		result.lines.push_back( buffer);
 		++current_source;
 	}

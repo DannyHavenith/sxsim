@@ -39,3 +39,18 @@ unsigned short sxgo_document::SingleStep()
 {
 	return simulator_ptr->run( 1);
 }
+
+unsigned short sxgo_document::Run( unsigned long count)
+{
+	return simulator_ptr->run( count);
+}
+
+void sxgo_document::SetBreakpoint( unsigned short address, bool do_set) 
+{
+	simulator_ptr->set_breakpoint( address, do_set);
+}
+
+sx_simulator::state sxgo_document::GetState() const
+{
+	return simulator_ptr->get_state();
+};

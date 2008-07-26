@@ -109,7 +109,7 @@ namespace arithmetic_with_flags
 
 		flagged &test()
 		{
-			set( Z, data_);
+			set( Z, data_ == 0);
 
 			return *this;
 		}

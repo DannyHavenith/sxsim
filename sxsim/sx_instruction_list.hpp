@@ -33,6 +33,12 @@ namespace micro_emulator
 		typedef instruction_list< implementation> base;
 		typedef typename base::impl impl;
 
+		/*
+		hole: 1 bits: 2 to 1
+		000000001Xzz
+		hole: 100 bits: 3 to 1
+		00000100XXzz
+		*/
 		typedef mpl::vector<
 // some instructions are aliases for special cases of more general instructions.
 //			base::instruction< base::word< 111111111111>,			&impl::not_w>  // is xor_w_lit (%11111111)
@@ -51,6 +57,9 @@ namespace micro_emulator
 			base::instruction< base::word< 000001000010>,			&impl::mov_w_m>,
 			base::instruction< base::word< 000001000011>,			&impl::mov_m_w>,
 			base::instruction< base::word< 000001000000>,			&impl::clr_w>,
+
+			// special instruction, not an SX instruction: break at this point.
+
 			base::instruction< base::word< 000000001100>,			&impl::ret>,
 			base::instruction< base::word< 000000001101>,			&impl::retp>,
 			base::instruction< base::word< 000000001110>,			&impl::reti>,
