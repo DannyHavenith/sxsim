@@ -51,16 +51,12 @@ unsigned short sx_simulator::run( unsigned long tick_count)
 
 void sx_simulator::reset()
 {
-	// TODO: emulator->reset
-	emulator->set_pc( 0x7ff);
+	emulator->reset();
 }
 
-const sx_simulator::state sx_simulator::get_state() const
+sx_simulator::state sx_simulator::get_state() const
 {
-	// TODO: more state
-	state s;
-	s.ram = emulator->get_ram();
-	return s;
+	return emulator->get_state();
 }
 
 void sx_simulator::set_state( const sx_simulator::state &new_state)

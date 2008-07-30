@@ -48,6 +48,8 @@
 #include "sxgo_app.hpp"
 #include "sxgo_listing_window.hpp"
 #include "sxgo_ram_window.hpp"
+#include "sxgo_variables_window.hpp"
+#include "sxgo_doc.hpp"
 
 
 MyFrame *MyFrame::main_frame = 0;
@@ -124,6 +126,13 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	m_ram_window = new sxgo_ram_window(this); 
     m_mgr.AddPane(	m_ram_window, 
 					wxAuiPaneInfo().Name(wxT("ram window"))
+					.MinSize( m_ram_window->GetMinSize())
+				);
+
+	m_variables_window = new sxgo_variables_window(this); 
+    m_mgr.AddPane(	m_variables_window, 
+					wxAuiPaneInfo().Name(wxT("variables window"))
+					.MinSize( m_ram_window->GetMinSize())
 				);
 
 	// make some default perspectives
@@ -133,9 +142,10 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	m_mgr.Update();
 }
 
-void MyFrame::UpdateAll( const sx_simulator::state &state)
+void MyFrame::UpdateAll( const sxgo_document &doc)
 {
-	m_ram_window->Update( state);
+	m_ram_window->Update( doc.GetState());
+	m_variables_window->Update( doc);
 }
 
 MyFrame::~MyFrame()

@@ -20,7 +20,7 @@ public:
 		EnableGridLines( false);
 	}
 
-	void JumpToAddress( unsigned short address);
+	void JumpToLine( unsigned short address);
 	void SetListing( const listing_info &listing);
 	bool ToggleBreakpoint( int line);
 private:

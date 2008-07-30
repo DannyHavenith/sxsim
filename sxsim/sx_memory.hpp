@@ -94,11 +94,6 @@ namespace micro_emulator
 			return cell( address);
 		}
 
-		register_t get_absolute( address_t address) const
-		{
-			return memory[address];
-		}
-
 		register_t &operator()( address_t address)
 		{
 			return cell( address);

@@ -24,14 +24,12 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 	SetColSize( 0, 16);
 }
 
-void sxgo_listing_window::JumpToAddress( unsigned short address)
+void sxgo_listing_window::JumpToLine( unsigned short line)
 {
-	int line = listing.GetLine(address);
 	MakeCellVisible( line, 1);
 	SetCellBackgroundColour( current_line, 1, *wxWHITE);
 	SetCellBackgroundColour( line, 1, *wxGREEN);
 	current_line = line;
-	::wxLogStatus( "At address %d, line %d", (int)address, (int) line);
 	Refresh();
 }
 

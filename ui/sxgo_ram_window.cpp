@@ -19,7 +19,6 @@ sxgo_ram_window::sxgo_ram_window(
 	const wxString& name)
 	:wxGrid( parent, id, pos, size, style, name)
 { 
-	SetMinSize( wxSize( 20 * 9, 16 * 17));
 	static const char *rowlabels[] = 
 	{ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
@@ -41,6 +40,7 @@ sxgo_ram_window::sxgo_ram_window(
 		SetColSize( count, 20);
 		SetColLabelValue( count, collabels[count]);
 	}
+	SetMinSize( wxSize( 20 * 11, 16 * 17));
 	ForceRefresh();
 }
 

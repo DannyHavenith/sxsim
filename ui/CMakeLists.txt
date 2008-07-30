@@ -12,6 +12,7 @@
 	sxgo_app.cpp
 	sxgo_doc.cpp
 	sxgo_ram_window.cpp
+	sxgo_variables_window.cpp
 	
 	sxgo_doc.hpp
 	sxgo_view.hpp 
@@ -19,6 +20,7 @@
 	sxgo_frame.hpp
 	sxgo_listing_window.hpp
 	sxgo_ram_window.hpp
+	sxgo_variables_window.hpp
 	)
    TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES})
  ELSE(wxWidgets_FOUND)

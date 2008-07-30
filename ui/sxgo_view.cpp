@@ -71,19 +71,22 @@ void sxgo_view::SingleStep(wxCommandEvent& WXUNUSED(event))
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
 	unsigned short address = doc->SingleStep();
-	textsw->JumpToAddress( address);
-	MyFrame::GetMainFrame()->UpdateAll( doc->GetState());
+	int line = doc->GetListing().GetLine(address);
+	textsw->JumpToLine( line);
+
+	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
 void sxgo_view::Run(wxCommandEvent& WXUNUSED(event))
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
 
-	// run one milion cycles
+	// run one milion cycles, about 1s.
 	unsigned short address = doc->Run( 1000000);
+	int line = doc->GetListing().GetLine(address);
+	textsw->JumpToLine( line);
 
-	textsw->JumpToAddress( address);
-	MyFrame::GetMainFrame()->UpdateAll( doc->GetState());
+	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
 void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)

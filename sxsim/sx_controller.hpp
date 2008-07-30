@@ -9,6 +9,7 @@
 
 #include "arithmetic_with_flags.hpp"
 #include "sx_memory.hpp"
+#include "sx_state.hpp"
 
 namespace micro_emulator
 {
@@ -100,6 +101,17 @@ namespace micro_emulator
 			set_pc( 0x7ff);
 			ram( sx_ram::STATUS) = 0x0f;
 			m = 0x0f;
+		}
+
+
+		sx_state get_state() const
+		{
+			sx_state s;
+			s.ram = ram;
+			s.w = w;
+			s.m = m;
+			s.in_interrupt = in_interrupt;
+			return s;
 		}
 
 		template< typename Range>

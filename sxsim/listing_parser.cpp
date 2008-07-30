@@ -18,6 +18,7 @@ unsigned short hex_to_int(const string &str)
 	return num;
 }
 
+
 listing_info ParseListingFile( istream &listing)
 {
 	listing_info result;
@@ -39,7 +40,7 @@ listing_info ParseListingFile( istream &listing)
 	// regular expression that finds DS directives (and their address)
 	const sregex ds = 
 				repeat<8>( _)						// ignore first 8 characters (linenumers)
-			>>  ('=' >> (s1 = +_d))
+			>>  ('=' >> (s1 = +xdigit))
 			>>  +_s >> ( s2 = +(~_s))
 			>>  +_s >> icase("ds")
 			>>  *_;
@@ -72,7 +73,7 @@ listing_info ParseListingFile( istream &listing)
 		// if we find a data label (DS directive) add it to the info.
 		if ( regex_match( buffer, match, ds))
 		{
-			result.data_labels[ match[2]]= lexical_cast< unsigned short>( string( match[1]));
+			result.data_labels[ match[2]]= hex_to_int( string( match[1]));
 		}
 
 		result.lines.push_back( buffer);
