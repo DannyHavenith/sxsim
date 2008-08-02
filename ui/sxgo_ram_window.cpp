@@ -64,7 +64,7 @@ void sxgo_ram_window::Update(const sx_simulator::state &state)
 		}
 	}
 
-	int bank = state.ram( micro_emulator::sx_ram::FSR)>>5;
+	int bank = state.ram( sx_emulator::sx_ram::FSR)>>5;
 
 	SetColLabelValue( 0, lower_labels[bank]);
 	for (int row = 0; row < 16; ++row)

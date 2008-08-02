@@ -113,8 +113,8 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 		wxTB_FLAT | wxTB_NODIVIDER);
 	controls_toolbar->SetToolBitmapSize(wxSize(16,16));
 
-	controls_toolbar->AddTool(101, wxT("stop"), wxBitmap( stop_xpm));
-	controls_toolbar->AddTool(101, wxT("pause"), wxBitmap( pause_xpm));
+	//controls_toolbar->AddTool(101, wxT("stop"), wxBitmap( stop_xpm));
+	controls_toolbar->AddTool(ID_Pause, wxT("pause"), wxBitmap( pause_xpm));
 	controls_toolbar->AddTool(ID_SingleStep, wxT("step"), wxBitmap( step_xpm));
 	controls_toolbar->AddTool(ID_Run, wxT("play"), wxBitmap( play_xpm));
 	controls_toolbar->Realize();

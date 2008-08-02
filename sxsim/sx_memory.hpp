@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <boost/range.hpp>
 
-namespace micro_emulator 
+namespace sx_emulator 
 {
 
 	class sx_rom

@@ -1,9 +1,11 @@
  PROJECT(sxgoui)
  
  SET(wxWidgets_USE_LIBS aui html adv core xml base tiff jpeg png zlib regex expat)
+ 
  FIND_PACKAGE(wxWidgets)
  IF(wxWidgets_FOUND)
    INCLUDE(${wxWidgets_USE_FILE})
+ 
  
    ADD_EXECUTABLE(sxgoui WIN32 
 	sxgo_frame.cpp 
@@ -23,6 +25,10 @@
 	sxgo_variables_window.hpp
 	)
    TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES})
+   INSTALL(TARGETS sxgoui
+   RUNTIME
+   DESTINATION bin)
+
  ELSE(wxWidgets_FOUND)
    # For convenience. When we cannot continue, inform the user
    MESSAGE("wxWidgets not found!")

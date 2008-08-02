@@ -11,7 +11,7 @@
 
 sx_simulator::sx_simulator()
 {
-	emulator = new micro_emulator::sx_controller();
+	emulator = new sx_emulator::sx_controller();
 }
 
 sx_simulator::~sx_simulator()
@@ -43,10 +43,9 @@ void sx_simulator::set_breakpoint( address_type address, bool do_set)
 		
 }
 
-unsigned short sx_simulator::run( unsigned long tick_count)
+unsigned long sx_simulator::run( unsigned long tick_count)
 {
-	emulator->tick( tick_count);
-	return emulator->get_pc();
+	return emulator->tick( tick_count);
 }
 
 void sx_simulator::reset()

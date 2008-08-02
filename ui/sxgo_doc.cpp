@@ -40,7 +40,7 @@ unsigned short sxgo_document::SingleStep()
 	return simulator_ptr->run( 1);
 }
 
-unsigned short sxgo_document::Run( unsigned long count)
+unsigned long sxgo_document::Run( unsigned long count)
 {
 	return simulator_ptr->run( count);
 }

@@ -11,7 +11,7 @@
 #include "sx_memory.hpp"
 #include "sx_state.hpp"
 
-namespace micro_emulator
+namespace sx_emulator
 {
 	namespace // unnamed
 	{
@@ -111,6 +111,8 @@ namespace micro_emulator
 			s.w = w;
 			s.m = m;
 			s.in_interrupt = in_interrupt;
+			s.pc = get_pc();
+
 			return s;
 		}
 
@@ -148,7 +150,7 @@ namespace micro_emulator
 		{
 			return rom;
 		}
-		
+
 		const sx_ram &get_ram() const
 		{
 			return ram;
@@ -661,11 +663,11 @@ namespace micro_emulator
 
 	class sx_controller : public sx_controller_impl
 	{
-		typedef instruction_decoder<
-				  sx_instruction_list< 
-					sx_controller_impl
-				  >
-				> decoder_t;
+		typedef micro_emulator::instruction_decoder<
+			micro_emulator::sx_instruction_list< 
+			sx_emulator::sx_controller_impl
+			>
+		> decoder_t;
 
 		static const sx_rom::register_t BREAKPOINT = 0x4f;
 		sx_rom shadow_rom;
@@ -717,31 +719,30 @@ namespace micro_emulator
 			if (count)
 			{
 				tick();
-				--count;
-			}
 
-			// other instructions may be breakpoints.
-			while (count--)
-			{
-
-				//
-				// handle realtime clock, if enabled.
-				if (get_rtcc_on_cycle()) do_rtcc();
-
-
-
-				if (!dec_nop_delay())
+				// other instructions may be breakpoints.
+				while (--count)
 				{
-					sx_rom::register_t instruction = shadow_rom( inc_pc());
-					if (instruction == BREAKPOINT)
-					{
-						dec_pc();
-						break;
-					}
 
-					decoder_t::feed( 
+					//
+					// handle realtime clock, if enabled.
+					if (get_rtcc_on_cycle()) do_rtcc();
+
+
+
+					if (!dec_nop_delay())
+					{
+						sx_rom::register_t instruction = shadow_rom( inc_pc());
+						if (instruction == BREAKPOINT)
+						{
+							dec_pc();
+							break;
+						}
+
+						decoder_t::feed( 
 							instruction, *this
-						);
+							);
+					}
 				}
 			}
 

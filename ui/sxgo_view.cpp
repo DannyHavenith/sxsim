@@ -11,8 +11,10 @@
 IMPLEMENT_DYNAMIC_CLASS(sxgo_view, wxView)
 
 BEGIN_EVENT_TABLE(sxgo_view, wxView)
+	EVT_IDLE(sxgo_view::OnIdle) 
 	EVT_MENU(ID_SingleStep, sxgo_view::SingleStep)
 	EVT_MENU(ID_Run, sxgo_view::Run)
+	EVT_MENU(ID_Pause, sxgo_view::Pause)
 	EVT_GRID_CELL_LEFT_DCLICK( sxgo_view::DoubleClick)
 END_EVENT_TABLE()
 
@@ -70,22 +72,50 @@ bool sxgo_view::OnClose(bool deleteWindow)
 void sxgo_view::SingleStep(wxCommandEvent& WXUNUSED(event))
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
-	unsigned short address = doc->SingleStep();
+	doc->SingleStep();
+	unsigned short address = doc->GetState().pc;
 	int line = doc->GetListing().GetLine(address);
 	textsw->JumpToLine( line);
+
+	running = false;
 
 	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
-void sxgo_view::Run(wxCommandEvent& WXUNUSED(event))
+void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
+{
+	running = false;
+}
+
+void sxgo_view::Run(wxCommandEvent& event)
+{
+	running = true;
+	wxWakeUpIdle();
+	RunSome();
+}
+
+void sxgo_view::OnIdle(wxIdleEvent& event)
+{
+	if (running)
+	{
+		RunSome();
+		event.RequestMore();
+	}
+}
+
+void sxgo_view::RunSome()
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
+	unsigned long run_count = 100000;
 
-	// run one milion cycles, about 1s.
-	unsigned short address = doc->Run( 1000000);
+	if (doc->Run( run_count) != 0)
+	{
+		running = false;
+	}
+
+	unsigned short address = doc->GetState().pc;
 	int line = doc->GetListing().GetLine(address);
 	textsw->JumpToLine( line);
-
 	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
@@ -93,4 +123,6 @@ void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
 	textsw->SetListing( doc->GetListing());
+	textsw->SetFont( wxFont( 9, wxFONTFAMILY_MODERN,
+		wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ));
 }

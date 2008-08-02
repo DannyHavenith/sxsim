@@ -50,6 +50,9 @@ listing_info ParseListingFile( istream &listing)
 	int current_source = 0;
 	while (getline( listing, buffer))
 	{
+		// if we find a regular line with assembly code,
+		// add the code to the 'instructions' array and relate the address
+		// to the current line in the listing.
 		if (!buffer.empty() && regex_match( buffer, match, e))
 		{
 			if (match[1])
@@ -73,7 +76,7 @@ listing_info ParseListingFile( istream &listing)
 		// if we find a data label (DS directive) add it to the info.
 		if ( regex_match( buffer, match, ds))
 		{
-			result.data_labels[ match[2]]= hex_to_int( string( match[1]));
+			result.data_labels[ match[2]]= hex_to_int( match[1]);
 		}
 
 		result.lines.push_back( buffer);

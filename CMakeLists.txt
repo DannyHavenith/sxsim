@@ -17,3 +17,13 @@ ENDIF (Boost_FOUND)
 add_subdirectory (sxsim)
 add_subdirectory (ui)
 
+
+set(CPACK_PACKAGE_NAME "MyLib")
+ set(CPACK_PACKAGE_VENDOR "CMake.org")
+ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MyLib - CPack Component Installation Example")
+ set(CPACK_PACKAGE_VERSION "1.0.0")
+ set(CPACK_PACKAGE_VERSION_MAJOR "1")
+ set(CPACK_PACKAGE_VERSION_MINOR "0")
+ set(CPACK_PACKAGE_VERSION_PATCH "0")
+ set(CPACK_PACKAGE_INSTALL_DIRECTORY "CPack Component Example")
+include( cpack)

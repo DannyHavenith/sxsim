@@ -17,5 +17,6 @@ add_library(
 	sx_nop.hpp
 	sx_print.hpp
 	sx_simulator.hpp
+	sx_state.hpp
 	targetver.h
 	)
