@@ -5,6 +5,7 @@ class wxMenu;
 class sxgo_ram_window;
 class sxgo_variables_window;
 class sxgo_document;
+class sxgo_label_window;
 
 class MyFrame : public wxDocMDIParentFrame , public sxgo_event_definitions
 {
@@ -45,7 +46,7 @@ private:
 	wxMenu* m_perspectives_menu;
 	sxgo_ram_window *m_ram_window;
 	sxgo_variables_window *m_variables_window;
-
+	sxgo_label_window *m_label_window;
 	DECLARE_EVENT_TABLE()
 };
 

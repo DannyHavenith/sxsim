@@ -49,6 +49,7 @@
 #include "sxgo_listing_window.hpp"
 #include "sxgo_ram_window.hpp"
 #include "sxgo_variables_window.hpp"
+#include "sxgo_label_window.hpp"
 #include "sxgo_doc.hpp"
 
 
@@ -123,6 +124,7 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 		Name(wxT("controls_toolbar")).Caption(wxT("Control Toolbar")).
 		ToolbarPane().Top().Row(1).
 		LeftDockable(true).RightDockable(true));
+
 	m_ram_window = new sxgo_ram_window(this); 
     m_mgr.AddPane(	m_ram_window, 
 					wxAuiPaneInfo().Name(wxT("ram window"))
@@ -133,6 +135,12 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
     m_mgr.AddPane(	m_variables_window, 
 					wxAuiPaneInfo().Name(wxT("variables window"))
 					.MinSize( m_ram_window->GetMinSize())
+				);
+
+	m_label_window = new sxgo_label_window(this); 
+    m_mgr.AddPane(	m_label_window, 
+					wxAuiPaneInfo().Right().Name(wxT("labels window"))
+					.MinSize( m_label_window->GetMinSize())
 				);
 
 	// make some default perspectives
@@ -146,6 +154,7 @@ void MyFrame::UpdateAll( const sxgo_document &doc)
 {
 	m_ram_window->Update( doc.GetState());
 	m_variables_window->Update( doc);
+	m_label_window->Update( &doc);
 }
 
 MyFrame::~MyFrame()

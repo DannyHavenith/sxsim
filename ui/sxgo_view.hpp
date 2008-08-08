@@ -8,6 +8,7 @@ class	wxDocument;
 class	wxDC;
 class	wxObject;
 class wxGridEvent;
+class wxTreeEvent;
 class sxgo_document;
 
 class sxgo_view: public wxView, public sxgo_event_definitions
@@ -26,6 +27,8 @@ public:
 	void Pause(wxCommandEvent& event);
 	void DoubleClick( wxGridEvent& event);
 	void OnIdle(wxIdleEvent& event);
+	void LabelActivated(wxTreeEvent& event);
+	void sxgo_view::ShowLine(wxCommandEvent & event);
 
 private:
 

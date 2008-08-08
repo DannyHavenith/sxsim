@@ -15,6 +15,7 @@
 	sxgo_doc.cpp
 	sxgo_ram_window.cpp
 	sxgo_variables_window.cpp
+	sxgo_label_window.cpp
 	
 	sxgo_doc.hpp
 	sxgo_view.hpp 
@@ -23,11 +24,22 @@
 	sxgo_listing_window.hpp
 	sxgo_ram_window.hpp
 	sxgo_variables_window.hpp
+	sxgo_label_window.hpp
 	)
    TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES})
-   INSTALL(TARGETS sxgoui
-   RUNTIME
-   DESTINATION bin)
+
+   INSTALL(TARGETS 
+		sxgoui
+	RUNTIME
+	DESTINATION bin)
+	
+   INSTALL( FILES
+            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/msvcm90.dll"
+            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/msvcp90.dll"
+            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/msvcr90.dll"
+            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/Microsoft.VC90.CRT.manifest"
+        DESTINATION bin
+	)   
 
  ELSE(wxWidgets_FOUND)
    # For convenience. When we cannot continue, inform the user

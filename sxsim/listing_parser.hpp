@@ -58,10 +58,20 @@ struct listing_info
 	}
 
 	static const size_t rom_size = 4 * 1024;
-	typedef std::map< std::string, unsigned short> label_container_type;
+	typedef std::map< std::string, int> label_container_type;
 	struct major_rom_label 
 	{
-		unsigned short addres;
+		major_rom_label()
+			:line(0)
+		{
+		}
+
+		explicit major_rom_label( int line_)
+			:line( line_)
+		{
+		}
+
+		int line;
 		label_container_type minor_labels;
 	};
 	typedef std::map< std::string, major_rom_label> jumplabel_container_type;

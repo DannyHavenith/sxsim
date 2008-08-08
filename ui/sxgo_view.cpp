@@ -7,6 +7,7 @@
 #include "sxgo_doc.hpp"
 #include "sxgo_frame.hpp"
 #include "sxgo_listing_window.hpp"
+#include "sxgo_label_window.hpp"
 
 IMPLEMENT_DYNAMIC_CLASS(sxgo_view, wxView)
 
@@ -16,7 +17,18 @@ BEGIN_EVENT_TABLE(sxgo_view, wxView)
 	EVT_MENU(ID_Run, sxgo_view::Run)
 	EVT_MENU(ID_Pause, sxgo_view::Pause)
 	EVT_GRID_CELL_LEFT_DCLICK( sxgo_view::DoubleClick)
+	EVT_COMMAND(wxID_ANY, EVT_JUMPTO_LABEL_LINE, sxgo_view::ShowLine)
 END_EVENT_TABLE()
+
+//
+// someone doubleclicked on a label in the
+// label window.
+//
+void sxgo_view::ShowLine(wxCommandEvent & event)
+{
+	int line = event.GetInt();
+	textsw->ShowLine( line);
+}
 
 void sxgo_view::DoubleClick( wxGridEvent &event)
 {
@@ -37,7 +49,7 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 	
 	int width, height;
 	frame->GetClientSize(&width, &height);
-	textsw = new sxgo_listing_window( frame, wxID_ANY, wxPoint(0,0), wxSize( width, height));
+	textsw = new sxgo_listing_window( frame, wxID_ANY);//, wxPoint(0,0), wxSize( width, height));
 	
 	frame->SetTitle(doc->GetTitle());
 

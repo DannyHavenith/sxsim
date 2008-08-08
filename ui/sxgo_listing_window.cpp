@@ -1,6 +1,7 @@
 #include "sxgo_listing_window.hpp"
 #include "listing_parser.hpp"
 #include "wx/log.h"
+
 void sxgo_listing_window::SetListing( const listing_info &listing_)
 {
 	listing = listing_;
@@ -22,6 +23,12 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 	InitColWidths();
 	AutoSizeColumn( 1);
 	SetColSize( 0, 16);
+}
+
+void sxgo_listing_window::ShowLine( unsigned short line)
+{
+	MakeCellVisible( line, 1);
+	SelectBlock( line, 1, line, 1);
 }
 
 void sxgo_listing_window::JumpToLine( unsigned short line)
