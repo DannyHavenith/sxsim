@@ -27,18 +27,18 @@ listing_info ParseListingFile( istream &listing)
 	//
 	// regular expressions that matches lines of the form:
 	// linenr hex-address hex-codes assembly-source
-	const sregex e = 
+	const sregex e =
 		repeat<8>( _)						// ignore first 8 characters (linenumers)
 		>>	(s1 = repeat<4>( xdigit)) >> +_s	// hex address
 		>>  (	s2 = repeat<4>( xdigit))		// hex assembly code
 		>> !(+_s >> ( s3 = repeat<4>( xdigit))) // optionally, more assembly codes (DW directive)
-		>> !(+_s >> ( s4 = repeat<4>( xdigit))) 
-		>> !(+_s >> ( s5 = repeat<4>( xdigit))) 
+		>> !(+_s >> ( s4 = repeat<4>( xdigit)))
+		>> !(+_s >> ( s5 = repeat<4>( xdigit)))
 		>> !(repeat<6>( _) >> ( s6 = *_))		// source code line.
 		>> *_;									// eat anything that's left (newlines, etc)
 
 	// regular expression that finds DS directives (and their address)
-	const sregex ds = 
+	const sregex ds =
 		repeat<8>( _)						// ignore first 8 characters (linenumers)
 		>>  ('=' >> (s1 = +xdigit))
 		>>  +_s >> ( s2 = +(~_s))
@@ -47,7 +47,7 @@ listing_info ParseListingFile( istream &listing)
 
 	const sregex labels =
 		repeat<24>( _)
-		>>	!( s1 = as_xpr(':')) 
+		>>	!( s1 = as_xpr(':'))
 		>> (s2 = +(~(xpressive::set = ';', ' ', '\t', '\n', '\r')))
 		>> *_s
 		>> ( s3 = *_);
@@ -58,12 +58,12 @@ listing_info ParseListingFile( istream &listing)
 		icase( as_xpr( "equ") | "ds"|"macro"|"dw"|"=")
 		>> *_;
 
-	const sregex ignored_labels = 
+	const sregex ignored_labels =
 			repeat<4>( xdigit)
 		|	icase(
-					as_xpr("ifdef") 
+					as_xpr("ifdef")
 				|	"ifndef"
-				|	"endif" 
+				|	"endif"
 				|	"else"
 			);
 
