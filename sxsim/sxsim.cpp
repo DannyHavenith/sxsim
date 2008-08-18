@@ -16,7 +16,7 @@
 
 using namespace micro_emulator;
 using namespace std;
-
+using namespace boost;
 typedef sx_nop impl;
 typedef sx_instruction_list< sx_nop> list;
 typedef instruction_decoder< list> decoder;
@@ -40,7 +40,7 @@ void single_step( const listing_info &listing)
 				last_known_address = sx.get_pc();
 				//cout << setw(4) << hex << last_known_address << ":" << hex << setw(4) << sx.get_rom()( last_known_address) << ":" << listing.source_lines[ last_known_address] << "\n";
 				sx.tick();
-			
+
 				if (last_known_address == 0x0407)
 				{
 					cout << '.' << char(sx.get_ram().get_absolute( 0x50));
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 	}
 
 	listing_info listing = ParseListingFile( listfile);
-	
+
 	single_step( listing);
 
 	cout << "press enter>" << endl;

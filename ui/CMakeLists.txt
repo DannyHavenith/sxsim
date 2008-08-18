@@ -1,10 +1,16 @@
  PROJECT(sxgoui)
  
  SET(wxWidgets_USE_LIBS aui html adv core xml base tiff jpeg png zlib regex expat)
- 
  FIND_PACKAGE(wxWidgets)
+ 
  IF(wxWidgets_FOUND)
    INCLUDE(${wxWidgets_USE_FILE})
+ ELSE(wxWidgets_FOUND)
+   # For convenience. When we cannot continue, inform the user
+   MESSAGE("wxWidgets not found! Using manual configuration")
+   include_directories( wxWidgets_INCLUDE_DIR)
+   link_directories( wxWidgets_LIB_DIR)
+ ENDIF(wxWidgets_FOUND)
  
  
    ADD_EXECUTABLE(sxgoui WIN32 
@@ -40,11 +46,6 @@
             "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/Microsoft.VC90.CRT.manifest"
         DESTINATION bin
 	)   
-
- ELSE(wxWidgets_FOUND)
-   # For convenience. When we cannot continue, inform the user
-   MESSAGE("wxWidgets not found!")
- ENDIF(wxWidgets_FOUND)
 
 # Make sure the linker can find the sxsim library once it is built.
 link_directories (${sxgo_BINARY_DIR}/sxsim)

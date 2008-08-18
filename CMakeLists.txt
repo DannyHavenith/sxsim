@@ -1,20 +1,21 @@
 cmake_minimum_required(VERSION 2.6)
 include( configure.cmake)
 
-MESSAGE( "just checking")
+MESSAGE( "BOOST:" ${Boost_ROOT_DIR} )
 project(sxgo)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
 SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREAD ON)
 FIND_PACKAGE( Boost 1.35.0 COMPONENTS mpl)
 
 IF (Boost_FOUND)
-include_directories( Boost_INCLUDE_DIRS)
-MESSAGE( "Boost found")
+    include_directories( Boost_INCLUDE_DIRS)
+    MESSAGE( "Boost found")
 ELSE (Boost_FOUND)
-MESSAGE( "could not find boost")
-include_directories( "h:/no_backup/boost_src/boost_svn_head/")
-include_directories( "C:/Program Files/boost/boost_1_35_0")
+    MESSAGE( "could not find boost, using manual configuration")
+    include_directories( ${Boost_ROOT_DIR} )
+    link_directories( ${Boost_LIBRARY_DIR})
 ENDIF (Boost_FOUND)
 
 add_subdirectory (sxsim)
