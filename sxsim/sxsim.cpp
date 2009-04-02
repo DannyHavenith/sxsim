@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <stdexcept>
 #include "listing_parser.hpp"
 #include "sx_instruction_list.hpp"
 #include "instruction_decoder.hpp"
@@ -24,7 +25,7 @@ typedef instruction_decoder< list> decoder;
 
 void single_step( const listing_info &listing)
 {
-	sx_controller sx;
+	sx_emulator::sx_controller sx;
 	typedef instruction_decoder< sx_instruction_list< sx_print> > print_decoder;
 
 	sx_print printer;
@@ -47,10 +48,10 @@ void single_step( const listing_info &listing)
 				}
 		}
 	}
-	catch (const recoverable_error &e)
+	catch (const std::exception &e)
 	{
 		cerr << "error on address (" << last_known_address << "):" << e.what() << endl;
-		cerr << "source: " << listing.source_lines[ last_known_address] << endl;
+		cerr << "source: " << listing.GetLine( last_known_address) << endl;
 	}
 
 

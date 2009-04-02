@@ -11,7 +11,7 @@ struct listing_info
 	/* TODO: extend the line information at some time.
 	struct line
 	{
-		line( 
+		line(
 			const std::string &a,
 			const std::string &c,
 			const std::string &s)
@@ -30,7 +30,7 @@ struct listing_info
 		std::fill( address_to_line, address_to_line + rom_size, 0);
 	}
 
-	unsigned short GetNearestAddress( int line)
+	unsigned short GetNearestAddress( int line) const
 	{
 		unsigned short nearest_address = 0;
 		int nearest_line = 0;
@@ -49,7 +49,7 @@ struct listing_info
 		return nearest_address;
 	}
 
-	int GetLine( unsigned short address)
+	int GetLine( unsigned short address) const
 	{
 		// todo: assert.
 		if (address >= rom_size) return 0;
@@ -59,7 +59,7 @@ struct listing_info
 
 	static const size_t rom_size = 4 * 1024;
 	typedef std::map< std::string, int> label_container_type;
-	struct major_rom_label 
+	struct major_rom_label
 	{
 		major_rom_label()
 			:line(0)

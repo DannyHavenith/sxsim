@@ -8,6 +8,7 @@
 #include "sxgo_frame.hpp"
 #include "sxgo_listing_window.hpp"
 #include "sxgo_label_window.hpp"
+#include "sxgo_ram_window.hpp"
 
 IMPLEMENT_DYNAMIC_CLASS(sxgo_view, wxView)
 
@@ -18,6 +19,7 @@ BEGIN_EVENT_TABLE(sxgo_view, wxView)
 	EVT_MENU(ID_Pause, sxgo_view::Pause)
 	EVT_GRID_CELL_LEFT_DCLICK( sxgo_view::DoubleClick)
 	EVT_COMMAND(wxID_ANY, EVT_JUMPTO_LABEL_LINE, sxgo_view::ShowLine)
+	EVT_COMMAND(wxID_ANY, EVT_CHANGE_RAMVALUE, sxgo_view::ChangeRam)
 END_EVENT_TABLE()
 
 //
@@ -28,6 +30,20 @@ void sxgo_view::ShowLine(wxCommandEvent & event)
 {
 	int line = event.GetInt();
 	textsw->ShowLine( line);
+}
+
+//
+// change a ram value 
+//
+void sxgo_view::ChangeRam( wxCommandEvent &event)
+{
+	// still a bit cumbersome: retrieve the state, change one value 
+	// and then push the altered state back.
+	//
+	sx_simulator::state state = SafeGetDocument()->GetState();
+	state.ram.set_absolute( event.GetInt(), event.GetExtraLong());
+	SafeGetDocument()->SetState( state);
+	MyFrame::GetMainFrame()->UpdateAll( *SafeGetDocument());
 }
 
 void sxgo_view::DoubleClick( wxGridEvent &event)
@@ -62,7 +78,6 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 
 	frame->Show(true);
 	Activate(true);
-
 	return true;
 }
 
@@ -99,6 +114,11 @@ void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
 	running = false;
 }
 
+//
+// running the emulator happens during idle time
+// to allow UI updates while running.
+// this function starts idle time processing
+//
 void sxgo_view::Run(wxCommandEvent& event)
 {
 	running = true;
@@ -106,6 +126,10 @@ void sxgo_view::Run(wxCommandEvent& event)
 	RunSome();
 }
 
+//
+// Run for a fraction of a second and request 
+// more idle events.
+//
 void sxgo_view::OnIdle(wxIdleEvent& event)
 {
 	if (running)
@@ -115,10 +139,14 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 	}
 }
 
+//
+// run for a fraction of a second.
+//
 void sxgo_view::RunSome()
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
-	unsigned long run_count = 100000;
+	// 100 000 clockticks should be short enough
+	unsigned long run_count = 100000; 
 
 	if (doc->Run( run_count) != 0)
 	{

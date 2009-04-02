@@ -85,7 +85,7 @@ namespace micro_emulator
 		> i1;
 
 		// the instructions do not need to be sorted on operand size,
-		// I just did this for the aesthetics of it...
+		// I just did this for the esthetics of it...
 		typedef mpl::vector<
 			instruction< word< 000000010, lit3_>,		&impl::page>,
 			instruction< word< 000000011, lit3_>,		&impl::bank>,

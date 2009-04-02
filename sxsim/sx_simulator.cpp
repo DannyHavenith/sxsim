@@ -60,5 +60,6 @@ sx_simulator::state sx_simulator::get_state() const
 
 void sx_simulator::set_state( const sx_simulator::state &new_state)
 {
+	emulator->set_state( new_state);
 }
 

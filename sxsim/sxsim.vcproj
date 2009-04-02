@@ -1,331 +1,328 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding = "Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="sxsim"
-	ProjectGUID="{FA5E1C35-983B-4BCC-B30A-E9E9FDAAE7D7}"
-	RootNamespace="sxsim"
-	Keyword="Win32Proj"
-	TargetFrameworkVersion="196613"
-	>
+	ProjectGUID="{34BB4D61-7EBE-4FCF-B9DB-B1D69046D258}"
+	SccProjectName=""
+	SccLocalPath=""
+	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
-			Name="Win32"
-		/>
+			Name="Win32"/>
 	</Platforms>
-	<ToolFiles>
-	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
+			OutputDirectory="Debug"
+			IntermediateDirectory="sxsim.dir\Debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
-				PreprocessorDefinitions="_SCL_SECURE_NO_WARNINGS"
-				MinimalRebuild="true"
+				AdditionalOptions=" /Zm1000"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
 				BasicRuntimeChecks="3"
+				CompileAs="2"
+				DebugInformationFormat="3"
+				ExceptionHandling="1"
+				InlineFunctionExpansion="0"
+				Optimization="0"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
+				RuntimeTypeInfo="TRUE"
 				WarningLevel="3"
-				DebugInformationFormat="4"
-			/>
+				PreprocessorDefinitions="WIN32,_WINDOWS,_DEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Debug\&quot;"
+				AssemblerListingLocation="Debug"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/Debug/sxsim.pdb"
+/>
 			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
+				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-			/>
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				PreprocessorDefinitions="WIN32,_WINDOWS,_DEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Debug\&quot;"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-			/>
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="WIN32,_WINDOWS,_DEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Debug\&quot;"
+				MkTypLibCompatible="FALSE"
+				TargetEnvironment="1"
+				GenerateStublessProxies="TRUE"
+				TypeLibraryName="$(InputName).tlb"
+				OutputDirectory="$(IntDir)"
+				HeaderFileName="$(InputName).h"
+				DLLDataFileName=""
+				InterfaceIdentifierFileName="$(InputName)_i.c"
+				ProxyFileName="$(InputName)_p.c"/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="2"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
-			/>
+				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCALinkTool"
-			/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
-				Name="VCManifestTool"
-			/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
+				Name="VCLibrarianTool"
+				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\Debug\sxsim.lib"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
+			OutputDirectory="Release"
+			IntermediateDirectory="sxsim.dir\Release"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				AdditionalOptions=" /Zm1000"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				CompileAs="2"
+				ExceptionHandling="1"
 				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="_SCL_SECURE_NO_WARNINGS"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
+				Optimization="2"
+				RuntimeLibrary="2"
+				RuntimeTypeInfo="TRUE"
 				WarningLevel="3"
-				DebugInformationFormat="3"
-			/>
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Release\&quot;"
+				AssemblerListingLocation="Release"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/Release/sxsim.pdb"
+/>
 			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
+				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-			/>
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Release\&quot;"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-			/>
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Release\&quot;"
+				MkTypLibCompatible="FALSE"
+				TargetEnvironment="1"
+				GenerateStublessProxies="TRUE"
+				TypeLibraryName="$(InputName).tlb"
+				OutputDirectory="$(IntDir)"
+				HeaderFileName="$(InputName).h"
+				DLLDataFileName=""
+				InterfaceIdentifierFileName="$(InputName)_i.c"
+				ProxyFileName="$(InputName)_p.c"/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
-			/>
+				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCALinkTool"
-			/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
-				Name="VCManifestTool"
-			/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
+				Name="VCLibrarianTool"
+				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\Release\sxsim.lib"/>
 		</Configuration>
 		<Configuration
-			Name="Debugable Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
+			Name="MinSizeRel|Win32"
+			OutputDirectory="MinSizeRel"
+			IntermediateDirectory="sxsim.dir\MinSizeRel"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="4"
+				AdditionalOptions=" /Zm1000"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				CompileAs="2"
+				ExceptionHandling="1"
 				InlineFunctionExpansion="1"
-				EnableIntrinsicFunctions="false"
-				FavorSizeOrSpeed="0"
-				WholeProgramOptimization="false"
-				PreprocessorDefinitions="_SCL_SECURE_NO_WARNINGS"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
+				Optimization="1"
+				RuntimeLibrary="2"
+				RuntimeTypeInfo="TRUE"
 				WarningLevel="3"
-				DebugInformationFormat="3"
-			/>
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;MinSizeRel\&quot;"
+				AssemblerListingLocation="MinSizeRel"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/MinSizeRel/sxsim.pdb"
+/>
 			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
+				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-			/>
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;MinSizeRel\&quot;"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-			/>
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;MinSizeRel\&quot;"
+				MkTypLibCompatible="FALSE"
+				TargetEnvironment="1"
+				GenerateStublessProxies="TRUE"
+				TypeLibraryName="$(InputName).tlb"
+				OutputDirectory="$(IntDir)"
+				HeaderFileName="$(InputName).h"
+				DLLDataFileName=""
+				InterfaceIdentifierFileName="$(InputName)_i.c"
+				ProxyFileName="$(InputName)_p.c"/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
-			/>
+				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCALinkTool"
-			/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
-				Name="VCManifestTool"
-			/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
-				Name="VCXDCMakeTool"
-			/>
+				Name="VCLibrarianTool"
+				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\MinSizeRel\sxsim.lib"/>
+		</Configuration>
+		<Configuration
+			Name="RelWithDebInfo|Win32"
+			OutputDirectory="RelWithDebInfo"
+			IntermediateDirectory="sxsim.dir\RelWithDebInfo"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
 			<Tool
-				Name="VCBscMakeTool"
-			/>
+				Name="VCCLCompilerTool"
+				AdditionalOptions=" /Zm1000"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				CompileAs="2"
+				DebugInformationFormat="3"
+				ExceptionHandling="1"
+				InlineFunctionExpansion="1"
+				Optimization="2"
+				RuntimeLibrary="2"
+				RuntimeTypeInfo="TRUE"
+				WarningLevel="3"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;RelWithDebInfo\&quot;"
+				AssemblerListingLocation="RelWithDebInfo"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/RelWithDebInfo/sxsim.pdb"
+/>
 			<Tool
-				Name="VCFxCopTool"
-			/>
+				Name="VCCustomBuildTool"/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
+				Name="VCResourceCompilerTool"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;RelWithDebInfo\&quot;"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-			/>
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;RelWithDebInfo\&quot;"
+				MkTypLibCompatible="FALSE"
+				TargetEnvironment="1"
+				GenerateStublessProxies="TRUE"
+				TypeLibraryName="$(InputName).tlb"
+				OutputDirectory="$(IntDir)"
+				HeaderFileName="$(InputName).h"
+				DLLDataFileName=""
+				InterfaceIdentifierFileName="$(InputName)_i.c"
+				ProxyFileName="$(InputName)_p.c"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\RelWithDebInfo\sxsim.lib"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
 	<Files>
+			<File
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+					Name="VCCustomBuildTool"
+					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Outputs="CMakeFiles\generate.stamp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+					Name="VCCustomBuildTool"
+					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Outputs="CMakeFiles\generate.stamp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="MinSizeRel|Win32">
+					<Tool
+					Name="VCCustomBuildTool"
+					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Outputs="CMakeFiles\generate.stamp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="RelWithDebInfo|Win32">
+					<Tool
+					Name="VCCustomBuildTool"
+					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Outputs="CMakeFiles\generate.stamp"/>
+				</FileConfiguration>
+			</File>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
-			>
+			Filter="">
 			<File
-				RelativePath=".\listing_parser.cpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\listing_parser.cpp">
 			</File>
 			<File
-				RelativePath=".\sxsim.cpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_simulator.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
+			Filter="">
 			<File
-				RelativePath=".\arithmetic_with_flags.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\arithmetic_with_flags.hpp">
 			</File>
 			<File
-				RelativePath=".\as_binary.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\as_binary.hpp">
 			</File>
 			<File
-				RelativePath=".\flags.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\flags.hpp">
 			</File>
 			<File
-				RelativePath=".\generic_sx_implementation.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\generic_sx_implementation.hpp">
 			</File>
 			<File
-				RelativePath=".\instruction_decoder.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\instruction_decoder.hpp">
 			</File>
 			<File
-				RelativePath=".\instruction_list.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\instruction_list.hpp">
 			</File>
 			<File
-				RelativePath=".\listing_parser.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\listing_parser.hpp">
 			</File>
 			<File
-				RelativePath=".\sx_controller.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_controller.hpp">
 			</File>
 			<File
-				RelativePath=".\sx_instruction_list.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_instruction_list.hpp">
 			</File>
 			<File
-				RelativePath=".\sx_memory.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_memory.hpp">
 			</File>
 			<File
-				RelativePath=".\sx_nop.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_nop.hpp">
 			</File>
 			<File
-				RelativePath=".\sx_print.hpp"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_print.hpp">
 			</File>
 			<File
-				RelativePath=".\targetver.h"
-				>
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_simulator.hpp">
+			</File>
+			<File
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_state.hpp">
+			</File>
+			<File
+				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\targetver.h">
 			</File>
 		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
-		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

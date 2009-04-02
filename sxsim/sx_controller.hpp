@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <exception>
+#include <stdexcept>
 #include <stack>
 #include <iostream>
 #include <boost/utility.hpp>
@@ -16,7 +17,7 @@ namespace sx_emulator
 	namespace // unnamed
 	{
 		//
-		// very dedicated function to translate option register values 
+		// very dedicated function to translate option register values
 		// to rtcc prescaler values.
 		unsigned short quick_pow2( unsigned char val)
 		{
@@ -112,8 +113,20 @@ namespace sx_emulator
 			s.m = m;
 			s.in_interrupt = in_interrupt;
 			s.pc = get_pc();
+			s.stack = stack;
 
 			return s;
+		}
+
+		void set_state( const sx_state &s)
+		{
+			ram = s.ram;
+			w = s.w;
+			m = s.m;
+			in_interrupt = s.in_interrupt;
+			set_pc( s.pc);
+			stack = s.stack;
+
 		}
 
 		template< typename Range>
@@ -180,6 +193,11 @@ namespace sx_emulator
 
 		void  add_fr_w(int arg_register)
 		{
+			// TODO: find out if wrap-around occurs at page boundaries
+			if (arg_register == sx_ram::PC)
+			{
+				program_counter += w;
+			}
 			flagged( MEM, flags) += w;
 		}
 
@@ -190,7 +208,7 @@ namespace sx_emulator
 
 		void  and_w_fr(int arg_register)
 		{
-			w &= MEM; 
+			w &= MEM;
 		}
 
 		void  and_fr_w(int arg_register)
@@ -276,7 +294,7 @@ namespace sx_emulator
 		void  decsz_fr(int arg_register)
 		{
 			// no flags
-			if (!( --MEM)) 
+			if (!( --MEM))
 			{
 				skip();
 			}
@@ -307,7 +325,7 @@ namespace sx_emulator
 
 		void  incsz_fr(int arg_register)
 		{
-			if (!(++MEM)) 
+			if (!(++MEM))
 			{
 				skip();
 			}
@@ -407,7 +425,7 @@ namespace sx_emulator
 				port_options[arg_cregister][0] = w;
 				set_option( w);
 				break;
-			case 3: 
+			case 3:
 				sleep();
 				break;
 			case 4:
@@ -557,7 +575,7 @@ namespace sx_emulator
 
 		typedef sx_ram::register_t register_t;
 		typedef std::stack< sx_rom::address_t> stack_t;
-		struct stored_interrupt_state 
+		struct stored_interrupt_state
 		{
 			sx_rom::address_t program_counter;
 			register_t w;
@@ -620,7 +638,7 @@ namespace sx_emulator
 
 		void set_option( int value)
 		{
-			// todo: implement bits 7, 
+			// todo: implement bits 7,
 			enable_rtcc_interrupt = (value & (1<<6)) == 0;
 			rtcc_on_cycle = (value & (1<<5)) == 0;
 			if ((value & (1<<3)) == 0)
@@ -664,7 +682,7 @@ namespace sx_emulator
 	class sx_controller : public sx_controller_impl
 	{
 		typedef micro_emulator::instruction_decoder<
-			micro_emulator::sx_instruction_list< 
+			micro_emulator::sx_instruction_list<
 			sx_emulator::sx_controller_impl
 			>
 		> decoder_t;
@@ -700,7 +718,7 @@ namespace sx_emulator
 
 			reset_nop_delay();
 			sx_rom::register_t instruction = get_rom()( inc_pc());
-			decoder_t::feed( 
+			decoder_t::feed(
 				instruction, *this);
 
 			return 0;
@@ -708,9 +726,9 @@ namespace sx_emulator
 
 		//
 		// there are a few subtle differences between 'tick' and 'ticks'.
-		// The former always executes an instructon, whereas 'ticks' may break on 
+		// The former always executes an instructon, whereas 'ticks' may break on
 		// breakpoints.
-		// That is also why this function retrieves instructions from the shadow rom, 
+		// That is also why this function retrieves instructions from the shadow rom,
 		// which may contain breakpoints.
 		//
 		size_t tick( size_t count)
@@ -739,7 +757,7 @@ namespace sx_emulator
 							break;
 						}
 
-						decoder_t::feed( 
+						decoder_t::feed(
 							instruction, *this
 							);
 					}

@@ -28,8 +28,8 @@ public:
 	void DoubleClick( wxGridEvent& event);
 	void OnIdle(wxIdleEvent& event);
 	void LabelActivated(wxTreeEvent& event);
-	void sxgo_view::ShowLine(wxCommandEvent & event);
-
+	void ShowLine(wxCommandEvent & event);
+	void ChangeRam( wxCommandEvent &event);
 private:
 
 	sxgo_document *SafeGetDocument() const

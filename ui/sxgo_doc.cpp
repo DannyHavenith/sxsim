@@ -54,3 +54,8 @@ sx_simulator::state sxgo_document::GetState() const
 {
 	return simulator_ptr->get_state();
 };
+
+void sxgo_document::SetState( const sx_simulator::state &new_state)
+{
+	return simulator_ptr->set_state( new_state);
+};

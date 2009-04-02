@@ -5,13 +5,28 @@
 #include "sxgo_doc.hpp"
 #include <sstream>
 
-namespace 
+namespace
 {
-	std::string ToHex( int value)
+	char DigitToHex( int value)
 	{
-		std::ostringstream i;
-		i << std::hex << value;
-		return i.str();
+		if (value >9)
+		{
+			return 'A' - 10 + value;
+		}
+		else
+		{
+			return '0' + value;
+		}
+	}
+
+	wxString ToHex( int value)
+	{
+		char hex[] = {
+			DigitToHex( value/16),
+			DigitToHex( value %16),
+			0
+		};
+		return wxString( hex,  wxConvUTF8);
 	}
 }
 
@@ -22,14 +37,14 @@ sxgo_variables_window::sxgo_variables_window(
 	long style,
 	const wxString& name)
 	:wxGrid( parent, id, pos, size, style, name)
-{ 
+{
 	SetMinSize( wxSize( 20 * 9, 16 * 17));
 	CreateGrid( 1, 3);
 	SetRowLabelSize(0);
 
-	SetColLabelValue( 0, "name");
-	SetColLabelValue( 1, "address");
-	SetColLabelValue( 2, "value");
+	SetColLabelValue( 0, wxT("name"));
+	SetColLabelValue( 1, wxT("address"));
+	SetColLabelValue( 2, wxT("value"));
 	ForceRefresh();
 }
 
@@ -38,7 +53,7 @@ void sxgo_variables_window::Update(const sxgo_document &doc)
 {
 	const listing_info listing = doc.GetListing();
 	int rowcount = listing.data_labels.size() + 1;
-	
+
 	if (GetNumberRows() > rowcount)
 	{
 		DeleteRows( rowcount, GetNumberRows() - rowcount);
@@ -50,8 +65,8 @@ void sxgo_variables_window::Update(const sxgo_document &doc)
 
 	sx_state s = doc.GetState();
 
-	SetCellValue( 0, 0, "w");
-	SetCellValue( 0, 1, "na");
+	SetCellValue( 0, 0, wxT("w"));
+	SetCellValue( 0, 1, wxT("na"));
 	SetCellValue( 0, 2, ToHex( s.w));
 
 	int row = 1;
@@ -59,7 +74,7 @@ void sxgo_variables_window::Update(const sxgo_document &doc)
 		i != listing.data_labels.end();
 		++i)
 	{
-		SetCellValue( row, 0, i->first);
+		SetCellValue( row, 0, wxString( i->first.c_str(), wxConvUTF8));
 		SetCellValue( row, 1, ToHex( i->second));
 		SetCellValue( row, 2, ToHex( s.ram.get_absolute( i->second)));
 		++row;

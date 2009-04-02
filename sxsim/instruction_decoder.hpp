@@ -25,7 +25,46 @@
 #include <boost/utility/enable_if.hpp>
 namespace micro_emulator
 {
-	//
+
+//
+// the argument harvester takes an instruction word and
+// extracts the operands from it, essentially by masking the
+// instruction word and, if needed, shifting the masked bits.
+//
+// The result is a fusion::tuple with operand values. This tuple
+// can then be used to call a function with fusion::invoke.
+//
+template< typename argument_vector, typename end_recursion = void>
+struct argument_harvester
+{
+    typedef typename mpl::pop_back<argument_vector>::type next_vector;
+    typedef typename boost::fusion::result_of::push_back<
+        const typename argument_harvester< next_vector>::result_type,
+        int
+    >::type  result_type;
+
+    typedef typename mpl::back<argument_vector>::type last_argument;
+
+    static result_type harvest( unsigned int instruction)
+    {
+        return boost::fusion::push_back(
+            argument_harvester<next_vector>::harvest( instruction),
+            static_cast<int>((instruction & last_argument::mask) >> last_argument::mask_shift)
+            );
+    }
+};
+
+template< typename T>
+struct argument_harvester< T, typename boost::enable_if<typename boost::mpl::empty<T>::type >::type >
+{
+    typedef boost::fusion::tuple<> result_type;
+    static result_type harvest( unsigned int )
+    {
+        return result_type();
+    }
+};
+
+//
 	// This is the file with most of the meta-programming in it.
 	// an instruction decoder receives an instruction list.
 	// out of this instruction list, the decoder will create a binary
@@ -38,11 +77,26 @@ namespace micro_emulator
 	namespace fusion = boost::fusion;
 
 	template<typename instruction_list>
-	struct instruction_decoder : public instruction_list::impl
+	struct instruction_decoder
 	{
 
 	//private:
 		typedef int instruction_type;
+		typedef instruction_decoder< instruction_list> this_type;
+		typedef typename instruction_list::impl impl;
+
+
+		template< typename ins>
+		static void dispatch( int code, impl &obj, ins)
+		{
+			boost::fusion::invoke(
+				ins::function_ptr(),
+				boost::fusion::push_front(
+				argument_harvester< typename ins::word::args>::harvest(code),
+				&obj
+				)
+			);
+		}
 
 		// decide nodes are branches of the binary tree.
 		template< int bit, typename on_zero, typename on_one>
@@ -85,6 +139,11 @@ namespace micro_emulator
 		}
 		*/
 
+		//
+		// This function takes an instruction word, a pointer to an implementation and
+		// a decision tree. It will examine the bit indicated by the template argument
+		// 'bit' and based on its value will delegate to either the left- or the right
+		// side of the tree.
 		template< int bit, typename on_zero, typename on_one>
 		static void decode_and_call(
 			instruction_type word,
@@ -101,66 +160,17 @@ namespace micro_emulator
 			}
 		}
 
-		typedef instruction_decoder< instruction_list> this_type;
-		typedef typename instruction_list::impl impl;
 
 		//
-		// the argument harvester takes an instruction word and
-		// extracts the operands from it, essentially by masking the
-		// instruction word and, if needed, shifting the masked bits.
-		//
-		// The result is a fusion::tuple with operand values. This tuple
-		// can then be used to call a function with fusion::invoke.
-		//
-		template< typename argument_vector>
-		struct argument_harvester
-		{
-			typedef typename mpl::pop_back<argument_vector>::type next_vector;
-			typedef typename fusion::result_of::push_back<
-				const typename argument_harvester< next_vector>::result_type,
-				int
-			>::type  result_type;
-
-			typedef typename mpl::back<argument_vector>::type last_argument;
-
-			static result_type harvest( unsigned int instruction)
-			{
-				return fusion::push_back(
-					argument_harvester<next_vector>::harvest( instruction),
-					static_cast<int>((instruction & last_argument::mask) >> last_argument::mask_shift)
-					);
-			}
-		};
-
-		template<>
-		struct argument_harvester< mpl::vector0<> >
-		{
-			typedef fusion::tuple<> result_type;
-			static result_type harvest( unsigned int )
-			{
-				return result_type();
-			}
-		};
-
-		template< typename ins>
-		static void dispatch( int code, impl &obj)
-		{
-			fusion::invoke(
-				ins::function_ptr(),
-				fusion::push_front(
-				argument_harvester< ins::word::args>::harvest(code),
-				&obj
-				)
-			);
-		}
-
+		// If we've arrived at a leaf of the tree, we can call the right member function
+		// of the implementation. The right member function is encoded in the leaf (the call_node)
 		template< class instruction>
 		static void decode_and_call(
 			instruction_type word,
 			typename instruction_list::impl &implementation,
 			const call_tag< call_node< instruction> > &)
 		{
-			dispatch<instruction>( word, implementation);
+			dispatch( word, implementation, instruction());
 		}
 
 		// An instruction word consists of opcode bits and operand
@@ -211,7 +221,7 @@ namespace micro_emulator
 		// meta-function that creates a binary tree out of the instruction
 		// list.
 		//
-		template< typename instructions, int discriminating_bit, unsigned long long history, typename enable = void>
+		template< typename instructions, int discriminating_bit, unsigned long long history, typename enable_mt = void>
 		struct make_tree
 		{
 			// split the instructions into two sets: the ones that have a zero at bit 'discriminating_bit' and the
@@ -228,21 +238,21 @@ namespace micro_emulator
 			// with 101...
 
 			typedef typename mpl::copy_if< instructions, has_at< discriminating_bit, 2>, mpl::front_inserter< mpl::list<> > >::type undefineds;
-			BOOST_MPL_ASSERT(( mpl::empty<undefineds>::type));
+			BOOST_MPL_ASSERT(( typename mpl::empty<undefineds>::type));
 
 			// the general case, were both sets are nonempty means we have to
 			// analyse more bits to find which instruction we have.
 			// this means we enter a 'decide node' at this position.
-			template< typename left, typename right, typename enable = void>
+			template< typename left, typename right, typename enable_mn = void>
 			struct make_node
 			{
-				typedef typename decide_node<
+				typedef  decide_node<
 					discriminating_bit,
 					typename make_tree< left, discriminating_bit - 1, history * 10 >::type,
 					typename make_tree< right, discriminating_bit - 1, 1 + (history * 10)>::type
 					>  type;
 			};
-
+/*
 			//
 			// both sets empty means we started with an empty instruction list
 			// that's an error.
@@ -259,7 +269,7 @@ namespace micro_emulator
 			{
 				BOOST_MPL_ASSERT(( mpl::false_));
 			};
-
+*/
 			//
 			// if one of the sets is empty, this means that we don't have to examine
 			// this bit (the discriminating_bit) to decode the instruction.
@@ -293,7 +303,7 @@ namespace micro_emulator
 		{
 			typedef call_node< typename mpl::front<instructions>::type> type;
 		};
-
+/*
 		// we shouldn't be here, there are no instructions in the set.
 		template< typename instructions, int discriminating_bit, unsigned long long history>
 		struct make_tree<instructions, discriminating_bit, history, typename boost::enable_if< mpl::empty< instructions> >::type>
@@ -306,11 +316,11 @@ namespace micro_emulator
 		// If this assert triggers, there are two identical non-argument instructions in the
 		// instruction list.
 		template< typename instructions, unsigned long long history>
-		struct make_tree<instructions, -2, history, typename boost::enable_if< mpl::not_< mpl::empty< instructions> > >::type>
+		struct make_tree<instructions, -2, history, typename boost::enable_if< typename mpl::not_< mpl::empty< instructions> > >::type>
 		{
 			BOOST_MPL_ASSERT(( mpl::false_));
 		};
-
+*/
 		// make a decision tree. I really should make this '11' a template argument (the number of relevant
 		// instruction bits)
 		typedef typename make_tree< typename instruction_list::instructions, 11, 0>::type instruction_tree;

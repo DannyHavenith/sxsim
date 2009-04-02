@@ -8,7 +8,7 @@ BEGIN_EVENT_TABLE(sxgo_label_window, wxTreeCtrl)
 EVT_TREE_ITEM_ACTIVATED( wxID_ANY, sxgo_label_window::LabelActivated)
 END_EVENT_TABLE()
 
-struct item_data : public wxTreeItemData 
+struct item_data : public wxTreeItemData
 {
 	item_data( int line_)
 		:line( line_)
@@ -51,19 +51,19 @@ void sxgo_label_window::DoUpdate( const sxgo_document *doc)
 	DeleteAllItems();
 	listing_info info = doc->GetListing();
 
-	wxTreeItemId root = AddRoot( "labels");
+	wxTreeItemId root = AddRoot( wxString( "labels", wxConvUTF8));
 	for (
 		listing_info::jumplabel_container_type::const_iterator i = info.jump_labels.begin();
 		i != info.jump_labels.end();
 	++i)
 	{
-		wxTreeItemId id = AppendItem( root, i->first,-1, -1, 
+		wxTreeItemId id = AppendItem( root, wxString( i->first.c_str(),wxConvUTF8),-1, -1,
 			new item_data(i->second.line));
 		for ( listing_info::label_container_type::const_iterator j = i->second.minor_labels.begin();
 			j != i->second.minor_labels.end();
 			++j)
 		{
-			AppendItem( id, j->first, -1, -1, 
+			AppendItem( id, wxString( j->first.c_str(), wxConvUTF8), -1, -1,
 				new item_data( j->second));
 		}
 	}

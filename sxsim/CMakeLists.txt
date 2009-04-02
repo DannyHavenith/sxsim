@@ -20,3 +20,7 @@ add_library(
 	sx_state.hpp
 	targetver.h
 	)
+	
+add_executable( sxsimulator sxsim.cpp)
+
+target_link_libraries( sxsimulator sxsim) 

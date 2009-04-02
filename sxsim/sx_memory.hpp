@@ -114,6 +114,10 @@ namespace sx_emulator
 			return memory[ absolute_to_internal( address)]; 
 		}
 
+		void set_absolute( address_t address, register_t value)
+		{
+			memory[ absolute_to_internal( address)] = value;
+		}
 		
 	private:
 
