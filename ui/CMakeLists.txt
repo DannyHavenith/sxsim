@@ -1,7 +1,7 @@
  PROJECT(sxgoui)
  
- SET(wxWidgets_USE_LIBS aui html adv core xml base tiff jpeg png zlib regex expat)
- FIND_PACKAGE(wxWidgets)
+# SET(wxWidgets_USE_LIBS  base zlib regex expat)
+ FIND_PACKAGE(wxWidgets  REQUIRED base core aui html adv xml)
  
  IF(wxWidgets_FOUND)
    INCLUDE(${wxWidgets_USE_FILE})

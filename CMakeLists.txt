@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
-include( configure.cmake)
+#include( configure.cmake)
 
-MESSAGE( "BOOST:" ${Boost_ROOT_DIR} )
+##MESSAGE( "BOOST:" ${Boost_ROOT_DIR} )
 project(sxgo)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
@@ -9,8 +9,6 @@ SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREAD ON)
 FIND_PACKAGE( Boost 1.35.0 COMPONENTS mpl)
 
-SET(wxWidgets_USE_LIBS base core gl net)
-FIND_PACKAGE(wxWidgets COMPONENTS base core)
 
 IF (Boost_FOUND)
     include_directories( Boost_INCLUDE_DIRS)
