@@ -1,3 +1,5 @@
+#include <sstream>
+#include <boost/timer.hpp>
 #include "wx/docview.h"
 #include "wx/docmdi.h"
 #include "wx/grid.h"
@@ -9,11 +11,12 @@
 #include "sxgo_listing_window.hpp"
 #include "sxgo_label_window.hpp"
 #include "sxgo_ram_window.hpp"
+#include "wx/statusbr.h"
 
 IMPLEMENT_DYNAMIC_CLASS(sxgo_view, wxView)
 
 BEGIN_EVENT_TABLE(sxgo_view, wxView)
-	EVT_IDLE(sxgo_view::OnIdle) 
+	EVT_IDLE(sxgo_view::OnIdle)
 	EVT_MENU(ID_SingleStep, sxgo_view::SingleStep)
 	EVT_MENU(ID_Run, sxgo_view::Run)
 	EVT_MENU(ID_Pause, sxgo_view::Pause)
@@ -33,11 +36,11 @@ void sxgo_view::ShowLine(wxCommandEvent & event)
 }
 
 //
-// change a ram value 
+// change a ram value
 //
 void sxgo_view::ChangeRam( wxCommandEvent &event)
 {
-	// still a bit cumbersome: retrieve the state, change one value 
+	// still a bit cumbersome: retrieve the state, change one value
 	// and then push the altered state back.
 	//
 	sx_simulator::state state = SafeGetDocument()->GetState();
@@ -51,7 +54,7 @@ void sxgo_view::DoubleClick( wxGridEvent &event)
 	if (event.GetCol() == 0)
 	{
 		int line = event.GetRow();
-		unsigned short address = SafeGetDocument()->GetListing().GetNearestAddress( line);	
+		unsigned short address = SafeGetDocument()->GetListing().GetNearestAddress( line);
 		line = SafeGetDocument()->GetListing().GetLine( address);
 		bool set = textsw->ToggleBreakpoint( line);
 		SafeGetDocument()->SetBreakpoint( address, set);
@@ -62,11 +65,11 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 {
 	frame = wxGetApp().CreateChildFrame(doc, this);
 
-	
+
 	int width, height;
 	frame->GetClientSize(&width, &height);
 	textsw = new sxgo_listing_window( frame, wxID_ANY);//, wxPoint(0,0), wxSize( width, height));
-	
+
 	frame->SetTitle(doc->GetTitle());
 
 #ifdef __X__
@@ -121,13 +124,14 @@ void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
 //
 void sxgo_view::Run(wxCommandEvent& event)
 {
-	running = true;
+    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Running"));
+    running = true;
 	wxWakeUpIdle();
 	RunSome();
 }
 
 //
-// Run for a fraction of a second and request 
+// Run for a fraction of a second and request
 // more idle events.
 //
 void sxgo_view::OnIdle(wxIdleEvent& event)
@@ -146,11 +150,20 @@ void sxgo_view::RunSome()
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
 	// 100 000 clockticks should be short enough
-	unsigned long run_count = 100000; 
+	unsigned long run_count = 1000000;
 
+	boost::timer t;
 	if (doc->Run( run_count) != 0)
 	{
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Ready"));
 		running = false;
+	}
+	else
+	{
+	    std::stringstream s;
+	    unsigned long ips = ((double)run_count)/t.elapsed();
+	    s << "Running, " << ips << " instructions per second";
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( s.str()));
 	}
 
 	unsigned short address = doc->GetState().pc;

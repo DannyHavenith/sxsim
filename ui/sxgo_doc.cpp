@@ -14,20 +14,28 @@ bool sxgo_document::OnSaveDocument(const wxString& filename)
 }
 
 wxInputStream& sxgo_document::LoadObject(wxInputStream& stream)
-{ 
-	static const size_t buffer_size = 4096;
-	char buffer[buffer_size];
-	string contents;
-	while (!stream.Read( buffer, buffer_size).Eof())
-	{
-		contents.append( buffer, stream.LastRead());	
-	}
+{
+    static const size_t buffer_size = 4096;
+    char buffer[buffer_size];
+    string contents;
+    while (!stream.Read( buffer, buffer_size).Eof())
+    {
+        contents.append( buffer, stream.LastRead());
+    }
 
-	std::istringstream strm( contents);
-	listing = ParseListingFile( strm);
-	simulator_ptr.reset( new sx_simulator());
-	simulator_ptr->load_rom( listing.instructions);
-	return stream;		
+    std::istringstream strm( contents);
+    listing = ParseListingFile( strm);
+    simulator_ptr.reset( new sx_simulator());
+    simulator_ptr->load_rom( listing.instructions);
+    return stream;
+}
+
+std::istream& sxgo_document::LoadObject(std::istream & stream)
+{
+    listing = ParseListingFile( stream);
+    simulator_ptr.reset( new sx_simulator());
+    simulator_ptr->load_rom( listing.instructions);
+    return stream;
 }
 
 listing_info sxgo_document::GetListing() const
@@ -45,7 +53,7 @@ unsigned long sxgo_document::Run( unsigned long count)
 	return simulator_ptr->run( count);
 }
 
-void sxgo_document::SetBreakpoint( unsigned short address, bool do_set) 
+void sxgo_document::SetBreakpoint( unsigned short address, bool do_set)
 {
 	simulator_ptr->set_breakpoint( address, do_set);
 }

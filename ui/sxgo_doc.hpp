@@ -14,7 +14,12 @@ public:
 	DECLARE_DYNAMIC_CLASS(sxgo_document)
 
 	virtual bool OnSaveDocument(const wxString& filename);
-	virtual wxInputStream& LoadObject(wxInputStream& stream);
+
+	// implement for both wxInputStream and std::istream to deal with
+	// different wxWidgets versions
+    virtual wxInputStream& LoadObject(wxInputStream& stream);
+    virtual std::istream& LoadObject(std::istream& stream);
+
 	listing_info GetListing() const;
 	unsigned short SingleStep();
 	unsigned long Run( unsigned long count);
