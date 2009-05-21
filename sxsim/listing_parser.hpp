@@ -59,6 +59,8 @@ struct listing_info
 
 	static const size_t rom_size = 4 * 1024;
 	typedef std::map< std::string, int> label_container_type;
+	typedef std::pair< std::string, int> rom_label;
+	typedef std::vector< rom_label> rom_label_container_type;
 	struct major_rom_label
 	{
 		major_rom_label()
@@ -66,15 +68,29 @@ struct listing_info
 		{
 		}
 
-		explicit major_rom_label( int line_)
-			:line( line_)
+		major_rom_label( const std::string &name_, int line_)
+			:name( name_), line( line_)
 		{
 		}
 
+		/*
+		major_rom_label( const major_rom_label &rhs)
+			: name( rhs.name), line( rhs.line)
+		{
+		}
+
+		major_rom_label &operator=( const major_rom_label &rhs)
+		{
+			name = rhs.name;
+			line = rhs.line;
+		}
+*/
+		std::string name;
 		int line;
-		label_container_type minor_labels;
+
+		rom_label_container_type minor_labels;
 	};
-	typedef std::map< std::string, major_rom_label> jumplabel_container_type;
+	typedef std::vector< major_rom_label> jumplabel_container_type;
 
 	label_container_type	 data_labels;
 	jumplabel_container_type jump_labels;

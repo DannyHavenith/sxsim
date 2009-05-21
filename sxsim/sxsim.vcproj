@@ -3,9 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="sxsim"
-	ProjectGUID="{34BB4D61-7EBE-4FCF-B9DB-B1D69046D258}"
-	SccProjectName=""
-	SccLocalPath=""
+	ProjectGUID="{A9628B22-639C-4AAF-A0DF-EAAA372F1A01}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -23,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions=" /Zm1000"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				BasicRuntimeChecks="3"
 				CompileAs="2"
 				DebugInformationFormat="3"
@@ -36,13 +34,13 @@
 				PreprocessorDefinitions="WIN32,_WINDOWS,_DEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Debug\&quot;"
 				AssemblerListingLocation="Debug"
 				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/Debug/sxsim.pdb"
+				ProgramDataBaseFileName="D:/Programming/sxsim/sxsim/Debug/sxsim.pdb"
 />
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32,_WINDOWS,_DEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Debug\&quot;"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -64,7 +62,7 @@
 				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\Debug\sxsim.lib"/>
+				OutputFile="D:\Programming\sxsim\sxsim\Debug\sxsim.lib"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -77,7 +75,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions=" /Zm1000"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				CompileAs="2"
 				ExceptionHandling="1"
 				InlineFunctionExpansion="2"
@@ -88,13 +86,13 @@
 				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Release\&quot;"
 				AssemblerListingLocation="Release"
 				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/Release/sxsim.pdb"
+				ProgramDataBaseFileName="D:/Programming/sxsim/sxsim/Release/sxsim.pdb"
 />
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;Release\&quot;"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -116,7 +114,7 @@
 				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\Release\sxsim.lib"/>
+				OutputFile="D:\Programming\sxsim\sxsim\Release\sxsim.lib"/>
 		</Configuration>
 		<Configuration
 			Name="MinSizeRel|Win32"
@@ -129,7 +127,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions=" /Zm1000"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				CompileAs="2"
 				ExceptionHandling="1"
 				InlineFunctionExpansion="1"
@@ -140,13 +138,13 @@
 				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;MinSizeRel\&quot;"
 				AssemblerListingLocation="MinSizeRel"
 				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/MinSizeRel/sxsim.pdb"
+				ProgramDataBaseFileName="D:/Programming/sxsim/sxsim/MinSizeRel/sxsim.pdb"
 />
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;MinSizeRel\&quot;"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -168,7 +166,7 @@
 				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\MinSizeRel\sxsim.lib"/>
+				OutputFile="D:\Programming\sxsim\sxsim\MinSizeRel\sxsim.lib"/>
 		</Configuration>
 		<Configuration
 			Name="RelWithDebInfo|Win32"
@@ -181,7 +179,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions=" /Zm1000"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				CompileAs="2"
 				DebugInformationFormat="3"
 				ExceptionHandling="1"
@@ -193,13 +191,13 @@
 				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;RelWithDebInfo\&quot;"
 				AssemblerListingLocation="RelWithDebInfo"
 				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/RelWithDebInfo/sxsim.pdb"
+				ProgramDataBaseFileName="D:/Programming/sxsim/sxsim/RelWithDebInfo/sxsim.pdb"
 />
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\boost\boost_1_35_0&quot;;"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32,_WINDOWS,NDEBUG,_CRT_SECURE_NO_WARNINGS,CMAKE_INTDIR=\&quot;RelWithDebInfo\&quot;"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -221,46 +219,46 @@
 				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\RelWithDebInfo\sxsim.lib"/>
+				OutputFile="D:\Programming\sxsim\sxsim\RelWithDebInfo\sxsim.lib"/>
 		</Configuration>
 	</Configurations>
 	<Files>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt">
+				RelativePath="D:\Programming\sxsim\sxsim\CMakeLists.txt">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 					Name="VCCustomBuildTool"
-					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
-					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Description="Building Custom Rule D:/Programming/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files (x86)\CMake 2.6\bin\cmake.exe&quot; -HD:/Programming/sxsim -BD:/Programming/sxsim --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="D:\Programming\sxsim\sxsim\CMakeLists.txt;D:\Programming\sxsim\sxsim\CMakeLists.txt;"
 					Outputs="CMakeFiles\generate.stamp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 					Name="VCCustomBuildTool"
-					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
-					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Description="Building Custom Rule D:/Programming/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files (x86)\CMake 2.6\bin\cmake.exe&quot; -HD:/Programming/sxsim -BD:/Programming/sxsim --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="D:\Programming\sxsim\sxsim\CMakeLists.txt;D:\Programming\sxsim\sxsim\CMakeLists.txt;"
 					Outputs="CMakeFiles\generate.stamp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="MinSizeRel|Win32">
 					<Tool
 					Name="VCCustomBuildTool"
-					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
-					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Description="Building Custom Rule D:/Programming/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files (x86)\CMake 2.6\bin\cmake.exe&quot; -HD:/Programming/sxsim -BD:/Programming/sxsim --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="D:\Programming\sxsim\sxsim\CMakeLists.txt;D:\Programming\sxsim\sxsim\CMakeLists.txt;"
 					Outputs="CMakeFiles\generate.stamp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="RelWithDebInfo|Win32">
 					<Tool
 					Name="VCCustomBuildTool"
-					Description="Building Custom Rule C:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim/sxsim/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.6\bin\cmake.exe&quot; &quot;-HC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; &quot;-BC:/Users/danny/Documents/Visual Studio 2008/Projects/sxsim&quot; --check-stamp-file CMakeFiles/generate.stamp"
-					AdditionalDependencies="&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;&quot;C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\CMakeLists.txt&quot;;"
+					Description="Building Custom Rule D:/Programming/sxsim/sxsim/CMakeLists.txt"
+					CommandLine="&quot;C:\Program Files (x86)\CMake 2.6\bin\cmake.exe&quot; -HD:/Programming/sxsim -BD:/Programming/sxsim --check-stamp-file CMakeFiles/generate.stamp"
+					AdditionalDependencies="D:\Programming\sxsim\sxsim\CMakeLists.txt;D:\Programming\sxsim\sxsim\CMakeLists.txt;"
 					Outputs="CMakeFiles\generate.stamp"/>
 				</FileConfiguration>
 			</File>
@@ -268,59 +266,59 @@
 			Name="Source Files"
 			Filter="">
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\listing_parser.cpp">
+				RelativePath="D:\Programming\sxsim\sxsim\listing_parser.cpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_simulator.cpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_simulator.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="">
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\arithmetic_with_flags.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\arithmetic_with_flags.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\as_binary.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\as_binary.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\flags.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\flags.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\generic_sx_implementation.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\generic_sx_implementation.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\instruction_decoder.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\instruction_decoder.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\instruction_list.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\instruction_list.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\listing_parser.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\listing_parser.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_controller.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_controller.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_instruction_list.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_instruction_list.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_memory.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_memory.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_nop.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_nop.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_print.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_print.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_simulator.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_simulator.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\sx_state.hpp">
+				RelativePath="D:\Programming\sxsim\sxsim\sx_state.hpp">
 			</File>
 			<File
-				RelativePath="C:\Users\danny\Documents\Visual Studio 2008\Projects\sxsim\sxsim\targetver.h">
+				RelativePath="D:\Programming\sxsim\sxsim\targetver.h">
 			</File>
 		</Filter>
 	</Files>

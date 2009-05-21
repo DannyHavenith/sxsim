@@ -111,12 +111,12 @@ listing_info ParseListingFile( istream &listing)
 				if (match[1] && current_major_label)
 				{
 					// minor label (starting with ':')
-					current_major_label->minor_labels[ match[2]] = current_source;
+					current_major_label->minor_labels.push_back( listing_info::rom_label(match[2], current_source));
 				}
 				else
 				{
-					current_major_label = &
-						(result.jump_labels[ match[2]] = listing_info::major_rom_label(current_source));
+					result.jump_labels.push_back(listing_info::major_rom_label( match[2], current_source));
+					current_major_label = &result.jump_labels.back();
 				}
 			}
 		}

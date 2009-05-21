@@ -46,6 +46,9 @@ void sxgo_label_window::Update( const sxgo_document *doc)
 	}
 }
 
+///
+/// Completely recreate the label tree from a document
+///
 void sxgo_label_window::DoUpdate( const sxgo_document *doc)
 {
 	DeleteAllItems();
@@ -57,10 +60,10 @@ void sxgo_label_window::DoUpdate( const sxgo_document *doc)
 		i != info.jump_labels.end();
 	++i)
 	{
-		wxTreeItemId id = AppendItem( root, wxString( i->first.c_str(),wxConvUTF8),-1, -1,
-			new item_data(i->second.line));
-		for ( listing_info::label_container_type::const_iterator j = i->second.minor_labels.begin();
-			j != i->second.minor_labels.end();
+		wxTreeItemId id = AppendItem( root, wxString( i->name.c_str(),wxConvUTF8),-1, -1,
+			new item_data(i->line));
+		for ( listing_info::rom_label_container_type::const_iterator j = i->minor_labels.begin();
+			j != i->minor_labels.end();
 			++j)
 		{
 			AppendItem( id, wxString( j->first.c_str(), wxConvUTF8), -1, -1,
