@@ -7,7 +7,7 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREAD ON)
-FIND_PACKAGE( Boost 1.35.0 COMPONENTS mpl)
+FIND_PACKAGE( Boost COMPONENTS python)
 
 
 IF (Boost_FOUND)
@@ -21,6 +21,7 @@ ENDIF (Boost_FOUND)
 
 add_subdirectory (sxsim)
 add_subdirectory (ui)
+add_subdirectory (python) 
 
 
 set(CPACK_PACKAGE_NAME "sxgo!")
