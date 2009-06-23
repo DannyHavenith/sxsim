@@ -5,13 +5,13 @@ cmake_minimum_required(VERSION 2.6)
 project(sxgo)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
-SET(Boost_USE_STATIC_LIBS ON)
+##SET(Boost_USE_STATIC_LIBS OFF)
 SET(Boost_USE_MULTITHREAD ON)
 FIND_PACKAGE( Boost COMPONENTS python)
 
 
 IF (Boost_FOUND)
-    include_directories( Boost_INCLUDE_DIRS)
+    include_directories( ${Boost_INCLUDE_DIRS})
     MESSAGE( "Boost found")
 ELSE (Boost_FOUND)
     MESSAGE( "could not find boost, using manual configuration")
