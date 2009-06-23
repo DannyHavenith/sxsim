@@ -10,3 +10,4 @@ BOOST_PYTHON_MODULE(pysix)
     using namespace boost::python;
     def("greet", greet);
 }
+
