@@ -17,4 +17,4 @@ ENDIF(WIN32)
 link_directories (${sxgo_BINARY_DIR}/sxsim)
 include_directories( ${sxgo_SOURCE_DIR}/sxsim)
 
-target_link_libraries (pysix sxsim ${Boost_PYTHON_LIBRARY})
+target_link_libraries (pysix sxsim ${PYTHON_LIBRARY} ${Boost_PYTHON_LIBRARY})
