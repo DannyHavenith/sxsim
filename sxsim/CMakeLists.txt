@@ -20,6 +20,14 @@ add_library(
 	sx_state.hpp
 	targetver.h
 	)
+
+# when building for 64bit processors we need to 
+# add -fPIC to the compiler options to be able to use
+# this lib in shared libraries
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  SET_TARGET_PROPERTIES(sxsim PROPERTIES COMPILE_FLAGS "-fPIC")
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
 	
 add_executable( sxsimulator sxsim.cpp)
 
