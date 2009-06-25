@@ -3,9 +3,9 @@ from pyplusplus import module_builder
 
 #Creating an instance of class that will help you to expose your declarations
 mb = module_builder.module_builder_t( ["../sxsim/sx_simulator.hpp", "../sxsim/listing_parser.hpp"]
-                                      , gccxml_path=r"C:/Program Files (x86)/gccxml 0.9/bin/gccxml.exe" 
+                                      
                                       , working_directory=r"."
-                                      , include_paths=[ u'D:/Programming/boost_1_39_0', u'../sxsim']
+                                      , include_paths=[  u'../sxsim']
                                       , define_symbols=[] )
 
 
