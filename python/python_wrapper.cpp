@@ -5,6 +5,7 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 char const* greet()
@@ -19,6 +20,19 @@ std::ostream &operator<<(std::ostream &strm, const sx_state &state)
 
 std::ostream &operator<<(std::ostream &strm, const sx_emulator::sx_ram &ram)
 {
+	using namespace std;
+	static const char *rowlabels[] =
+	{ "0 ", "1 ", "2 ", "3 ", "4 ", "5 ", "6 ", "7 ", "8 ", "9 ", "A ", "B ", "C ", "D ", "E ", "F "};
+
+	strm << "  0X 1x 3x 5x 7x 9x Bx Dx Fx\n";
+	for (int row = 0; row < 16; ++row) {
+		strm << rowlabels[row];
+		strm << hex << setw(2) << ram.get_absolute( row) << ' ';
+		for (int col = 1; col < 16; col+=2) {
+			strm << hex << setw(2) << ram.get_absolute( col * 16 + row) << ' ';
+		}
+		strm << endl;
+	}
 
 	return strm;
 }
@@ -88,7 +102,8 @@ BOOST_PYTHON_MODULE(pysix)
         .def(
             "set_bank"
             , (void ( ::sx_emulator::sx_ram::* )( unsigned char ) )( &::sx_emulator::sx_ram::set_bank )
-            , ( arg("bank") ) );
+            , ( arg("bank") ) )
+         .def(str(self));
 /*        .def_readonly( "FSR", sx_emulator::sx_ram::FSR )
         .def_readonly( "IND", sx_emulator::sx_ram::IND )
         .def_readonly( "PC", sx_emulator::sx_ram::PC )
