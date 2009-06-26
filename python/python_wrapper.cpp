@@ -40,10 +40,6 @@ std::ostream &operator<<(std::ostream &strm, const sx_ram &ram)
 	return strm;
 }
 }
-void sometest( const sx_emulator::sx_ram &ram, std::ostream &strm)
-{
-	strm << ram;
-}
 
 listing_info ParseListingFromFilename( const std::string &name)
 {
@@ -144,9 +140,7 @@ BOOST_PYTHON_MODULE(pysix)
         .def_readwrite( "w", &sx_light_state::w );
 
     class_< sx_simulator >( "Simulator", init< >() )
-        .def(
-            "get_state"
-            , (::sx_state ( ::sx_simulator::* )(  ) const)( &::sx_simulator::get_state ) )
+		.add_property( "state", &sx_simulator::get_state, &sx_simulator::set_state)
         .def(
             "reset"
             , (void ( ::sx_simulator::* )(  ) )( &::sx_simulator::reset ) )
@@ -158,12 +152,8 @@ BOOST_PYTHON_MODULE(pysix)
             "set_breakpoint"
             , (void ( ::sx_simulator::* )( short unsigned int,bool ) )( &::sx_simulator::set_breakpoint )
             , ( arg("address"), arg("do_set")=(bool)(true) ) )
-        .def(
-            "set_state"
-            , (void ( ::sx_simulator::* )( ::sx_state const & ) )( &::sx_simulator::set_state )
-            , ( arg("new_state") ) )
-		.def( "load_rom", &load_rom);
-
+		.def( "load_rom", &load_rom)
+		;
 
     class_< sx_state, bases< sx_light_state > >( "sx_state" )
         .def_readwrite( "ram", &sx_state::ram );
