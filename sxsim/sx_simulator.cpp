@@ -40,7 +40,6 @@ void sx_simulator::set_breakpoint( address_type address, bool do_set)
 	{
 		emulator->remove_breakpoint( address);
 	}
-
 }
 
 unsigned long sx_simulator::run( unsigned long tick_count)

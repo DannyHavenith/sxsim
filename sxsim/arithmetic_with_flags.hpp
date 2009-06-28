@@ -67,7 +67,7 @@ namespace arithmetic_with_flags
 			unsigned int result = data_ - rhs;
 
 			set( Z, !(data_ = result & CARRY_MASK));
-			set( C, result & ~CARRY_MASK);
+			set( C, !(result & ~CARRY_MASK));
 
 			return *this;
 		}

@@ -307,7 +307,7 @@ namespace sx_emulator
 
 		void  mov_w_inc_fr(int arg_register)
 		{
-			flagged( w, flags) = MEM;
+			flagged( w, flags) = MEM + 1;
 		}
 
 		void  inc_fr(int arg_register)

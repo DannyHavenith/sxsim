@@ -64,99 +64,50 @@ BOOST_PYTHON_MODULE(pysix)
 
     def( "ParseListingFile", ParseListingFromFilename);
 
-/*    class_<sx_simulator>("Simulator")
-		.def( "load_rom", &load_rom)
-		.def( "run", &sx_simulator::run)
-		.def( "reset", &sx_simulator::reset)
-		.def( "set_breakpoint", &sx_simulator::set_breakpoint)
-		.add_property( "state", &sx_simulator::get_state, &sx_simulator::set_state);
-*/
-
     class_< sx_emulator::sx_ram >( "sx_ram", init< >() )
-        .def(
-            "get"
-            , (unsigned char ( ::sx_emulator::sx_ram::* )( short unsigned int ) const)( &::sx_emulator::sx_ram::get )
-            , ( arg("address") ) )
-        .def(
-            "get_absolute"
-            , (unsigned char ( ::sx_emulator::sx_ram::* )( short unsigned int ) const)( &::sx_emulator::sx_ram::get_absolute )
-            , ( arg("address") ) )
-        .def(
-            "get_internal"
-            , (unsigned char ( ::sx_emulator::sx_ram::* )( short unsigned int ) const)( &::sx_emulator::sx_ram::get_internal )
-            , ( arg("address") ) )
-        /*.def(
-            "__call__"
-            , (unsigned char & ( ::sx_emulator::sx_ram::* )( short unsigned int ) )( &::sx_emulator::sx_ram::operator() )
-            , ( arg("address") )
-                /* undefined call policies  )    */
-        .def(
-            "__call__"
-            , (unsigned char const & ( ::sx_emulator::sx_ram::* )( short unsigned int ) const)( &::sx_emulator::sx_ram::operator() )
-            , ( arg("address") )
-            , return_value_policy< copy_const_reference >() )
-        .def(
-            "set"
-            , (void ( ::sx_emulator::sx_ram::* )( short unsigned int,unsigned char ) )( &::sx_emulator::sx_ram::set )
-            , ( arg("address"), arg("value") ) )
-        .def(
-            "set_absolute"
-            , (void ( ::sx_emulator::sx_ram::* )( short unsigned int,unsigned char ) )( &::sx_emulator::sx_ram::set_absolute )
-            , ( arg("address"), arg("value") ) )
-        .def(
-            "set_bank"
-            , (void ( ::sx_emulator::sx_ram::* )( unsigned char ) )( &::sx_emulator::sx_ram::set_bank )
-            , ( arg("bank") ) )
-         .def(self_ns::str(self));
-/*        .def_readonly( "FSR", sx_emulator::sx_ram::FSR )
-        .def_readonly( "IND", sx_emulator::sx_ram::IND )
-        .def_readonly( "PC", sx_emulator::sx_ram::PC )
-        .def_readonly( "RA", sx_emulator::sx_ram::RA )
-        .def_readonly( "RB", sx_emulator::sx_ram::RB )
-        .def_readonly( "RC", sx_emulator::sx_ram::RC )
-        .def_readonly( "RD", sx_emulator::sx_ram::RD )
-        .def_readonly( "RE", sx_emulator::sx_ram::RE )
-        .def_readonly( "RTCC", sx_emulator::sx_ram::RTCC )
-        .def_readonly( "STATUS", sx_emulator::sx_ram::STATUS )
-        .def_readonly( "memory_size", sx_emulator::sx_ram::memory_size );
-*/
-    class_< sx_emulator::sx_rom >( "sx_rom", init< >() )
-        .def(
-            "__call__"
-            , (short unsigned int ( ::sx_emulator::sx_rom::* )( short unsigned int ) const)( &::sx_emulator::sx_rom::operator() )
-            , ( arg("address") ) )
-        .def(
-            "set"
-            , (void ( ::sx_emulator::sx_rom::* )( short unsigned int,short unsigned int ) )( &::sx_emulator::sx_rom::set )
-            , ( arg("address"), arg("value") ) );
+        .def( "get",			&::sx_emulator::sx_ram::get, 
+				arg("address"))
+        .def( "get_absolute",	&::sx_emulator::sx_ram::get_absolute, 
+				arg("address"))
+        .def( "get_internal",	&::sx_emulator::sx_ram::get_internal, 
+				arg("address"))
+        .def( "__call__",		(unsigned char const & ( ::sx_emulator::sx_ram::* )( short unsigned int ) const)&::sx_emulator::sx_ram::operator(),
+				arg("address"),
+				return_value_policy< copy_const_reference >() )
+        .def( "set",			&::sx_emulator::sx_ram::set, 
+				( arg("address"), arg("value") ) )
+        .def( "set_absolute",	&::sx_emulator::sx_ram::set_absolute, 
+				( arg("address"), arg("value") ) )
+        .def( "set_bank",		&::sx_emulator::sx_ram::set_bank, 
+				arg("bank"))
+        .def( self_ns::str(self))
+		;
 
-        //.def_readonly( "memory_size", sx_emulator::sx_rom::memory_size );
+    class_< sx_emulator::sx_rom >( "sx_rom", init< >() )
+        .def( "__call__",		&::sx_emulator::sx_rom::operator(), arg("address") )
+        .def( "set",			&::sx_emulator::sx_rom::set,		( arg("address"), arg("value") ) )
+		;
 
     class_< sx_light_state >( "sx_light_state" )
         .def_readwrite( "in_interrupt", &sx_light_state::in_interrupt )
-        .def_readwrite( "m", &sx_light_state::m )
-        .def_readwrite( "pc", &sx_light_state::pc )
-        .def_readwrite( "stack", &sx_light_state::stack )
-        .def_readwrite( "w", &sx_light_state::w );
-
-    class_< sx_simulator >( "Simulator", init< >() )
-		.add_property( "state", &sx_simulator::get_state, &sx_simulator::set_state)
-        .def(
-            "reset"
-            , (void ( ::sx_simulator::* )(  ) )( &::sx_simulator::reset ) )
-        .def(
-            "run"
-            , (long unsigned int ( ::sx_simulator::* )( long unsigned int ) )( &::sx_simulator::run )
-            , ( arg("tick_count") ) )
-        .def(
-            "set_breakpoint"
-            , (void ( ::sx_simulator::* )( short unsigned int,bool ) )( &::sx_simulator::set_breakpoint )
-            , ( arg("address"), arg("do_set")=(bool)(true) ) )
-		.def( "load_rom", &load_rom)
-		;
+        .def_readwrite( "m",			&sx_light_state::m )
+        .def_readwrite( "pc",			&sx_light_state::pc )
+        .def_readwrite( "stack",		&sx_light_state::stack )
+        .def_readwrite( "w",			&sx_light_state::w );
 
     class_< sx_state, bases< sx_light_state > >( "sx_state" )
-        .def_readwrite( "ram", &sx_state::ram );
+        .def_readwrite( "ram", &sx_state::ram )
+		;
+
+	class_< sx_simulator >( "Simulator", init< >() )
+		.add_property( "state", &sx_simulator::get_state, &sx_simulator::set_state)
+        .def( "reset",			&::sx_simulator::reset)
+        .def( "run",			&::sx_simulator::run,  arg("tick_count"))
+        .def( "set_breakpoint", &::sx_simulator::set_breakpoint, (
+				arg("address"), arg("do_set")=(bool)(true) ) )
+		.def( "load_rom",		&load_rom)
+		;
+
 
 }
 

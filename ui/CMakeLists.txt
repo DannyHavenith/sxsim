@@ -1,4 +1,4 @@
- PROJECT(sxgoui)
+ #PROJECT(sxgoui)
  
 # SET(wxWidgets_USE_LIBS  base zlib regex expat)
  FIND_PACKAGE(wxWidgets  REQUIRED base core aui html adv xml)
@@ -13,7 +13,7 @@
  ENDIF(wxWidgets_FOUND)
  
  
-   ADD_EXECUTABLE(sxgoui WIN32 
+ADD_EXECUTABLE(sxgoui WIN32 
 	sxgo_frame.cpp 
 	sxgo_listing_window.cpp
 	sxgo_view.cpp
@@ -32,6 +32,7 @@
 	sxgo_variables_window.hpp
 	sxgo_label_window.hpp
 	)
+	
    TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES})
 
    INSTALL(TARGETS 
@@ -39,13 +40,6 @@
 	RUNTIME
 	DESTINATION bin)
 	
-   INSTALL( FILES
-            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/msvcm90.dll"
-            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/msvcp90.dll"
-            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/msvcr90.dll"
-            "C:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT/Microsoft.VC90.CRT.manifest"
-        DESTINATION bin
-	)   
 
 # Make sure the linker can find the sxsim library once it is built.
 link_directories (${sxgo_BINARY_DIR}/sxsim)
