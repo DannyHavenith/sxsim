@@ -34,6 +34,7 @@ public:
 	void SetBreakpoint( unsigned short address, bool do_set = true);
 	sx_simulator::state GetState() const;
 	void SetState( const sx_simulator::state &new_state);
+	void Reset();
 
 private:
 	listing_info listing;

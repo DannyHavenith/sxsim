@@ -73,3 +73,8 @@ void sxgo_document::SetState( const sx_simulator::state &new_state)
 {
 	return simulator_ptr->set_state( new_state);
 };
+
+void sxgo_document::Reset()
+{
+	simulator_ptr->reset();
+}

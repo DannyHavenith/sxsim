@@ -68,6 +68,7 @@ namespace sx_emulator
 	public:
 		sx_ram()
 		{
+			reset();
 		}
 
 		// typedefs
@@ -90,6 +91,11 @@ namespace sx_emulator
 		void set_bank( register_t bank)
 		{
 			memory[FSR] = (memory[FSR] & 0x1f) | (bank << 5);
+		}
+
+		void reset() 
+		{
+			std::fill_n(memory, memory_size, 0x5A);
 		}
 
 		void set( address_t address, register_t value)

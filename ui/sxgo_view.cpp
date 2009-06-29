@@ -26,6 +26,7 @@ BEGIN_EVENT_TABLE(sxgo_view, wxView)
 	EVT_MENU(ID_SingleStep, sxgo_view::SingleStep)
 	EVT_MENU(ID_Run, sxgo_view::Run)
 	EVT_MENU(ID_Pause, sxgo_view::Pause)
+	EVT_MENU(ID_Stop, sxgo_view::Stop)
 	EVT_GRID_CELL_LEFT_DCLICK( sxgo_view::DoubleClick)
 	EVT_COMMAND(wxID_ANY, EVT_JUMPTO_LABEL_LINE, sxgo_view::ShowLine)
 	EVT_COMMAND(wxID_ANY, EVT_CHANGE_RAMVALUE, sxgo_view::ChangeRam)
@@ -123,6 +124,21 @@ void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
 	running = false;
 }
 
+void sxgo_view::Stop(wxCommandEvent& WXUNUSED(event))
+{
+	if (running)
+	{
+		running = false;
+		reset_on_stop = true;
+	}
+	else
+	{
+		SafeGetDocument()->Reset();
+		UpdateAll();
+	}
+
+}
+
 //
 // running the emulator happens during idle time
 // to allow UI updates while running.
@@ -147,6 +163,21 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 		RunSome();
 		event.RequestMore();
 	}
+	else if (reset_on_stop)
+	{
+		reset_on_stop = false;
+		SafeGetDocument()->Reset();
+		UpdateAll();
+	}
+}
+
+void sxgo_view::UpdateAll()
+{
+	sxgo_document *doc = SafeGetDocument();
+	unsigned short address = doc->GetState().pc;
+	int line = doc->GetListing().GetLine(address);
+	textsw->JumpToLine( line);
+	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
 //
@@ -154,7 +185,7 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 //
 void sxgo_view::RunSome()
 {
-	sxgo_document *doc = (sxgo_document *)GetDocument();
+	sxgo_document *doc = SafeGetDocument();
 	// 1000 000 clockticks should be short enough
 	unsigned long run_count = 10000000;
 

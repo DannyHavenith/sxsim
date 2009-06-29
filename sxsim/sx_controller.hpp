@@ -108,8 +108,10 @@ namespace sx_emulator
 		void reset()
 		{
 			set_pc( 0x7ff);
-			ram( sx_ram::STATUS) = 0x0f;
+			ram( sx_ram::STATUS) = ram( sx_ram::STATUS) & 0x1f;
 			m = 0x0f;
+			in_interrupt = false;
+			stack = stack_t();
 		}
 
 
