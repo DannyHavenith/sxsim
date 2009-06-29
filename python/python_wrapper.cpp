@@ -1,3 +1,11 @@
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+/// This file contains a small python wrapper around the sx_simulator class
+
 #include <boost/python.hpp>
 #include "listing_parser.hpp"
 #include "sx_simulator.hpp"
@@ -7,11 +15,6 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-
-char const* greet()
-{
-   return "hello, world";
-}
 
 std::ostream &operator<<(std::ostream &strm, const sx_state &state)
 {

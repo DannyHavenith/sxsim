@@ -1,6 +1,9 @@
- #PROJECT(sxgoui)
- 
-# SET(wxWidgets_USE_LIBS  base zlib regex expat)
+
+##          Copyright Danny Havenith 2006 - 2009.
+## Distributed under the Boost Software License, Version 1.0.
+##    (See accompanying file LICENSE_1_0.txt or copy at
+##          http://www.boost.org/LICENSE_1_0.txt)
+
  FIND_PACKAGE(wxWidgets  REQUIRED base core aui html adv xml)
  
  IF(wxWidgets_FOUND)

@@ -1,3 +1,12 @@
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+/// implementation file for the sx_controller wrapper.
+/// This is the source file that will trigger most templates to be instantiated.
+
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 50
 

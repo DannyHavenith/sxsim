@@ -1,3 +1,10 @@
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+/// an implementation of the sx instruction set that will only print the instructions 
 #if !defined( SX_PRINT_INCLUDED)
 #define SX_PRINT_INCLUDED
 

@@ -1,3 +1,11 @@
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+/// implementation of SX rom and ram behaviour.
+
 #if !defined( SX_MEMORY_INCLUDED)
 #define SX_MEMORY_INCLUDED
 

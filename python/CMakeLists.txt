@@ -1,3 +1,9 @@
+
+##          Copyright Danny Havenith 2006 - 2009.
+## Distributed under the Boost Software License, Version 1.0.
+##    (See accompanying file LICENSE_1_0.txt or copy at
+##          http://www.boost.org/LICENSE_1_0.txt)
+
 FIND_PACKAGE(PythonLibs)
 INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
@@ -18,3 +24,9 @@ link_directories (${sxgo_BINARY_DIR}/sxsim)
 include_directories( ${sxgo_SOURCE_DIR}/sxsim)
 
 target_link_libraries (pysix sxsim ${PYTHON_LIBRARY} ${Boost_PYTHON_LIBRARY})
+
+INSTALL(TARGETS 
+	pysix
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib)
+	

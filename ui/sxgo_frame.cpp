@@ -1,13 +1,10 @@
-///////////////////////////////////////////////////////////////////////////////
-// Name:        auidemo.cpp
-// Purpose:     wxaui: wx advanced user interface - sample/test program
-// Author:      Benjamin I. Williams
-// Modified by:
-// Created:     2005-10-03
-// RCS-ID:      $Id: auidemo.cpp 48762 2007-09-18 11:07:46Z JS $
-// Copyright:   (C) Copyright 2005, Kirix Corporation, All Rights Reserved.
-// Licence:     wxWindows Library Licence, Version 3.1
-///////////////////////////////////////////////////////////////////////////////
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+// based on auidemo.cpp by Benjamin I. Williams
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -95,7 +92,7 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	help_menu->Append(wxID_ABOUT, _("About..."));
 
 	mb->Append(file_menu, _("File"));
-	mb->Append(m_perspectives_menu, _("Perspectives"));
+//	mb->Append(m_perspectives_menu, _("Perspectives"));
 	mb->Append(help_menu, _("Help"));
 
 	SetMenuBar(mb);

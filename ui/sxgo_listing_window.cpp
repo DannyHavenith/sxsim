@@ -1,3 +1,9 @@
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include "sxgo_listing_window.hpp"
 #include "listing_parser.hpp"
 #include "wx/log.h"

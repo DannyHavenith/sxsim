@@ -1,5 +1,12 @@
-// sxsim.cpp : Defines the entry point for the console application.
-//
+
+//          Copyright Danny Havenith 2006 - 2009.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+/// Very, very simple first approach at a command line simulator. 
+/// Has been superseded by sxgoui and by pysix.
+
 // can I do this in a header?
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 50
