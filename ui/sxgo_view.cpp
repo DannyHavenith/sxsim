@@ -155,8 +155,8 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 void sxgo_view::RunSome()
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
-	// 100 000 clockticks should be short enough
-	unsigned long run_count = 1000000;
+	// 1000 000 clockticks should be short enough
+	unsigned long run_count = 10000000;
 
 	boost::timer t;
 	if (doc->Run( run_count) != 0)

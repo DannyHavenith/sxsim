@@ -122,20 +122,20 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 		ToolbarPane().Top().Row(1).
 		LeftDockable(true).RightDockable(true));
 
-	m_ram_window = new sxgo_ram_window(this); 
-    m_mgr.AddPane(	m_ram_window, 
+	m_ram_window = new sxgo_ram_window(this);
+    m_mgr.AddPane(	m_ram_window,
 					wxAuiPaneInfo().Name(wxT("ram window"))
 					.MinSize( m_ram_window->GetMinSize())
 				);
 
-	m_variables_window = new sxgo_variables_window(this); 
-    m_mgr.AddPane(	m_variables_window, 
+	m_variables_window = new sxgo_variables_window(this);
+    m_mgr.AddPane(	m_variables_window,
 					wxAuiPaneInfo().Name(wxT("variables window"))
 					.MinSize( m_ram_window->GetMinSize())
 				);
 
-	m_label_window = new sxgo_label_window(this); 
-    m_mgr.AddPane(	m_label_window, 
+	m_label_window = new sxgo_label_window(this);
+    m_mgr.AddPane(	m_label_window,
 					wxAuiPaneInfo().Right().Name(wxT("labels window"))
 					.MinSize( m_label_window->GetMinSize())
 				);
@@ -230,6 +230,6 @@ void MyFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_("wxAUI Demo\nAn advanced window management library for wxWidgets\n(c) Copyright 2005-2006, Kirix Corporation"), _("About wxAUI Demo"), wxOK, this);
+	wxMessageBox(_("sxgo! A fast SX28 emulator. Copyright 2006-2009 Danny Havenith"), _("About sxgo!"), wxOK, this);
 }
 

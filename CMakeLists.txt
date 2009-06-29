@@ -35,6 +35,7 @@ add_subdirectory (python)
 
 set(CPACK_PACKAGE_NAME "sxgo")
 set(CPACK_PACKAGE_VENDOR "havenith.net")
+set(CPACK_PACKAGE_CONTACT "dh.sxgo@havenith.net")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "sxgo, parallax sx28 emulator")
 set(CPACK_PACKAGE_VERSION "0.1.0")
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
