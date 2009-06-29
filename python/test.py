@@ -1,3 +1,6 @@
+# simple test script that runs the thermostat firmware, simulates some input and
+# writes the program output to screen.
+
 import sys
 import pysix
 
@@ -22,14 +25,16 @@ spi_value = 0x08
 sx.set_breakpoint( send_byte) 
 
 # right after a temperature has been read from the spi device
+# ram location spi_value will contain the temperature reading.
 sx.set_breakpoint( after_spi_read)
 
 while True:
 	sx.run(10000) # do 10 000 instructions, or stop if we hit a breakpoint
 	
-	if send_byte == sx.state.pc:
+	if		send_byte		== sx.state.pc:
 		sys.stdout.write( chr(sx.state.w))
-	elif after_spi_read == sx.state.pc:
+		
+	elif	after_spi_read	== sx.state.pc:
 		# bit convoluted right now. state can only be copied as a whole, not changed
 		state = sx.state
 		state.ram.set_absolute( spi_value, 100)
