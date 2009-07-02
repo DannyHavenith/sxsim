@@ -604,6 +604,13 @@ namespace sx_emulator
 		// skip is not an assembly instruction
 		void  skip()
 		{
+			// if we're at a page instruction, perform one extra skip
+			if ((get_rom()( program_counter) & 0xff8) == 0x010)
+			{
+				++program_counter;
+				set_nop_delay( 1);
+			}
+
 			++program_counter;
 			update_pc();
 		}

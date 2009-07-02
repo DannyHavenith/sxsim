@@ -32,7 +32,7 @@ namespace arithmetic_with_flags
 	public:
 
 		typedef unsigned char register_t;
-
+		
 		operator register_t() const
 		{
 			return data_;

@@ -11,7 +11,7 @@
 
 #include <algorithm>
 #include <boost/range.hpp>
-
+#include <boost/function.hpp>
 namespace sx_emulator 
 {
 
@@ -165,6 +165,7 @@ namespace sx_emulator
 		}
 
 		register_t memory[ memory_size];
+		boost::function<void( address_t, register_t)> write_handler[memory_size];
 	};
 
 }
