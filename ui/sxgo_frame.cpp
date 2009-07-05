@@ -111,10 +111,10 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 		wxTB_FLAT | wxTB_NODIVIDER);
 	controls_toolbar->SetToolBitmapSize(wxSize(16,16));
 
-	controls_toolbar->AddTool(ID_Stop, wxT("stop"), wxBitmap( stop_xpm));
-	controls_toolbar->AddTool(ID_Pause, wxT("pause"), wxBitmap( pause_xpm));
-	controls_toolbar->AddTool(ID_SingleStep, wxT("step"), wxBitmap( step_xpm));
-	controls_toolbar->AddTool(ID_Run, wxT("play"), wxBitmap( play_xpm));
+	controls_toolbar->AddTool(ID_Stop, wxT("stop"), wxBitmap( stop_xpm), wxT("Stop and reset the emulator"));
+	controls_toolbar->AddTool(ID_Pause, wxT("pause"), wxBitmap( pause_xpm), wxT("Pause"));
+	controls_toolbar->AddTool(ID_SingleStep, wxT("step"), wxBitmap( step_xpm), wxT("Single step"));
+	controls_toolbar->AddTool(ID_Run, wxT("play"), wxBitmap( play_xpm), wxT( "Run"));
 	controls_toolbar->Realize();
 
 	m_mgr.AddPane(controls_toolbar, wxAuiPaneInfo().

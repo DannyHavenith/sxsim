@@ -19,6 +19,7 @@
 #include "arithmetic_with_flags.hpp"
 #include "sx_memory.hpp"
 #include "sx_state.hpp"
+#include "memory_events.hpp"
 
 namespace sx_emulator
 {
@@ -85,7 +86,8 @@ namespace sx_emulator
 		{
 		}
 	};
-
+    
+	using namespace micro_emulator;
 	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
 		typedef sx_ram::address_t address_t;
@@ -196,12 +198,12 @@ namespace sx_emulator
 			}
 		}
 
-		void  add_w_fr(int arg_register)
+		void execute( const add_w_fr &, int arg_register)
 		{
 			flagged(w, flags) += MEM;
 		}
 
-		void  add_fr_w(int arg_register)
+		void execute( const add_fr_w &, int arg_register)
 		{
 			// TODO: find out if wrap-around occurs at page boundaries
 			if (arg_register == sx_ram::PC)
@@ -211,32 +213,32 @@ namespace sx_emulator
 			flagged( MEM, flags) += w;
 		}
 
-		void  and_w_lit(int arg_lit8)
+		void execute( const and_w_lit &, int arg_lit8)
 		{
 			w &= arg_lit8;
 		}
 
-		void  and_w_fr(int arg_register)
+		void execute( const and_w_fr &, int arg_register)
 		{
 			w &= MEM;
 		}
 
-		void  and_fr_w(int arg_register)
+		void execute( const and_fr_w &, int arg_register)
 		{
 			MEM &= w;
 		}
 
-		void  clrb_fr_bit(int arg_register, int bit)
+		void execute( const clrb_fr_bit &, int arg_register, int bit)
 		{
 			MEM &= ~bitmask(bit);
 		}
 
-		void  setb_fr_bit(int arg_register, int bit)
+		void execute( const setb_fr_bit &, int arg_register, int bit)
 		{
 			MEM |= bitmask(bit);
 		}
 
-		void  snb_fr_bit(int arg_register, int bit)
+		void execute( const snb_fr_bit &, int arg_register, int bit)
 		{
 			if (!(MEM&bitmask(bit)))
 			{
@@ -244,7 +246,7 @@ namespace sx_emulator
 			}
 		}
 
-		void  sb_fr_bit(int arg_register, int bit)
+		void execute( const sb_fr_bit &, int arg_register, int bit)
 		{
 			if ((MEM&bitmask(bit)))
 			{
@@ -252,7 +254,7 @@ namespace sx_emulator
 			}
 		}
 
-		void  call(int arg_addr8)
+		void execute( const call &, int arg_addr8)
 		{
 			push( program_counter);
 			set_pc( arg_addr8 | ((address_t( ram( sx_ram::STATUS)) & 0x00e0) << 4));
@@ -263,37 +265,37 @@ namespace sx_emulator
 			}
 		}
 
-		void  clr_fr(int arg_register)
+		void execute( const clr_fr &, int arg_register)
 		{
 			flagged( MEM, flags) = 0;
 		}
 
-		void  clr_w()
+		void execute( const clr_w &)
 		{
 			flagged( w, flags) = 0;
 		}
 
-		void  mov_w_not_fr(int arg_register)
+		void execute( const mov_w_not_fr &, int arg_register)
 		{
 			flagged( w, flags) = ~MEM;
 		}
 
-		void  not_fr(int arg_register)
+		void execute( const not_fr &, int arg_register)
 		{
 			flagged( MEM, flags) = ~MEM;
 		}
 
-		void  mov_w_dec_fr(int arg_register)
+		void execute( const mov_w_dec_fr &, int arg_register)
 		{
 			flagged( w, flags) = MEM - 1;
 		}
 
-		void  dec_fr(int arg_register)
+		void execute( const dec_fr &, int arg_register)
 		{
 			--flagged( MEM, flags);
 		}
 
-		void  movsz_w_dec_fr(int arg_register)
+		void execute( const movsz_w_dec_fr &, int arg_register)
 		{
 			if (!( w = MEM - 1))
 			{
@@ -301,7 +303,7 @@ namespace sx_emulator
 			}
 		}
 
-		void  decsz_fr(int arg_register)
+		void execute( const decsz_fr &, int arg_register)
 		{
 			// no flags
 			if (!( --MEM))
@@ -310,22 +312,22 @@ namespace sx_emulator
 			}
 		}
 
-		void  jmp(int addr9_)
+		void execute( const jmp &, int addr9_)
 		{
 			set_pc( addr9_ | ((address_t( ram( sx_ram::STATUS)) & 0x00e0) << 4));
 		}
 
-		void  mov_w_inc_fr(int arg_register)
+		void execute( const mov_w_inc_fr &, int arg_register)
 		{
 			flagged( w, flags) = MEM + 1;
 		}
 
-		void  inc_fr(int arg_register)
+		void execute( const inc_fr &, int arg_register)
 		{
 			++flagged( MEM, flags);
 		}
 
-		void  movsz_w_inc_fr(int arg_register)
+		void execute( const movsz_w_inc_fr &, int arg_register)
 		{
 			if (!(w = MEM + 1))
 			{
@@ -333,7 +335,7 @@ namespace sx_emulator
 			}
 		}
 
-		void  incsz_fr(int arg_register)
+		void execute( const incsz_fr &, int arg_register)
 		{
 			if (!(++MEM))
 			{
@@ -341,42 +343,42 @@ namespace sx_emulator
 			}
 		}
 
-		void  or_w_lit(int arg_lit8)
+		void execute( const or_w_lit &, int arg_lit8)
 		{
 			flagged(w, flags) |= arg_lit8;
 		}
 
-		void  or_w_fr(int arg_register)
+		void execute( const or_w_fr &, int arg_register)
 		{
 			flagged(w, flags) |= MEM;
 		}
 
-		void  or_fr_w(int arg_register)
+		void execute( const or_fr_w &, int arg_register)
 		{
 			flagged( MEM, flags) |= w;
 		}
 
-		void  mov_w_fr(int arg_register)
+		void execute( const mov_w_fr &, int arg_register)
 		{
 			flagged( w, flags) = MEM;
 		}
 
-		void  test_fr(int arg_register)
+		void execute( const test_fr &, int arg_register)
 		{
 			flagged( MEM, flags).test();
 		}
 
-		void  mov_w_lit(int arg_lit8)
+		void execute( const mov_w_lit &, int arg_lit8)
 		{
 			w = arg_lit8;
 		}
 
-		void  mov_fr_w(int arg_register)
+		void execute( const mov_fr_w &, int arg_register)
 		{
 			MEM = w; // no flags
 		}
 
-		void  retw(int arg_lit8)
+		void execute( const retw &, int arg_lit8)
 		{
 			// investigate:
 			// set only bottom 8 bits with return address.
@@ -384,50 +386,50 @@ namespace sx_emulator
 			ret();
 		}
 
-		void  mov_w_shiftleft_fr(int arg_register)
+		void execute( const mov_w_shiftleft_fr &, int arg_register)
 		{
 			register_t temp = MEM;
 			w = flagged( temp, flags).rl();
 		}
 
-		void  rl_fr(int arg_register)
+		void execute( const rl_fr &, int arg_register)
 		{
 			flagged( MEM, flags).rl();
 		}
 
-		void  mov_w_shiftright_fr(int arg_register)
+		void execute( const mov_w_shiftright_fr &, int arg_register)
 		{
 			register_t temp = MEM;
 			w = flagged( temp, flags).rr();
 		}
 
-		void  rr_fr(int arg_register)
+		void execute( const rr_fr &, int arg_register)
 		{
 			flagged( MEM, flags).rr();
 		}
 
-		void  mov_w_fr_minus_w(int arg_register)
+		void execute( const mov_w_fr_minus_w &, int arg_register)
 		{
 			register_t temp = w;
 			w = (flagged( temp, flags) -= MEM);
 		}
 
-		void  sub_fr_w(int arg_register)
+		void execute( const sub_fr_w &, int arg_register)
 		{
 			flagged( MEM, flags)-= w;
 		}
 
-		void  mov_w_swap_fr(int arg_register)
+		void execute( const mov_w_swap_fr &, int arg_register)
 		{
 			w = ((MEM & 0xf) >> 4) | ((MEM & 0x0f) << 4);
 		}
 
-		void  swap_fr(int arg_register)
+		void execute( const swap_fr &, int arg_register)
 		{
 			MEM = ((MEM & 0xf) >> 4) | ((MEM & 0x0f) << 4);
 		}
 
-		void  mov_special_rx_w(int arg_cregister)
+		void execute( const mov_special_rx_w &, int arg_cregister)
 		{
 			switch (arg_cregister)
 			{
@@ -451,22 +453,22 @@ namespace sx_emulator
 			};
 		}
 
-		void  xor_w_lit(int arg_lit8)
+		void execute( const xor_w_lit &, int arg_lit8)
 		{
 			flagged( w, flags) ^= arg_lit8;
 		}
 
-		void  xor_w_fr(int arg_register)
+		void execute( const xor_w_fr &, int arg_register)
 		{
 			flagged( w, flags) ^= MEM;
 		}
 
-		void  xor_fr_w(int arg_register)
+		void execute( const xor_fr_w &, int arg_register)
 		{
 			flagged( MEM, flags) ^= w;
 		}
 
-		void  ret()
+		void execute( const ret &)
 		{
 			if (stack.empty())
 			{
@@ -476,7 +478,7 @@ namespace sx_emulator
 			set_nop_delay( 3);
 		}
 
-		void  retp()
+		void execute( const retp &)
 		{
 			if (stack.empty())
 			{
@@ -490,7 +492,7 @@ namespace sx_emulator
 			set_nop_delay( 3);
 		}
 
-		void  reti()
+		void execute( const reti &)
 		{
 			if (!in_interrupt)
 			{
@@ -504,23 +506,23 @@ namespace sx_emulator
 			ram( sx_ram::STATUS) = interrupt_state.status;
 		}
 
-		void  retiw()
+		void execute( const retiw &)
 		{
 			ram( sx_ram::RTCC) += w;
-			reti();
+			execute( reti() );
 		}
 
-		void  page(int lit3)
+		void execute( const page &, int lit3)
 		{
 			ram(sx_ram::STATUS) = ram(sx_ram::STATUS) & 0x1f | lit3 << 5;
 		}
 
-		void  bank(int lit3)
+		void execute( const bank &, int lit3)
 		{
 			ram.set_bank( lit3);
 		}
 
-		void  iread()
+		void execute( const iread &)
 		{
 			sx_rom::address_t word;
 			word = (w + (sx_rom::address_t(m) << 8)) & 0xfff;
@@ -530,17 +532,17 @@ namespace sx_emulator
 			set_nop_delay( 3);
 		}
 
-		void  mov_w_m()
+		void execute( const mov_w_m &)
 		{
 			w = m;
 		}
 
-		void  mov_m_w()
+		void execute( const mov_m_w &)
 		{
 			m = w;
 		}
 
-		void  mov_m_lit(int arg_lit4)
+		void execute( const mov_m_lit &, int arg_lit4)
 		{
 			m = arg_lit4;
 		}
@@ -696,12 +698,11 @@ namespace sx_emulator
 		stack_t stack;
 	};
 
-	class sx_controller : public sx_controller_impl
+	class sx_controller : public sx_controller_impl, private memory_events
 	{
 		typedef micro_emulator::instruction_decoder<
-			micro_emulator::sx_instruction_list<
-			sx_emulator::sx_controller_impl
-			>
+			sx_instruction_list,
+			sx_controller
 		> decoder_t;
 
 		static const sx_rom::register_t BREAKPOINT = 0x4f;
@@ -709,6 +710,35 @@ namespace sx_emulator
 
 
 	public:
+		sx_controller()
+			: memory_events( sx_controller_impl::get_ram())
+		{
+		}
+
+		template< typename tag>
+		void execute( const tag &)
+		{
+			sx_controller_impl::execute( tag());
+			memory_events::execute( tag());
+		}
+		template< typename tag>
+		void execute( const tag &, int arg1)
+		{
+			sx_controller_impl::execute( tag(), arg1);
+			memory_events::execute( tag(), arg1);
+		}
+
+		template< typename tag>
+		void execute( const tag &, int arg1, int arg2)
+		{
+			sx_controller_impl::execute( tag(), arg1, arg2);
+			memory_events::execute( tag(), arg1, arg2);
+		}
+
+		void on_memory_access( sx_ram::address_t address, memory_events::handler_type handler)
+		{
+			memory_events::set( address, handler);
+		}
 
 		template< typename Range>
 		void load_rom( const Range &r, sx_rom::address_t offset = 0)

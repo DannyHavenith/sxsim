@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 2.6)
 #include( configure.cmake)
 
 project(sxgo)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 
 ##SET(Boost_USE_STATIC_LIBS OFF)
 SET(Boost_USE_MULTITHREAD ON)

@@ -22,20 +22,17 @@
 #include "sx_print.hpp"
 #include "sx_controller.hpp"
 
-using namespace micro_emulator;
+using namespace sx_emulator;
 using namespace std;
 using namespace boost;
-typedef sx_nop impl;
-typedef sx_instruction_list< sx_nop> list;
-typedef instruction_decoder< list> decoder;
 
 
 void single_step( const listing_info &listing)
 {
-	sx_emulator::sx_controller sx;
-	typedef instruction_decoder< sx_instruction_list< sx_print> > print_decoder;
+	sx_controller sx;
+	typedef instruction_decoder< sx_instruction_list, sx_print > print_decoder;
 
-	sx_print printer;
+//	sx_print printer;
 
 	sx.load_rom( listing.instructions);
 	unsigned short last_known_address = 0;

@@ -10,6 +10,7 @@ add_library(
 	listing_parser.cpp
 	sx_simulator.cpp
 	
+	memory_events.hpp
 	arithmetic_with_flags.hpp
 	as_binary.hpp
 	flags.hpp
@@ -27,14 +28,13 @@ add_library(
 	targetver.h
 	)
 
-# when building for 64bit processors we need to 
+# when building for 64bit processors on linux we need to 
 # add -fPIC to the compiler options to be able to use
 # this lib in shared libraries
 IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   SET_TARGET_PROPERTIES(sxsim PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-	
 add_executable( sxsimulator sxsim.cpp)
 
 target_link_libraries( sxsimulator sxsim) 

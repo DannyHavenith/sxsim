@@ -133,6 +133,14 @@ namespace sx_emulator
 			memory[ absolute_to_internal( address)] = value;
 		}
 		
+		/// translate from 0x00-0x1F to an actual memory location.
+		/// internal memory locations are 0x00-0x1F, 0x30-0x3f, 0x50-0x5f etc.
+		address_t limited_to_internal( address_t limited) const
+		{
+			return limited == 0?
+					absolute_to_internal(memory[FSR])
+				:	(limited + ((limited & 0x10)?(0xe0 & memory[FSR]):0));
+		}
 	private:
 
 		static address_t absolute_to_internal( address_t maddress) 
@@ -142,14 +150,7 @@ namespace sx_emulator
 
 		register_t &cell( address_t address)
 		{
-			if (address == 0)
-			{
-				return memory[ absolute_to_internal(memory[FSR])];
-			}
-			else
-			{
-				return memory[ address + ((address & 0x10)?(0xe0 & memory[FSR]):0)];
-			}
+			return memory[limited_to_internal( address)];
 		}
 
 		const register_t &cell( address_t address) const

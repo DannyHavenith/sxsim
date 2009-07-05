@@ -10,6 +10,7 @@
 
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/vector.hpp>
+#include <boost/mpl/int.hpp>
 #include <boost/mpl/pop_back.hpp>
 #include <boost/mpl/back.hpp>
 #include <boost/mpl/front_inserter.hpp>
@@ -38,39 +39,15 @@ namespace micro_emulator
 // extracts the operands from it, essentially by masking the
 // instruction word and, if needed, shifting the masked bits.
 //
-// The result is a fusion::tuple with operand values. This tuple
-// can then be used to call a function with fusion::invoke.
-//
-template< typename argument_vector, typename end_recursion = void>
+template< typename tag, int n>
 struct argument_harvester
 {
-    typedef typename mpl::pop_back<argument_vector>::type next_vector;
-    typedef typename boost::fusion::result_of::push_back<
-        const typename argument_harvester< next_vector>::result_type,
-        int
-    >::type  result_type;
-
-    typedef typename mpl::back<argument_vector>::type last_argument;
-
-    static result_type harvest( unsigned int instruction)
-    {
-        return boost::fusion::push_back(
-            argument_harvester<next_vector>::harvest( instruction),
-            static_cast<int>((instruction & last_argument::mask) >> last_argument::mask_shift)
-            );
-    }
+	typedef typename mpl::at< typename tag::args, mpl::int_<n> >::type argument;
+	static int fetch( int code)
+	{
+		return (code & argument::mask) >> argument::mask_shift;
+	}
 };
-
-template< typename T>
-struct argument_harvester< T, typename boost::enable_if<typename boost::mpl::empty<T>::type >::type >
-{
-    typedef boost::fusion::tuple<> result_type;
-    static result_type harvest( unsigned int )
-    {
-        return result_type();
-    }
-};
-
 //
 	// This is the file with most of the meta-programming in it.
 	// an instruction decoder receives an instruction list.
@@ -83,26 +60,53 @@ struct argument_harvester< T, typename boost::enable_if<typename boost::mpl::emp
 	namespace mpl = boost::mpl;
 	namespace fusion = boost::fusion;
 
-	template<typename instruction_list>
+	template<typename instruction_list, typename implementation_type>
 	struct instruction_decoder
 	{
 
 	//private:
 		typedef int instruction_type;
-		typedef instruction_decoder< instruction_list> this_type;
-		typedef typename instruction_list::impl impl;
+		typedef instruction_decoder< instruction_list, implementation_type> this_type;
+		typedef implementation_type impl;
 
 
-		template< typename ins>
-		static void dispatch( int code, impl &obj, ins)
+		template< typename tag>
+		static void dispatch_n( int code, impl &obj, const tag &t, const mpl::long_<0> &)
 		{
-			boost::fusion::invoke(
-				ins::function_ptr(),
-				boost::fusion::push_front(
-				argument_harvester< typename ins::word::args>::harvest(code),
-				&obj
-				)
-			);
+			obj.execute( t);
+		}
+
+		template< typename tag>
+		static void dispatch_n( int code, impl &obj, const tag &t, const mpl::long_<1> &)
+		{
+			obj.execute( t,
+				argument_harvester< tag, 0>::fetch( code)
+				);
+		}
+
+		template< typename tag>
+		static void dispatch_n( int code, impl &obj, const tag &t, const mpl::long_<2> &)
+		{
+			obj.execute( t,
+				argument_harvester< tag, 0>::fetch( code),
+				argument_harvester< tag, 1>::fetch( code)
+				);
+		}
+
+		template< typename tag>
+		static void dispatch_n( int code, impl &obj, const tag &t, const mpl::long_<3> &)
+		{
+			obj.execute( t,
+				argument_harvester< tag, 0>::fetch( code),
+				argument_harvester< tag, 1>::fetch( code),
+				argument_harvester< tag, 2>::fetch( code)
+				);
+		}
+
+		template< typename tag>
+		static void dispatch( int code, impl &obj, const tag &)
+		{
+			dispatch_n( code, obj, tag(), typename tag::argument_count());
 		}
 
 		// decide nodes are branches of the binary tree.
@@ -112,7 +116,7 @@ struct argument_harvester< T, typename boost::enable_if<typename boost::mpl::emp
 		// a call node is a leaf of the tree. When we reach a call
 		// node, we've finished decoding the instruction and we can
 		// call the appropriate function.
-		template <typename instruction>
+		template <typename tag>
 		struct call_node {};
 
 		template< class T>
@@ -154,7 +158,7 @@ struct argument_harvester< T, typename boost::enable_if<typename boost::mpl::emp
 		template< int bit, typename on_zero, typename on_one>
 		static void decode_and_call(
 			instruction_type word,
-			typename instruction_list::impl &implementation,
+			implementation_type &implementation,
 			const call_tag<decide_node< bit, on_zero, on_one> > &)
 		{
 			if (word & (1<<bit))
@@ -171,13 +175,13 @@ struct argument_harvester< T, typename boost::enable_if<typename boost::mpl::emp
 		//
 		// If we've arrived at a leaf of the tree, we can call the right member function
 		// of the implementation. The right member function is encoded in the leaf (the call_node)
-		template< class instruction>
+		template< class tag>
 		static void decode_and_call(
 			instruction_type word,
-			typename instruction_list::impl &implementation,
-			const call_tag< call_node< instruction> > &)
+			implementation_type &implementation,
+			const call_tag< call_node< tag> > &)
 		{
-			dispatch( word, implementation, instruction());
+			dispatch( word, implementation, tag());
 		}
 
 		// An instruction word consists of opcode bits and operand

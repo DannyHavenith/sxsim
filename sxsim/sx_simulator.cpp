@@ -51,6 +51,14 @@ void sx_simulator::set_breakpoint( address_type address, bool do_set)
 	}
 }
 
+void  sx_simulator::on_memory_access( 
+	sx_simulator::address_type address, 
+	boost::function< void(  sx_simulator::address_type, sx_simulator::register_type )> handler
+	)
+{
+	emulator->on_memory_access( address, handler);
+}
+
 unsigned long sx_simulator::run( unsigned long tick_count)
 {
 	return emulator->tick( tick_count);

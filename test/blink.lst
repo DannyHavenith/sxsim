@@ -1,0 +1,92 @@
+     1                  ;=======================================================================
+     2                  ;TITLE:         led28.src
+     3                  ;
+     4                  ;PURPOSE:       Simple Blink-an-LED example.
+     5                  ;
+     6                  ;AUTHOR:        Parallax, Inc.
+     7                  ;
+     8                  ;REVISIONS:
+     9                  ;  09/17/04 -   Updated to support SASM.
+    10                  ;
+    11                  ;CONNECTIONS:
+    12                  ;  RC.7 to LED anode.
+    13                  ;  LED cathode to 470 ohm resister, other leg of resistor to ground.
+    14                  ;
+    15                  ;DETAILS:
+    16                  ;  RC.7 is toggled high and low with a simple delay loop in-between.
+    17                  ;  NOTE: To simplify code, the entire RC port output latch is inverted
+    18                  ;  by this routine.
+    19                  ;=======================================================================
+    20                  
+    21                  
+    22                  ;-------------------------- DEVICE DIRECTIVES --------------------------
+    23                  
+    24  071B  0F7F                      DEVICE          SX28,OSC4MHZ,TURBO
+    25                  
+    26                  IFDEF   __SASM  ;SASM Directives
+    27  071B  0F7F                      DEVICE          STACKX,OPTIONX
+    28  =00000000                       IRC_CAL         IRC_SLOW
+    29                                  
+    30                  ELSE            ;Parallax Assember Directives
+    31                                  DEVICE          STACKX_OPTIONX
+    32                  ENDIF
+    33                  
+    34  07FF  0A00                      RESET           Initialize
+    35                  
+    36                  ;------------------------------ VARIABLES ------------------------------
+    37                                          
+    38  =00000008                       Count1  EQU     $08
+    39  =00000009                       Count2  EQU     $09
+    40                  
+    41                  ;---------------------------- DEBUG SETTINGS ---------------------------
+    42                  
+    43  =003D0900                       FREQ    4_000_000
+    44                          
+    45  =00000008                       WATCH   Count1,16,UDEC
+    46                  
+    47                  ;------------------------ INITIALIZATION ROUTINE -----------------------
+    48                  
+    49  =00000000       Initialize
+    50                                  ;Configure port settings
+    51  0000  0C00                      mov     rb, #%00000000          ;Port B output zero
+        0001  0026
+    52  0002  0CFD                      mov     !rb,#%11111101          ;Port B.bit1 output dir.
+        0003  0006
+    53                  
+    54                  ;---------------------------- MAIN PROGRAM -----------------------------
+    55                  
+    56  =00000004       Main
+    57                  ;Toggle RB.1 with a delay of 64k counts in-between.
+    58                  
+    59  0004  0909                      call    delay                   ;delay  
+    60  0005  0426                      clrb    rb.1                    ;toggle all of RC port
+    61  0006  0909                      call    delay
+    62  0007  0526                      setb    rb.1
+    63  0008  0A04                      jmp     Main                    ;goto main                              
+    64                  
+    65                  
+    66  0009  0068      Delay           clr     Count1                  ;Initialize Count1, Count2      
+    67  000A  0069                      clr     Count2                                                          
+    68                  
+    69  000B  02E8      Loop            djnz    Count1,loop             ;Decrement until all are zero           
+        000C  0A0B
+    70  000D  02E9                      djnz    Count2,loop                                                     
+        000E  0A0B
+    71  000F  000C                      ret                             ;then return                            
+
+Cross Reference
+12 symbols
+
+Symbol                            Type   Value      Line
+__SASM                            DATA   00000001   0000
+__SX_FREQ                         DATA   003D0900   0043
+__SX_IRC_CAL                      DATA   00000000   0028
+__SX_RESET                        RESB   00000A00   0034
+__SX_WATCH:Count1                 UDEC   00000008 10 0045
+Count1                            DATA   00000008   0038
+Count2                            DATA   00000009   0039
+Delay                             ADDR   00000009   0066
+Initialize                        ADDR   00000000   0049
+Loop                              ADDR   0000000B   0069
+Main                              ADDR   00000004   0056
+rb                                RESV   00000006   0051

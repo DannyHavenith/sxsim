@@ -7,6 +7,7 @@
 /// This file contains a small python wrapper around the sx_simulator class
 
 #include <boost/python.hpp>
+#include <boost/python/object.hpp>
 #include "listing_parser.hpp"
 #include "sx_simulator.hpp"
 #include "sx_state.hpp"
@@ -60,6 +61,11 @@ bool load_rom( sx_simulator &sim, const listing_info &listing)
 	return sim.load_rom( listing.instructions);
 }
 
+void set_memory_handler( sx_simulator &sim, int address, boost::python::object function_object)
+{
+	sim.on_memory_access( address, function_object);
+}
+
 BOOST_PYTHON_MODULE(pysix)
 {
     using namespace boost::python;
@@ -106,8 +112,10 @@ BOOST_PYTHON_MODULE(pysix)
 		.add_property( "state", &sx_simulator::get_state, &sx_simulator::set_state)
         .def( "reset",			&::sx_simulator::reset)
         .def( "run",			&::sx_simulator::run,  arg("tick_count"))
-        .def( "set_breakpoint", &::sx_simulator::set_breakpoint, (
-				arg("address"), arg("do_set")=(bool)(true) ) )
+        .def( "set_breakpoint", &::sx_simulator::set_breakpoint,
+			(arg("address"), arg("do_set")=(bool)(true) ) )
+		.def( "on_memory_access",&set_memory_handler,
+			(arg("address"), arg("handler")))
 		.def( "load_rom",		&load_rom)
 		;
 

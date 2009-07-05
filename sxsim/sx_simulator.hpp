@@ -8,7 +8,7 @@
 
 #if !defined( SX_SIMULATOR_HPP)
 #define SX_SIMULATOR_HPP
-
+#include <boost/function.hpp> // for the function-template
 #include "sx_memory.hpp"
 #include "sx_state.hpp"
 
@@ -32,6 +32,7 @@ public:
 	state get_state() const;
 	void set_state( const state &new_state);
 	void set_breakpoint( address_type address, bool do_set = true);
+	void on_memory_access( address_type address, boost::function< void( address_type, register_type )> handler);
 	void reset();
 private:
 	sx_emulator::sx_controller *emulator;

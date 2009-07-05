@@ -139,70 +139,41 @@ namespace micro_emulator
 	struct pattern_member_func: nary_member_func< object_type, word_pattern::argument_count::value>
 	{};
 
-	template< typename implementation>
-	struct instruction_list
+	// an instruction word type encodes the bit pattern of
+	// the opcode and any other arguments that are encoded 
+	// in the word. Every word must be the same size.
+	//
+	// see also sx_instruction_list.hpp
+	//
+	template< 
+		unsigned long long opcode_dcb, // decimal coded binary opcode
+		typename arg1_type = mpl::void_,
+		typename arg2_type = mpl::void_,
+		typename arg3_type = mpl::void_
+	>
+	struct word 
 	{
-		typedef implementation impl;
+		// all argument types
+		typedef mpl::vector< arg1_type, arg2_type, arg3_type> full_args;
 
-		// an instruction word type encodes the bit pattern of
-		// the opcode and any other arguments that are encoded 
-		// in the word. Every word must be the same size.
-		//
-		// instantiations of this template are used together
-		// with the 'instruction' template (see below).
-		//
-		// see also sx_instruction_list.hpp
-		//
-		template< 
-			unsigned long long opcode_dcb, // decimal coded binary opcode
-			typename arg1_type = mpl::void_,
-			typename arg2_type = mpl::void_,
-			typename arg3_type = mpl::void_
-		>
-		struct word 
-		{
-			// all argument types
-			typedef mpl::vector< arg1_type, arg2_type, arg3_type> full_args;
+		// the non-void argument types
+		typedef typename mpl::iterator_range<
+			typename mpl::begin< full_args>::type,
+			typename mpl::find_if< full_args, boost::is_same< mpl::void_, _> >::type
+		>::type args_seq;
 
-			// the non-void argument types
-			typedef typename mpl::iterator_range<
-				typename mpl::begin< full_args>::type,
-				typename mpl::find_if< full_args, boost::is_same< mpl::void_, _> >::type
-			>::type args_seq;
-
-			// create a back-insertable version of the argument sequence
-			typedef typename mpl::copy< 
-				args_seq,
-				mpl::back_inserter< mpl::vector0<> >
-			>::type args;
+		// create a back-insertable version of the argument sequence
+		typedef typename mpl::copy< 
+			args_seq,
+			mpl::back_inserter< mpl::vector0<> >
+		>::type args;
 
 
-			// argument count
-			typedef typename mpl::size< args>::type argument_count;
-			typedef typename max_mask_size< args>::type operand_size;
-			typedef typename to_binary_digits< opcode_dcb>::type bits;
-			static const int opcode = as_binary<opcode_dcb>::value;
-		};
-
-		//
-		// an 'instruction' instantiation couples a 'word' definition (see above)
-		// with a member function of some object to be called.
-		// This is used by an instruction decoder, which uses the word pattern to
-		// decode an instruction word and then calls the specified member function.
-		//
-		template< 
-			typename word_pattern,
-			typename pattern_member_func< impl, word_pattern>::type ptr
-		> 
-		struct instruction
-		{
-			typedef word_pattern word;
-
-			typedef typename word::operand_size operand_size;
-			typedef typename word::bits bits;
-			typedef typename pattern_member_func< impl, word_pattern>::type func_ptr;
-			static const func_ptr function_ptr(){ return ptr;}
-		};
+		// argument count
+		typedef typename mpl::size< args>::type argument_count;
+		typedef typename max_mask_size< args>::type operand_size;
+		typedef typename to_binary_digits< opcode_dcb>::type bits;
+		static const int opcode = as_binary<opcode_dcb>::value;
 	};
 }
 #endif //INSTRUCTION_LIST_INCLUDED

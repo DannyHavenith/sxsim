@@ -75,18 +75,16 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 
 	int width, height;
 	frame->GetClientSize(&width, &height);
-	textsw = new sxgo_listing_window( frame, wxID_ANY);//, wxPoint(0,0), wxSize( width, height));
+	textsw = new sxgo_listing_window( frame, wxID_ANY, wxPoint(0,0), wxSize( width, height));
 
 	frame->SetTitle(doc->GetTitle());
 
-#ifdef __X__
-	// X seems to require a forced resize
 	int x, y;
+	textsw->SetSize( wxDefaultCoord, wxDefaultCoord, width, height);
+	frame->Maximize();
+	frame->Show(true);
 	frame->GetSize(&x, &y);
 	frame->SetSize(wxDefaultCoord, wxDefaultCoord, x, y);
-#endif
-
-	frame->Show(true);
 	Activate(true);
 	return true;
 }
@@ -187,7 +185,10 @@ void sxgo_view::RunSome()
 {
 	sxgo_document *doc = SafeGetDocument();
 	// 1000 000 clockticks should be short enough
-	unsigned long run_count = 10000000;
+	// choose a prime number close to a million, to avoid 
+	// the screen update coming in sync with some loop in 
+	// the program.
+	unsigned long run_count = 1005989;
 
 	boost::timer t;
 	if (doc->Run( run_count) != 0)

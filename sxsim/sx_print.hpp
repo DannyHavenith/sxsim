@@ -17,7 +17,8 @@ protected:
 			: name( instruction)
 		{}
 
-		void print( int arg1 = -1 , int arg2 = -1)
+		template< typename tag>
+		void print( const tag &, int arg1 = -1 , int arg2 = -1)
 		{
 			std::cout << name << " ";
 			if (arg1 != -1)
