@@ -33,6 +33,7 @@ public:
 	void ShowLine( unsigned short line);
 	void ShowProfile( const profile_type &profile, bool jump_to_most_active = false);
 	void ClearProfile();
+	bool FadeProfile();
 	void JumpToLine( unsigned short address);
 	void SetListing( const listing_info &listing);
 	bool ToggleBreakpoint( int line);

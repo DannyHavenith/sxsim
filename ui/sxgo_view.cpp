@@ -194,6 +194,8 @@ void sxgo_view::RunSome( bool first_run)
 	// the screen update coming in sync with some loop in
 	// the program.
 	unsigned long run_count = 1005989;
+	static int profile_refresh_counter = 0;
+	static const int profile_refresh_treshold = 5;
 
 	boost::timer t;
 	if (doc->Run( run_count) != 0)
@@ -212,8 +214,12 @@ void sxgo_view::RunSome( bool first_run)
 	    unsigned long ips = ((double)run_count)/t.elapsed();
 	    s << "Running, " << ips << " instructions per second";
 	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( s.str()));
-		sxgo_document::profile_type profile = doc->GetProfile();
-		textsw->ShowProfile( profile, first_run);
+	    if (first_run || ++profile_refresh_counter > profile_refresh_treshold)
+	    {
+			sxgo_document::profile_type profile = doc->GetProfile();
+			textsw->ShowProfile( profile, first_run);
+			profile_refresh_counter = 0;
+	    }
 	}
 
 	MyFrame::GetMainFrame()->UpdateAll( *doc);

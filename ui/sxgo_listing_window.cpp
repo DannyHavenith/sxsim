@@ -53,38 +53,45 @@ void sxgo_listing_window::ShowLine( unsigned short line)
 
 /// take a profile and visualize it by coloring listing lines
 /// This should have the effect that lines that are hit more often get a more intense colour,
-/// and the lines that are hit les offten are lighter.
+/// and the lines that are hit less often are lighter.
 void sxgo_listing_window::ShowProfile( const sxgo_listing_window::profile_type &profile, bool jump_to_most_active)
 {
 	if (profile.empty()) return;
-
 	// determine the range and map the colour gradient on it.
 	profile_type::const_iterator i;
 
+	// determine the unique counts, to optimally assign gradient categories.
+	typedef std::map< unsigned long, unsigned short> unique_counts_map;
+	unique_counts_map unique_counts;
+	for (i = profile.begin(); i != profile.end(); ++i)
+	{
+		unique_counts[i->second] = 0;
+	}
+
+	// now assign categories to each count
+	size_t unique_frequencies = unique_counts.size();
+	size_t counter = 0;
+	for (unique_counts_map::iterator j = unique_counts.begin();
+		j != unique_counts.end(); ++j)
+	{
+		j->second = gradient_count * counter / unique_frequencies;
+		++counter;
+	}
+
+
 	int max_line = 0;
 
-	// erase the previously set colours, if not overwritten by the
-	// new colours
+	// erase the previously set colours,
 	for (i = previous_profile.begin(); i != previous_profile.end(); ++i)
 	{
 		SetCellBackgroundColour( i->first, 1, *wxWHITE);
 	}
 
 	// now set the appropriate colours
-	int counter = 0;
-	int gradient=0;
-	int last_value = 0;
 	for (i = profile.begin(); i != profile.end(); ++i)
 	{
-
-		if (i->second != last_value)
-		{
-			gradient = counter * gradient_count / profile.size();
-		}
-		last_value = i->second;
-		SetCellBackgroundColour( i->first, 1, gradients[ gradient]);
+		SetCellBackgroundColour( i->first, 1, gradients[ unique_counts[i->second]]);
 		max_line = i->first;
-		++counter;
 	}
 
 
@@ -105,6 +112,7 @@ bool sxgo_listing_window::FadeProfile()
 {
 
 }
+
 void sxgo_listing_window::ClearProfile()
 {
 	if (previous_profile.empty()) return;

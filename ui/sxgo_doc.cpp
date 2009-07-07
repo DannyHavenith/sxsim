@@ -43,6 +43,7 @@ std::istream& sxgo_document::LoadObject(std::istream & stream)
     listing = ParseListingFile( stream);
     simulator_ptr.reset( new sx_simulator());
     simulator_ptr->load_rom( listing.instructions);
+	simulator_ptr->reset_histogram();
     return stream;
 }
 
@@ -58,7 +59,6 @@ unsigned short sxgo_document::SingleStep()
 
 unsigned long sxgo_document::Run( unsigned long count)
 {
-	simulator_ptr->reset_histogram();
 	return simulator_ptr->run( count);
 }
 
@@ -87,6 +87,7 @@ sxgo_document::profile_type sxgo_document::GetProfile() const
 	}
 
 	std::sort( profile.begin(), profile.end(), &second_is_smaller);
+	simulator_ptr->reset_histogram();
 	return profile;
 }
 
