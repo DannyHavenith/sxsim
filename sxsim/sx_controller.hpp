@@ -818,8 +818,6 @@ namespace sx_emulator
 		//
 		size_t tick( size_t count)
 		{
-			try
-			{
 			// first instruction is always executed
 			if (count)
 			{
@@ -840,11 +838,11 @@ namespace sx_emulator
 						// notice the count_freq call, this costs about 3% in performance,
 						// but it delivers a nice profiling feature in return.
 						sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
-//						if (instruction == BREAKPOINT)
-//						{
-//							dec_pc();
-//							break;
-//						}
+						if (instruction == BREAKPOINT)
+						{
+							dec_pc();
+							break;
+						}
 
 						decoder_t::feed(
 							instruction, *this
@@ -852,11 +850,7 @@ namespace sx_emulator
 					}
 				}
 			}
-			}
-			catch (const breakpoint_exception &)
-			{
-				dec_pc();
-			}
+			
 			return count;
 		}
 
