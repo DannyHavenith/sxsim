@@ -14,11 +14,13 @@ IMPLEMENT_DYNAMIC_CLASS(sxgo_document, wxDocument)
 
 using namespace std;
 
+
 bool sxgo_document::OnSaveDocument(const wxString& filename)
 {
 	return true;
 }
 
+/// Load a listing file, parse it and store the program bytes in the emulators ROM
 wxInputStream& sxgo_document::LoadObject(wxInputStream& stream)
 {
     static const size_t buffer_size = 4096;
@@ -56,7 +58,36 @@ unsigned short sxgo_document::SingleStep()
 
 unsigned long sxgo_document::Run( unsigned long count)
 {
+	simulator_ptr->reset_histogram();
 	return simulator_ptr->run( count);
+}
+
+namespace
+{
+	bool second_is_smaller( 
+		std::pair< unsigned short, unsigned long> &lhs,
+		std::pair< unsigned short, unsigned long> &rhs)
+	{
+		return lhs.second < rhs.second;
+	}
+}
+/// Returns a list of linenumbers and the number of times the line was hit.
+sxgo_document::profile_type sxgo_document::GetProfile() const
+{
+	profile_type profile;
+	const sx_simulator::histogram_type &histogram =
+		simulator_ptr->get_histogram();
+
+	for( int address = 0; address != sx_simulator::rom_size; ++address)
+	{
+		if (histogram[address])
+		{
+			profile.push_back( std::make_pair( listing.GetLine( address), histogram[address]));
+		}
+	}
+
+	std::sort( profile.begin(), profile.end(), &second_is_smaller);
+	return profile;
 }
 
 void sxgo_document::SetBreakpoint( unsigned short address, bool do_set)

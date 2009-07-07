@@ -59,6 +59,18 @@ void  sx_simulator::on_memory_access(
 	emulator->on_memory_access( address, handler);
 }
 
+/// get profiling information: a count of how often each instruction was run
+const sx_simulator::histogram_type &sx_simulator::get_histogram() const
+{
+	return emulator->get_histogram();
+}
+
+/// set all statistics to zero
+void sx_simulator::reset_histogram()
+{
+	emulator->reset_histogram();
+}
+
 unsigned long sx_simulator::run( unsigned long tick_count)
 {
 	return emulator->tick( tick_count);

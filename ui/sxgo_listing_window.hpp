@@ -6,13 +6,17 @@
 
 #if !defined( SXGO_LISTING_WINDOW_HPP)
 #define SXGO_LISTING_WINDOW_HPP
-
+#include <vector>
+#include <utility> // for std::pair
 #include "wx/grid.h"
 #include "listing_parser.hpp"
 
 class sxgo_listing_window : public wxGrid
 {
 public:
+
+	typedef std::vector< std::pair< unsigned short, unsigned long> > profile_type;
+
     explicit sxgo_listing_window(
 				wxWindow *parent, wxWindowID id = wxID_ANY,
                  const wxPoint& pos = wxDefaultPosition,
@@ -27,11 +31,15 @@ public:
 	}
 
 	void ShowLine( unsigned short line);
-
+	void ShowProfile( const profile_type &profile, bool jump_to_most_active = false);
+	void ClearProfile();
 	void JumpToLine( unsigned short address);
 	void SetListing( const listing_info &listing);
 	bool ToggleBreakpoint( int line);
 private:
+	profile_type previous_profile;
+	static const int gradient_count = 5;
+	wxColour gradients[ gradient_count];
 	listing_info listing;
 	int current_line;
 };

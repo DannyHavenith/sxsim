@@ -47,5 +47,6 @@ ADD_EXECUTABLE(sxgoui WIN32
 # Make sure the linker can find the sxsim library once it is built.
 link_directories (${sxgo_BINARY_DIR}/sxsim)
 include_directories( ${sxgo_SOURCE_DIR}/sxsim)
+include_directories( ${sxgo_SOURCE_DIR}/dannylib)
 
 target_link_libraries (sxgoui sxsim)

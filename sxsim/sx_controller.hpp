@@ -710,17 +710,22 @@ namespace sx_emulator
 
 
 	public:
+		typedef unsigned long histogram_type[ sx_rom::memory_size];
+
 		sx_controller()
 			: memory_events( sx_controller_impl::get_ram())
 		{
 		}
 
+		/// execute a zero operand opcode
 		template< typename tag>
 		void execute( const tag &)
 		{
 			sx_controller_impl::execute( tag());
 			memory_events::execute( tag());
 		}
+
+		/// execute a single operand opcode
 		template< typename tag>
 		void execute( const tag &, int arg1)
 		{
@@ -728,6 +733,7 @@ namespace sx_emulator
 			memory_events::execute( tag(), arg1);
 		}
 
+		/// executa a three operand opcode.
 		template< typename tag>
 		void execute( const tag &, int arg1, int arg2)
 		{
@@ -735,11 +741,25 @@ namespace sx_emulator
 			memory_events::execute( tag(), arg1, arg2);
 		}
 
+		/// get profiling information: a count of how often each instruction was run
+		const histogram_type &get_histogram() const
+		{
+			return histogram;
+		}
+
+		/// set all statistics to zero
+		void reset_histogram()
+		{
+			std::fill( histogram, histogram + (sizeof( histogram)/sizeof( histogram[0])), 0);
+		}
+
+		/// register a handler that will be called if a certain ram address is accessed.
 		void on_memory_access( sx_ram::address_t address, memory_events::handler_type handler)
 		{
 			memory_events::set( address, handler);
 		}
 
+		/// load a range of instruction words into rom.
 		template< typename Range>
 		void load_rom( const Range &r, sx_rom::address_t offset = 0)
 		{
@@ -747,16 +767,26 @@ namespace sx_emulator
 			shadow_rom.load( r, offset);
 		}
 
+		/// set a breakpoint at a given address
 		void set_breakpoint( address_t address)
 		{
 			shadow_rom.set( address, BREAKPOINT);
 		}
 
+		/// remove the breakpoint at the given address
 		void remove_breakpoint( address_t address)
 		{
 			shadow_rom.set( address, get_rom()( address));
 		}
 
+		/// keep track of how often a certain instruction was run
+		address_t count_freq( address_t address)
+		{
+			++histogram[ address];
+			return address;
+		}
+
+		/// run one clock cycle/instruction
 		size_t tick()
 		{
 			//
@@ -764,7 +794,7 @@ namespace sx_emulator
 			if (get_rtcc_on_cycle()) do_rtcc();
 
 			reset_nop_delay();
-			sx_rom::register_t instruction = get_rom()( inc_pc());
+			sx_rom::register_t instruction = get_rom()( count_freq(inc_pc()));
 			decoder_t::feed(
 				instruction, *this);
 
@@ -797,7 +827,9 @@ namespace sx_emulator
 
 					if (!dec_nop_delay())
 					{
-						sx_rom::register_t instruction = shadow_rom( inc_pc());
+						// notice the count_freq call, this costs about 3% in performance,
+						// but it delivers a nice profiling feature in return.
+						sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
 						if (instruction == BREAKPOINT)
 						{
 							dec_pc();
@@ -813,6 +845,11 @@ namespace sx_emulator
 
 			return count;
 		}
+
+		private:
+			// keep a count of how often each instruction was run
+			histogram_type histogram;
+
 	};
 }
 #undef MEM

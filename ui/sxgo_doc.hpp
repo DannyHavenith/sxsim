@@ -8,7 +8,8 @@
 
 #if !defined (SXGO_DOC_HPP)
 #define SXGO_DOC_HPP
-
+#include <vector>
+#include <utility> // for std::pair
 #include "wx/docview.h"
 #include "listing_parser.hpp"
 #include "sx_simulator.hpp"
@@ -19,6 +20,7 @@ class wxString;
 class sxgo_document: public wxDocument
 {
 public:
+	typedef std::vector< std::pair<unsigned short, unsigned long> > profile_type;
 	DECLARE_DYNAMIC_CLASS(sxgo_document)
 
 	virtual bool OnSaveDocument(const wxString& filename);
@@ -31,6 +33,7 @@ public:
 	listing_info GetListing() const;
 	unsigned short SingleStep();
 	unsigned long Run( unsigned long count);
+	profile_type GetProfile() const;
 	void SetBreakpoint( unsigned short address, bool do_set = true);
 	sx_simulator::state GetState() const;
 	void SetState( const sx_simulator::state &new_state);

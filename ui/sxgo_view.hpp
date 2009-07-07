@@ -44,7 +44,7 @@ private:
 		return (sxgo_document *)GetDocument();
 	}
 
-	void RunSome();
+	void RunSome( bool first_run);
 	void UpdateAll();
 
 	bool running;

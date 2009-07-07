@@ -147,7 +147,7 @@ void sxgo_view::Run(wxCommandEvent& event)
     MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Running"));
     running = true;
 	wxWakeUpIdle();
-	RunSome();
+	RunSome( true);
 }
 
 //
@@ -158,14 +158,19 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 {
 	if (running)
 	{
-		RunSome();
+		RunSome( false);
 		event.RequestMore();
 	}
-	else if (reset_on_stop)
+	else
 	{
-		reset_on_stop = false;
-		SafeGetDocument()->Reset();
-		UpdateAll();
+		event.RequestMore(false);
+		if (reset_on_stop)
+		{
+			reset_on_stop = false;
+			SafeGetDocument()->Reset();
+			UpdateAll();
+		}
+		textsw->ClearProfile();
 	}
 }
 
@@ -181,20 +186,25 @@ void sxgo_view::UpdateAll()
 //
 // run for a fraction of a second.
 //
-void sxgo_view::RunSome()
+void sxgo_view::RunSome( bool first_run)
 {
 	sxgo_document *doc = SafeGetDocument();
 	// 1000 000 clockticks should be short enough
 	// choose a prime number close to a million, to avoid 
 	// the screen update coming in sync with some loop in 
 	// the program.
-	unsigned long run_count = 1005989;
+	unsigned long run_count = 10* 1005989;
 
 	boost::timer t;
 	if (doc->Run( run_count) != 0)
 	{
+		// we hit a breakpoint
 	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Ready"));
 		running = false;
+		unsigned short address = doc->GetState().pc;
+		int line = doc->GetListing().GetLine(address);
+		textsw->ClearProfile();
+		textsw->JumpToLine( line);
 	}
 	else
 	{
@@ -202,11 +212,10 @@ void sxgo_view::RunSome()
 	    unsigned long ips = ((double)run_count)/t.elapsed();
 	    s << "Running, " << ips << " instructions per second";
 	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( s.str()));
+		sxgo_document::profile_type profile = doc->GetProfile();
+		textsw->ShowProfile( profile, first_run);
 	}
 
-	unsigned short address = doc->GetState().pc;
-	int line = doc->GetListing().GetLine(address);
-	textsw->JumpToLine( line);
 	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 

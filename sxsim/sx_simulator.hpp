@@ -25,14 +25,20 @@ public:
 	typedef unsigned short address_type;
 	typedef unsigned short pc_type;
 	typedef unsigned char register_type;
+	static const int rom_size = 4096;
     typedef sx_state state;
+	typedef unsigned long histogram_type[rom_size];
 
-	bool load_rom( const unsigned short (&instructions)[4096]);
+	bool load_rom( const unsigned short (&instructions)[rom_size]);
 	unsigned long run( unsigned long tick_count);
 	state get_state() const;
 	void set_state( const state &new_state);
 	void set_breakpoint( address_type address, bool do_set = true);
-	void on_memory_access( address_type address, boost::function< void( address_type, register_type )> handler);
+	void on_memory_access( address_type address, 
+		boost::function< void( address_type, register_type )> handler);
+
+	const histogram_type &get_histogram() const;
+	void reset_histogram();
 	void reset();
 private:
 	sx_emulator::sx_controller *emulator;
