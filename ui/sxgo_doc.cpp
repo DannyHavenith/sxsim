@@ -64,9 +64,9 @@ unsigned long sxgo_document::Run( unsigned long count)
 
 namespace
 {
-	bool second_is_smaller( 
-		std::pair< unsigned short, unsigned long> &lhs,
-		std::pair< unsigned short, unsigned long> &rhs)
+	bool second_is_smaller(
+		const std::pair< unsigned short, unsigned long> &lhs,
+		const std::pair< unsigned short, unsigned long> &rhs)
 	{
 		return lhs.second < rhs.second;
 	}

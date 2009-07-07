@@ -35,6 +35,3 @@ IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   SET_TARGET_PROPERTIES(sxsim PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-# this one is getting really outdated.
-#add_executable( sxsimulator sxsim.cpp)
-#target_link_libraries( sxsimulator sxsim) 

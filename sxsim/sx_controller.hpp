@@ -86,7 +86,7 @@ namespace sx_emulator
 		{
 		}
 	};
-    
+
 	using namespace micro_emulator;
 	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
@@ -709,6 +709,8 @@ namespace sx_emulator
 		sx_rom shadow_rom;
 
 
+		struct breakpoint_exception {};
+
 	public:
 		typedef unsigned long histogram_type[ sx_rom::memory_size];
 
@@ -723,6 +725,12 @@ namespace sx_emulator
 		{
 			sx_controller_impl::execute( tag());
 			memory_events::execute( tag());
+		}
+
+		/// overload for the breakpoint instruction
+		void execute( const breakpoint &)
+		{
+			throw breakpoint_exception();
 		}
 
 		/// execute a single operand opcode
@@ -810,6 +818,8 @@ namespace sx_emulator
 		//
 		size_t tick( size_t count)
 		{
+			try
+			{
 			// first instruction is always executed
 			if (count)
 			{
@@ -830,11 +840,11 @@ namespace sx_emulator
 						// notice the count_freq call, this costs about 3% in performance,
 						// but it delivers a nice profiling feature in return.
 						sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
-						if (instruction == BREAKPOINT)
-						{
-							dec_pc();
-							break;
-						}
+//						if (instruction == BREAKPOINT)
+//						{
+//							dec_pc();
+//							break;
+//						}
 
 						decoder_t::feed(
 							instruction, *this
@@ -842,7 +852,11 @@ namespace sx_emulator
 					}
 				}
 			}
-
+			}
+			catch (const breakpoint_exception &)
+			{
+				dec_pc();
+			}
 			return count;
 		}
 

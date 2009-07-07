@@ -9,7 +9,7 @@ namespace sx_emulator
 {
 	namespace mpl = boost::mpl;
 
-	/// This class keeps an array of event handlers that are invoked when the sx changes 
+	/// This class keeps an array of event handlers that are invoked when the sx changes
 	/// a memory location.
 	class memory_events
 	{
@@ -25,17 +25,17 @@ namespace sx_emulator
 		/// meta function that returns true_ iff the arguments of an instruction
 		/// include a dest_reg_ (or in other words: the instruction writes to a ram location).
 		template< typename tag_type>
-		struct changes_memory : 
-			mpl::contains< 
+		struct changes_memory :
+			mpl::contains<
 				typename tag_type::args,
 				dest_reg_
 			> {};
 
 		/// the event dispatcher comes in two variations:
-		/// - null dispatcher, which does nothing and is used for all instructions that 
+		/// - null dispatcher, which does nothing and is used for all instructions that
 		///   do not change memory locations at all (e.g. "mov w, fr")
 		/// - real dispatcher, which calls the trigger method on the event dispatcher.
-		template<typename tag_type, typename memory_changed = changes_memory<tag_type>::type>
+		template<typename tag_type, typename memory_changed = typename changes_memory<tag_type>::type>
 		struct event_dispatcher
 		{
 			static void dispatch( const memory_events &, sx_ram::address_t) {};
@@ -83,7 +83,7 @@ namespace sx_emulator
 			// first, do a quick test to see if there are handlers for this limited (0x00-0x1f) addres
 			if (handler_flags[ address])
 			{
-				// if so, expand the addres to a real internal address. 
+				// if so, expand the addres to a real internal address.
 				sx_ram::address_t internal_address = ram.limited_to_internal( address);
 				if (handlers[internal_address])
 				{

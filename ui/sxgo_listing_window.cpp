@@ -28,7 +28,7 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 	InitColWidths();
 	AutoSizeColumn( 1);
 	SetColSize( 0, 16);
-	
+
 	int red_start = wxWHITE->Red();
 	int green_start = wxWHITE->Green();
 	int blue_start = wxWHITE->Blue();
@@ -40,9 +40,9 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 		int red_gradient = red_start + (red_end - red_start) * (((float)(gradient + 1))/gradient_count);
 		int green_gradient = green_start + (green_end - green_start) * (((float)(gradient + 1))/gradient_count);
 		int blue_gradient = blue_start + (blue_end - blue_start) * (((float)(gradient + 1))/gradient_count);
-		gradients[gradient] = wxColour( red_gradient, green_gradient, blue_gradient); 
+		gradients[gradient] = wxColour( red_gradient, green_gradient, blue_gradient);
 	}
-	
+
 }
 
 void sxgo_listing_window::ShowLine( unsigned short line)
@@ -62,7 +62,8 @@ void sxgo_listing_window::ShowProfile( const sxgo_listing_window::profile_type &
 	profile_type::const_iterator i;
 
 	int max_line = 0;
-	// erase the previously set colours, if not overwritten by the 
+
+	// erase the previously set colours, if not overwritten by the
 	// new colours
 	for (i = previous_profile.begin(); i != previous_profile.end(); ++i)
 	{
@@ -75,8 +76,8 @@ void sxgo_listing_window::ShowProfile( const sxgo_listing_window::profile_type &
 	int last_value = 0;
 	for (i = profile.begin(); i != profile.end(); ++i)
 	{
-		
-		if (i->second != last_value) 
+
+		if (i->second != last_value)
 		{
 			gradient = counter * gradient_count / profile.size();
 		}
@@ -97,9 +98,13 @@ void sxgo_listing_window::ShowProfile( const sxgo_listing_window::profile_type &
 	{
 		Refresh();
 	}
-	
+
 }
 
+bool sxgo_listing_window::FadeProfile()
+{
+
+}
 void sxgo_listing_window::ClearProfile()
 {
 	if (previous_profile.empty()) return;

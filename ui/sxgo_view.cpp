@@ -190,10 +190,10 @@ void sxgo_view::RunSome( bool first_run)
 {
 	sxgo_document *doc = SafeGetDocument();
 	// 1000 000 clockticks should be short enough
-	// choose a prime number close to a million, to avoid 
-	// the screen update coming in sync with some loop in 
+	// choose a prime number close to a million, to avoid
+	// the screen update coming in sync with some loop in
 	// the program.
-	unsigned long run_count = 10* 1005989;
+	unsigned long run_count = 1005989;
 
 	boost::timer t;
 	if (doc->Run( run_count) != 0)

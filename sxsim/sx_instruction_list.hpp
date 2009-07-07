@@ -43,6 +43,10 @@ namespace sx_emulator
 	struct addr9_ 		:	masked_argument< 111111111> {};
 	struct port_		:	masked_argument< 000000111> {};
 
+	// special instruction: this instruction is not part of the sx instruction set
+	// but is used by this emulator to implement breakpoints.
+	struct breakpoint	: word< 000001001111> {};
+
 	// instruction tags for the SX instruction set.
 	// each tag also happens to encode the bit layout of the instruction.
 	struct iread		: word< 000001000001> {};
@@ -101,7 +105,7 @@ namespace sx_emulator
 
 
 
-	struct sx_instruction_list 
+	struct sx_instruction_list
 	{
 
 
@@ -114,6 +118,7 @@ namespace sx_emulator
 
 		// define a list of sx instructions.
 		typedef mpl::vector<
+			breakpoint,
 			iread,
 			mov_w_m,
 			mov_m_w,
