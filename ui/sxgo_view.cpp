@@ -86,6 +86,7 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 	frame->GetSize(&x, &y);
 	frame->SetSize(wxDefaultCoord, wxDefaultCoord, x, y);
 	Activate(true);
+	MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Reset, press Run or Singlestep button"));
 	return true;
 }
 
@@ -115,11 +116,14 @@ void sxgo_view::SingleStep(wxCommandEvent& WXUNUSED(event))
 	running = false;
 
 	MyFrame::GetMainFrame()->UpdateAll( *doc);
+	MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Paused"));
 }
 
 void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
 {
 	running = false;
+	MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Paused"));
+
 }
 
 void sxgo_view::Stop(wxCommandEvent& WXUNUSED(event))
@@ -133,6 +137,7 @@ void sxgo_view::Stop(wxCommandEvent& WXUNUSED(event))
 	{
 		SafeGetDocument()->Reset();
 		UpdateAll();
+		MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Reset"));
 	}
 
 }
@@ -169,6 +174,7 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 			reset_on_stop = false;
 			SafeGetDocument()->Reset();
 			UpdateAll();
+			MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Reset"));
 		}
 		textsw->ClearProfile();
 	}
@@ -197,11 +203,10 @@ void sxgo_view::RunSome( bool first_run)
 	static int profile_refresh_counter = 0;
 	static const int profile_refresh_treshold = 5;
 
-	boost::timer t;
 	if (doc->Run( run_count) != 0)
 	{
 		// we hit a breakpoint
-	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Ready"));
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Breakpoint hit"));
 		running = false;
 		unsigned short address = doc->GetState().pc;
 		int line = doc->GetListing().GetLine(address);
@@ -210,10 +215,7 @@ void sxgo_view::RunSome( bool first_run)
 	}
 	else
 	{
-	    std::stringstream s;
-	    unsigned long ips = ((double)run_count)/t.elapsed();
-	    s << "Running, " << ips << " instructions per second";
-	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( s.str()));
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( "Running"));
 	    if (first_run || ++profile_refresh_counter > profile_refresh_treshold)
 	    {
 			sxgo_document::profile_type profile = doc->GetProfile();

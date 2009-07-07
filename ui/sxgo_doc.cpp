@@ -26,9 +26,11 @@ wxInputStream& sxgo_document::LoadObject(wxInputStream& stream)
     static const size_t buffer_size = 4096;
     char buffer[buffer_size];
     string contents;
-    while (!stream.Read( buffer, buffer_size).Eof())
+	stream.Read( buffer, buffer_size);
+    while (stream.LastRead())
     {
         contents.append( buffer, stream.LastRead());
+		stream.Read( buffer, buffer_size);
     }
 
     std::istringstream strm( contents);

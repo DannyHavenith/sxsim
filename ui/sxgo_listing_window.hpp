@@ -23,7 +23,7 @@ public:
                  const wxSize& size = wxDefaultSize,
                  long style = wxWANTS_CHARS,
                  const wxString& name = wxT("Listing"))
-		:wxGrid( parent, id, pos, wxSize( 10*20, 17 * 16), style, name)
+		:wxGrid( parent, id, pos, size, style, name)
 	{
 		SetColLabelSize( 0);
 		SetRowLabelSize(0);
@@ -39,7 +39,7 @@ public:
 	bool ToggleBreakpoint( int line);
 private:
 	profile_type previous_profile;
-	static const int gradient_count = 5;
+	static const int gradient_count = 7;
 	wxColour gradients[ gradient_count];
 	listing_info listing;
 	int current_line;

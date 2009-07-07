@@ -110,7 +110,7 @@ void sxgo_listing_window::ShowProfile( const sxgo_listing_window::profile_type &
 
 bool sxgo_listing_window::FadeProfile()
 {
-
+	return false;
 }
 
 void sxgo_listing_window::ClearProfile()

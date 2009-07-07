@@ -7,6 +7,7 @@
 #include "wx/docview.h"
 #include "wx/docmdi.h"
 #include "wx/menu.h"
+#include "wx/config.h"
 
 #include "sxgo_frame.hpp"
 #include "sxgo_app.hpp"
@@ -25,9 +26,10 @@ IMPLEMENT_APP(MyApp)
 wxMDIChildFrame *MyApp::CreateChildFrame(wxDocument *doc, wxView *view)
 {
 	//// Make a child frame
+
 	wxDocMDIChildFrame *subframe =
 		new wxDocMDIChildFrame(doc, view, frame, wxID_ANY, _T("Child Frame"),
-		wxPoint(10, 10), wxSize(300, 300),
+		wxPoint(0,0), wxSize(300, 300),
 		wxDEFAULT_FRAME_STYLE |
 		wxNO_FULL_REPAINT_ON_RESIZE);
 
@@ -69,9 +71,14 @@ bool MyApp::OnInit()
 	//// Create a template relating drawing documents to their views
 	(void) new wxDocTemplate((wxDocManager *) m_docManager, _T("sx listing"), _T("*.lst"), _T(""), _T("lst"), _T("Drawing Doc"), _T("Drawing View"),
 		CLASSINFO(sxgo_document), CLASSINFO(sxgo_view));
+	wxConfig *config = new wxConfig( "sxgo");
+	int x = config->Read( "InitialWindow/x", (long)0);
+	int y = config->Read( "InitialWindow/y", (long)0);
+	int w = config->Read( "InitialWindow/w", 800);
+	int h = config->Read( "InitialWindows/h", 600);
 
 	frame = new MyFrame((wxDocManager *) m_docManager, (wxFrame *) NULL,
-		_T("sxgo!"), wxPoint(0, 0), wxSize(500, 400),
+		_T("sxgo!"), wxPoint(x, y), wxSize(w, h),
 		wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 	SetTopWindow(frame);
