@@ -18,7 +18,7 @@ namespace arithmetic_with_flags
 	//
 	// Objects of his class are typically instantiated on the fly, when some
 	// calculation needs to be performed and discarded right after that.
-	// An optimizing compiler will discard the object creation and only implement the 
+	// An optimizing compiler will discard the object creation and only implement the
 	// actual arithmetic.
 	//
 	// This implementation can modify Z (zero), C (carry) and DC (digit carry) flags.
@@ -32,7 +32,7 @@ namespace arithmetic_with_flags
 	public:
 
 		typedef unsigned char register_t;
-		
+
 		operator register_t() const
 		{
 			return data_;
@@ -68,7 +68,7 @@ namespace arithmetic_with_flags
 
 		flagged &operator-=( int rhs)
 		{
-			set( DC, ((data_ & DC_MASK) - (rhs & DC_MASK)) & ~DC_MASK);
+			set( DC, !(((data_ & DC_MASK) - (rhs & DC_MASK)) & ~DC_MASK));
 
 			unsigned int result = data_ - rhs;
 
