@@ -215,17 +215,17 @@ namespace sx_emulator
 
 		void execute( const and_w_lit &, int arg_lit8)
 		{
-			w &= arg_lit8;
+			flagged( w, flags) &= arg_lit8;
 		}
 
 		void execute( const and_w_fr &, int arg_register)
 		{
-			w &= MEM;
+			flagged( w, flags) &= MEM;
 		}
 
 		void execute( const and_fr_w &, int arg_register)
 		{
-			MEM &= w;
+			flagged( MEM, flags) &= w;
 		}
 
 		void execute( const clrb_fr_bit &, int arg_register, int bit)
@@ -376,6 +376,10 @@ namespace sx_emulator
 		void execute( const mov_fr_w &, int arg_register)
 		{
 			MEM = w; // no flags
+			if (arg_register == sx_ram::PC)
+			{
+				execute( jmp(), w);
+			}
 		}
 
 		void execute( const retw &, int arg_lit8)
@@ -410,8 +414,8 @@ namespace sx_emulator
 
 		void execute( const mov_w_fr_minus_w &, int arg_register)
 		{
-			register_t temp = w;
-			w = (flagged( temp, flags) -= MEM);
+			register_t temp = MEM;
+			w = (flagged( temp, flags) -= w);
 		}
 
 		void execute( const sub_fr_w &, int arg_register)
@@ -421,12 +425,12 @@ namespace sx_emulator
 
 		void execute( const mov_w_swap_fr &, int arg_register)
 		{
-			w = ((MEM & 0xf) >> 4) | ((MEM & 0x0f) << 4);
+			w = ((MEM & 0xf0) >> 4) | ((MEM & 0x0f) << 4);
 		}
 
 		void execute( const swap_fr &, int arg_register)
 		{
-			MEM = ((MEM & 0xf) >> 4) | ((MEM & 0x0f) << 4);
+			MEM = ((MEM & 0xf0) >> 4) | ((MEM & 0x0f) << 4);
 		}
 
 		void execute( const mov_special_rx_w &, int arg_cregister)
@@ -652,7 +656,8 @@ namespace sx_emulator
 		void clear_wdt()
 		{
 			wdt = 0;
-			// todo: actions on clear wdt
+			// set bits TO and PD
+			ram( sx_ram::STATUS) |= 0x18; 
 		}
 
 		void set_option( int value)

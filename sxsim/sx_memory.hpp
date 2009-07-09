@@ -52,7 +52,7 @@ namespace sx_emulator
 
 		//
 		// set a value in the 'rom'
-		// usefull to replace instructions with breakpoints.
+		// useful to replace instructions with breakpoints.
 		//
 		void set( address_t address, register_t value)
 		{
