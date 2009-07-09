@@ -16,7 +16,32 @@
 #include "sx_controller.hpp"
 
 #include "sx_simulator.hpp"
+#include "sx_compiler.hpp"
 
+void testfunc()
+{
+	using namespace sx_emulator;
+	using namespace micro_emulator;
+	typedef sx_compiler< sx_controller> compiler_t;
+
+	typedef instruction_decoder<
+		sx_instruction_list,
+		compiler_t
+	> decoder_t;
+
+	boost::function< void ()> location;
+	sx_emulator::sx_controller c;
+
+	compiler_t compiler( location, &c);
+	//decoder_t::feed( 0xc01, compiler);
+	compiler.execute( mov_w_lit(), 42);
+//	typedef void (sx_controller::*member_function_type)( const mov_w_lit &, int);
+//	member_function_type tst = &sx_controller::execute;
+//		boost::bind(
+//				tst,
+//				&c, mov_w_lit(), 42);
+
+}
 
 sx_simulator::sx_simulator()
 {
@@ -51,8 +76,8 @@ void sx_simulator::set_breakpoint( address_type address, bool do_set)
 	}
 }
 
-void  sx_simulator::on_memory_access( 
-	sx_simulator::address_type address, 
+void  sx_simulator::on_memory_access(
+	sx_simulator::address_type address,
 	boost::function< void(  sx_simulator::address_type, sx_simulator::register_type )> handler
 	)
 {
