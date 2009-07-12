@@ -15,11 +15,13 @@
 #include <stack>
 #include <iostream>
 #include <boost/utility.hpp>
+#include <boost/bind/placeholders.hpp>
 
 #include "arithmetic_with_flags.hpp"
 #include "sx_memory.hpp"
 #include "sx_state.hpp"
 #include "memory_events.hpp"
+#include "sx_compiler.hpp"
 
 namespace sx_emulator
 {
@@ -195,6 +197,21 @@ namespace sx_emulator
 				{
 					do_interrupt();
 				}
+			}
+		}
+
+		void do_interrupt()
+		{
+			if (!in_interrupt)
+			{
+				in_interrupt = true;
+				interrupt_state.program_counter = program_counter;
+				interrupt_state.w = w;
+				interrupt_state.fsr = ram( sx_ram::FSR);
+				interrupt_state.status = ram( sx_ram::STATUS);
+				ram( sx_ram::STATUS) &= 0x1f; // clear page bits.
+				set_pc(0);
+				set_nop_delay( 3);
 			}
 		}
 
@@ -551,19 +568,9 @@ namespace sx_emulator
 			m = arg_lit4;
 		}
 
-		void do_interrupt()
+		void execute( const breakpoint &)
 		{
-			if (!in_interrupt)
-			{
-				in_interrupt = true;
-				interrupt_state.program_counter = program_counter;
-				interrupt_state.w = w;
-				interrupt_state.fsr = ram( sx_ram::FSR);
-				interrupt_state.status = ram( sx_ram::STATUS);
-				ram( sx_ram::STATUS) &= 0x1f; // clear page bits.
-				set_pc(0);
-				set_nop_delay( 3);
-			}
+			// do nothing. others do sane things here.
 		}
 
 
@@ -714,8 +721,6 @@ namespace sx_emulator
 		sx_rom shadow_rom;
 
 
-		struct breakpoint_exception {};
-
 	public:
 		typedef unsigned long histogram_type[ sx_rom::memory_size];
 
@@ -730,12 +735,6 @@ namespace sx_emulator
 		{
 			sx_controller_impl::execute( tag());
 			memory_events::execute( tag());
-		}
-
-		/// overload for the breakpoint instruction
-		void execute( const breakpoint &)
-		{
-			throw breakpoint_exception();
 		}
 
 		/// execute a single operand opcode
@@ -804,7 +803,8 @@ namespace sx_emulator
 		{
 			//
 			// handle realtime clock, if enabled.
-			if (get_rtcc_on_cycle()) do_rtcc();
+			if (get_rtcc_on_cycle()) 
+				do_rtcc();
 
 			reset_nop_delay();
 			sx_rom::register_t instruction = get_rom()( count_freq(inc_pc()));
@@ -813,6 +813,7 @@ namespace sx_emulator
 
 			return 0;
 		}
+
 
 		//
 		// there are a few subtle differences between 'tick' and 'ticks'.
@@ -855,16 +856,111 @@ namespace sx_emulator
 					}
 				}
 			}
-			
+
 			return count;
 		}
 
-		private:
-			// keep a count of how often each instruction was run
-			histogram_type histogram;
+	private:
+		// keep a count of how often each instruction was run
+		histogram_type histogram;
+
+	};
+
+	//
+	// todo: refactor sx_controller into a non-leaf class.
+	class precompiled_sx_controller : public sx_controller
+	{
+
+	public:
+		template< typename Range>
+		void load_rom( const Range &r, sx_rom::address_t offset = 0)
+		{
+			sx_controller_impl::load_rom( r, offset);
+			compile();
+		}
+
+		//
+		// there are a few subtle differences between 'tick' and 'ticks'.
+		// The former always executes an instruction, whereas 'ticks' may break on
+		// breakpoints.
+		// That is also why this function retrieves instructions from the shadow rom,
+		// which may contain breakpoints.
+		//
+		size_t tick( size_t count)
+		{
+			try
+			{
+				// first instruction is always executed
+				if (count)
+				{
+					sx_controller::tick();
+
+					// other instructions may be breakpoints.
+					while (--count)
+					{
+						//
+						// handle realtime clock, if enabled.
+						if (get_rtcc_on_cycle()) do_rtcc();
+						if (!dec_nop_delay())
+						{
+							precompiled[ count_freq(inc_pc())]->execute( this);
+						}
+					}
+				}
+			}
+			catch( const breakpoint_exception &)
+			{
+			}
+			return count;
+		}
+
+		/// set a breakpoint at a given address
+		void set_breakpoint( address_t address)
+		{
+			precompiled[address].reset( new ins_notag<precompiled_sx_controller>( &precompiled_sx_controller::throw_breakpoint));
+		}
+
+		/// remove the breakpoint at the given address
+		void remove_breakpoint( address_t address)
+		{
+			compile( address, get_rom()(address));
+		}
+
+	private:
+		typedef sx_compiler< precompiled_sx_controller> compiler_type;
+
+		void throw_breakpoint()
+		{
+			throw breakpoint_exception();
+		}
+
+		/// compile an sx instruction into a function pointer
+		void compile( address_t address, sx_rom::register_t instruction)
+		{
+			typedef micro_emulator::instruction_decoder<
+				sx_instruction_list,
+				compiler_type
+			> compiler_decoder_type;
+
+			compiler_type c( precompiled[ address]);
+			compiler_decoder_type::feed( instruction, c);
+		}
+
+		/// compile all rom instructions into function pointers.
+		void compile()
+		{
+			for (address_t address = 0; address < sx_rom::memory_size; ++address)
+			{
+				compile( address, get_rom()( address));
+			}
+		}
+
+		compiler_type::slot_type precompiled[ sx_emulator::sx_rom::memory_size];
+		struct breakpoint_exception {};
 
 	};
 }
+
 #undef MEM
 #undef IMPLEMENT_INSTRUCTION
 #endif //SX_CONTROLLER_INCLUDED

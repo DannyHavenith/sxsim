@@ -15,6 +15,7 @@
 namespace sx_emulator
 {
 	class sx_controller; // pimpl
+	class precompiled_sx_controller;
 }
 
 class sx_simulator
@@ -41,6 +42,7 @@ public:
 	void reset_histogram();
 	void reset();
 private:
-	sx_emulator::sx_controller *emulator;
+	typedef sx_emulator::sx_controller emulator_type;
+	emulator_type *emulator;
 };
 #endif //SX_SIMULATOR_HPP
