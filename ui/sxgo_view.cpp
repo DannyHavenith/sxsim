@@ -28,6 +28,7 @@ BEGIN_EVENT_TABLE(sxgo_view, wxView)
 	EVT_MENU(ID_Pause, sxgo_view::Pause)
 	EVT_MENU(ID_Stop, sxgo_view::Stop)
 	EVT_GRID_CELL_LEFT_DCLICK( sxgo_view::DoubleClick)
+	EVT_SET_FOCUS(sxgo_view::OnSetFocus)
 	EVT_COMMAND(wxID_ANY, EVT_JUMPTO_LABEL_LINE, sxgo_view::ShowLine)
 	EVT_COMMAND(wxID_ANY, EVT_CHANGE_RAMVALUE, sxgo_view::ChangeRam)
 END_EVENT_TABLE()
@@ -40,6 +41,14 @@ void sxgo_view::ShowLine(wxCommandEvent & event)
 {
 	int line = event.GetInt();
 	textsw->ShowLine( line);
+}
+
+//
+/// if we receive focus, after somebody else had focus, we're going to update all view windows.
+///
+void sxgo_view::OnSetFocus( wxFocusEvent &event)
+{
+	UpdateAll();
 }
 
 //
@@ -233,4 +242,5 @@ void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)
 	textsw->SetListing( doc->GetListing());
 	textsw->SetFont( wxFont( 9, wxFONTFAMILY_MODERN,
 		wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ));
+	UpdateAll();
 }

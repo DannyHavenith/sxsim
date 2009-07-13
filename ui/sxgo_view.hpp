@@ -34,6 +34,7 @@ public:
 	void Stop(wxCommandEvent& event);
 	void DoubleClick( wxGridEvent& event);
 	void OnIdle(wxIdleEvent& event);
+	void OnSetFocus( wxFocusEvent &event);
 	void LabelActivated(wxTreeEvent& event);
 	void ShowLine(wxCommandEvent & event);
 	void ChangeRam( wxCommandEvent &event);
