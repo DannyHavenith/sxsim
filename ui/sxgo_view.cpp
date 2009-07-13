@@ -215,7 +215,7 @@ void sxgo_view::RunSome( bool first_run)
 	}
 	else
 	{
-	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( "Running"));
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( _( "Running"));
 	    if (first_run || ++profile_refresh_counter > profile_refresh_treshold)
 	    {
 			sxgo_document::profile_type profile = doc->GetProfile();

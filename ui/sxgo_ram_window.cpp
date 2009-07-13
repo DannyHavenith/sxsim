@@ -109,8 +109,8 @@ void sxgo_ram_window::ChangeValue( wxGridEvent &event)
 	// a cell value has changed. If the value can be converted to hex,
 	// send an EVT_CHANGE_RAMVALUE event with the absolute ram location in
 	// the Int value and the new value in the ExtraLong value.
-	int value = FromHex( GetCellValue(
-		event.GetRow(), event.GetCol()).mb_str()
+	int value = FromHex(
+			(const char *)GetCellValue(event.GetRow(), event.GetCol()).mb_str()
 		);
 
 	if (value < 0)

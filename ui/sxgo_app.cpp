@@ -71,11 +71,11 @@ bool MyApp::OnInit()
 	//// Create a template relating drawing documents to their views
 	(void) new wxDocTemplate((wxDocManager *) m_docManager, _T("sx listing"), _T("*.lst"), _T(""), _T("lst"), _T("Drawing Doc"), _T("Drawing View"),
 		CLASSINFO(sxgo_document), CLASSINFO(sxgo_view));
-	wxConfig *config = new wxConfig( "sxgo");
-	int x = config->Read( "InitialWindow/x", (long)0);
-	int y = config->Read( "InitialWindow/y", (long)0);
-	int w = config->Read( "InitialWindow/w", 800);
-	int h = config->Read( "InitialWindows/h", 600);
+	wxConfig *config = new wxConfig( _("sxgo"));
+	int x = config->Read( _("InitialWindow/x"), (long)0);
+	int y = config->Read( _("InitialWindow/y"), (long)0);
+	int w = config->Read( _("InitialWindow/w"), 800);
+	int h = config->Read( _("InitialWindows/h"), 600);
 
 	frame = new MyFrame((wxDocManager *) m_docManager, (wxFrame *) NULL,
 		_T("sxgo!"), wxPoint(x, y), wxSize(w, h),

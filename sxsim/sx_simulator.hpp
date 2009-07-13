@@ -35,14 +35,14 @@ public:
 	state get_state() const;
 	void set_state( const state &new_state);
 	void set_breakpoint( address_type address, bool do_set = true);
-	void on_memory_access( address_type address, 
+	void on_memory_access( address_type address,
 		boost::function< void( address_type, register_type )> handler);
 
 	const histogram_type &get_histogram() const;
 	void reset_histogram();
 	void reset();
 private:
-	typedef sx_emulator::sx_controller emulator_type;
+	typedef sx_emulator::precompiled_sx_controller emulator_type;
 	emulator_type *emulator;
 };
 #endif //SX_SIMULATOR_HPP
