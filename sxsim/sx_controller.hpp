@@ -664,7 +664,7 @@ namespace sx_emulator
 		{
 			wdt = 0;
 			// set bits TO and PD
-			ram( sx_ram::STATUS) |= 0x18; 
+			ram( sx_ram::STATUS) |= 0x18;
 		}
 
 		void set_option( int value)
@@ -803,7 +803,7 @@ namespace sx_emulator
 		{
 			//
 			// handle realtime clock, if enabled.
-			if (get_rtcc_on_cycle()) 
+			if (get_rtcc_on_cycle())
 				do_rtcc();
 
 			reset_nop_delay();
@@ -814,6 +814,32 @@ namespace sx_emulator
 			return 0;
 		}
 
+
+		/// tick variant that is to be called from some external clock
+		/// returns true if a breakpoint was encountered
+		bool synchronized_tick()
+		{
+			//
+			// handle realtime clock, if enabled.
+			if (get_rtcc_on_cycle()) do_rtcc();
+
+			if (!dec_nop_delay())
+			{
+				// notice the count_freq call, this costs about 3% in performance,
+				// but it delivers a nice profiling feature in return.
+				sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
+				if (instruction == BREAKPOINT)
+				{
+					dec_pc();
+					return true;
+				}
+
+				decoder_t::feed(
+					instruction, *this
+					);
+			}
+			return false;
+		}
 
 		//
 		// there are a few subtle differences between 'tick' and 'ticks'.
@@ -828,32 +854,10 @@ namespace sx_emulator
 			if (count)
 			{
 				tick();
-
 				// other instructions may be breakpoints.
 				while (--count)
 				{
-
-					//
-					// handle realtime clock, if enabled.
-					if (get_rtcc_on_cycle()) do_rtcc();
-
-
-
-					if (!dec_nop_delay())
-					{
-						// notice the count_freq call, this costs about 3% in performance,
-						// but it delivers a nice profiling feature in return.
-						sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
-						if (instruction == BREAKPOINT)
-						{
-							dec_pc();
-							break;
-						}
-
-						decoder_t::feed(
-							instruction, *this
-							);
-					}
+					if (synchronized_tick()) break;
 				}
 			}
 

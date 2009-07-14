@@ -42,7 +42,7 @@ public:
 	void reset_histogram();
 	void reset();
 private:
-	typedef sx_emulator::precompiled_sx_controller emulator_type;
+	typedef sx_emulator::sx_controller emulator_type;
 	emulator_type *emulator;
 };
 #endif //SX_SIMULATOR_HPP

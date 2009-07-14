@@ -11,6 +11,7 @@
 #include "listing_parser.hpp"
 #include "sx_simulator.hpp"
 #include "sx_state.hpp"
+#include "sx_cluster.hpp"
 
 #include <string>
 #include <iostream>
@@ -74,20 +75,20 @@ BOOST_PYTHON_MODULE(pysix)
     def( "ParseListingFile", ParseListingFromFilename);
 
     class_< sx_emulator::sx_ram >( "sx_ram", init< >() )
-        .def( "get",			&::sx_emulator::sx_ram::get, 
+        .def( "get",			&::sx_emulator::sx_ram::get,
 				arg("address"))
-        .def( "get_absolute",	&::sx_emulator::sx_ram::get_absolute, 
+        .def( "get_absolute",	&::sx_emulator::sx_ram::get_absolute,
 				arg("address"))
-        .def( "get_internal",	&::sx_emulator::sx_ram::get_internal, 
+        .def( "get_internal",	&::sx_emulator::sx_ram::get_internal,
 				arg("address"))
         .def( "__call__",		(unsigned char const & ( ::sx_emulator::sx_ram::* )( short unsigned int ) const)&::sx_emulator::sx_ram::operator(),
 				arg("address"),
 				return_value_policy< copy_const_reference >() )
-        .def( "set",			&::sx_emulator::sx_ram::set, 
+        .def( "set",			&::sx_emulator::sx_ram::set,
 				( arg("address"), arg("value") ) )
-        .def( "set_absolute",	&::sx_emulator::sx_ram::set_absolute, 
+        .def( "set_absolute",	&::sx_emulator::sx_ram::set_absolute,
 				( arg("address"), arg("value") ) )
-        .def( "set_bank",		&::sx_emulator::sx_ram::set_bank, 
+        .def( "set_bank",		&::sx_emulator::sx_ram::set_bank,
 				arg("bank"))
         .def( self_ns::str(self))
 		;
