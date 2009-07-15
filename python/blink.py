@@ -2,7 +2,7 @@ from pysix import ParseListingFile, Simulator
 import sys
 
 listing = ParseListingFile( "../../test/blink.lst")
-sx = Simulator()
+sx = Emulator()
 
 sx.load_rom( listing)
 
@@ -15,6 +15,6 @@ def ShowLedStatus( address, value):
 
 # trigger an action if rb changes		
 RB = 0x06		
-sx.on_memory_access( RB, ShowLedStatus)
+sx.on_memory_write( RB, ShowLedStatus)
 
 sx.run( 100000000) # run 100 Mcycles, about 2 seconds

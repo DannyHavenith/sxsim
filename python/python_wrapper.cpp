@@ -64,12 +64,14 @@ bool load_rom( sx_simulator &sim, const listing_info &listing)
 
 void set_memory_handler( sx_simulator &sim, int address, boost::python::object function_object)
 {
-	sim.on_memory_access( address, function_object);
+	sim.on_memory_write( address, function_object);
 }
 
 BOOST_PYTHON_MODULE(pysix)
 {
     using namespace boost::python;
+	using namespace sx_emulator;
+
     class_<listing_info>("ListingInfo");
 
     def( "ParseListingFile", ParseListingFromFilename);
@@ -109,15 +111,20 @@ BOOST_PYTHON_MODULE(pysix)
         .def_readwrite( "ram", &sx_state::ram )
 		;
 
-	class_< sx_simulator >( "Simulator", init< >() )
+	class_< sx_simulator >( "Emulator", init< >() )
 		.add_property( "state", &sx_simulator::get_state, &sx_simulator::set_state)
         .def( "reset",			&::sx_simulator::reset)
         .def( "run",			&::sx_simulator::run,  arg("tick_count"))
         .def( "set_breakpoint", &::sx_simulator::set_breakpoint,
 			(arg("address"), arg("do_set")=(bool)(true) ) )
-		.def( "on_memory_access",&set_memory_handler,
+		.def( "on_memory_write",&set_memory_handler,
 			(arg("address"), arg("handler")))
 		.def( "load_rom",		&load_rom)
+		;
+
+	class_<sx_cluster>( "Cluster")
+		.def( "new_controller", &sx_cluster::new_controller)
+		.def( "run", &sx_cluster::run)
 		;
 
 

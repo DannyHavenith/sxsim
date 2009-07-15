@@ -6,8 +6,6 @@
 
 /// This file contains the list of SX instructions and encodes information about the operands of
 /// these instructions.
-/// Note that the sx_instruction_list class is a template that requires the implementation of the isntructions
-/// as a template argument.
 
 #if !defined( SX_INSTRUCTION_LIST_INCLUDED)
 #define SX_INSTRUCTION_LIST_INCLUDED
@@ -32,7 +30,11 @@ namespace sx_emulator
 	// e.g. a 'bit' argument is encoded in bits 5-7, while a
 	// 'port'-argument is in bits 0-2.
 	struct bit_ 		:	masked_argument< 011100000> {};
+
 	// make a distinction between destination registers and source registers
+	// this allows me to optimize the ram breakpoint implementation:
+	// instructions that do not write to ram do not have to check for ram 
+	// breakpoints.
 	struct dest_reg_	:	masked_argument< 000011111> {};
 	struct register_	:	masked_argument< 000011111> {};
 
@@ -56,7 +58,7 @@ namespace sx_emulator
 	struct ret			: word< 000000001100> {};
 	struct retp			: word< 000000001101> {};
 	struct reti			: word< 000000001110> {};
-	struct retiw		: word<000000001111> {};
+	struct retiw		: word< 000000001111> {};
 	struct page			: word< 000000010, lit3_> {};
 	struct bank			: word< 000000011, lit3_> {};
 	struct mov_special_rx_w	: word< 000000000, port_> {};
@@ -109,7 +111,10 @@ namespace sx_emulator
 	{
 
 
-		/*
+		/* 
+		some information about bit patterns that have no official meaning.
+		you can safely ignore this:
+
 		hole: 1 bits: 2 to 1
 		000000001Xzz
 		hole: 100 bits: 3 to 1

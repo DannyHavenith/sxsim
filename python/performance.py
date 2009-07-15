@@ -3,7 +3,7 @@ import pysix
 listing = pysix.ParseListingFile("../../test/thermostat.lst")
 
 # create an emulator
-sx = pysix.Simulator()
+sx = pysix.Emulator()
 
 # load the listings program bytes into the sx rom
 sx.load_rom( listing)

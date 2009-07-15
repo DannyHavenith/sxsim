@@ -1,5 +1,5 @@
 
-##          Copyright Danny Havenith 2006 - 2009.
+##          Copyright Danny Havenith 2009.
 ## Distributed under the Boost Software License, Version 1.0.
 ##    (See accompanying file LICENSE_1_0.txt or copy at
 ##          http://www.boost.org/LICENSE_1_0.txt)
@@ -9,6 +9,7 @@ add_library(
 	
 	listing_parser.cpp
 	sx_simulator.cpp
+	sx_cluster.cpp
 	
 	memory_events.hpp
 	arithmetic_with_flags.hpp
@@ -26,6 +27,7 @@ add_library(
 	sx_simulator.hpp
 	sx_compiler.hpp
 	sx_state.hpp
+	sx_cluster.hpp
 	targetver.h
 	)
 

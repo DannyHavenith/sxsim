@@ -19,13 +19,13 @@
 
 
 sx_simulator::sx_simulator()
+:emulator( new emulator_type())
 {
-	emulator = new emulator_type();
 }
 
-sx_simulator::~sx_simulator()
+sx_simulator::sx_simulator( sx_simulator::emulator_pointer_type emulator_)
+:emulator( emulator_)
 {
-	delete emulator;
 }
 
 //
@@ -51,7 +51,7 @@ void sx_simulator::set_breakpoint( address_type address, bool do_set)
 	}
 }
 
-void  sx_simulator::on_memory_access(
+void  sx_simulator::on_memory_write(
 	sx_simulator::address_type address,
 	boost::function< void(  sx_simulator::address_type, sx_simulator::register_type )> handler
 	)

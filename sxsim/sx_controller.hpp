@@ -22,6 +22,8 @@
 #include "sx_state.hpp"
 #include "memory_events.hpp"
 #include "sx_compiler.hpp"
+#include "sx_instruction_list.hpp"
+#include "instruction_decoder.hpp"
 
 namespace sx_emulator
 {
@@ -857,7 +859,29 @@ namespace sx_emulator
 				// other instructions may be breakpoints.
 				while (--count)
 				{
-					if (synchronized_tick()) break;
+					// the body of this function is essentially a copy of 
+					// the synchronized_tick function, but calling that function
+					// costs us about 25% performance on msvc (9)
+					//
+
+					// handle realtime clock, if enabled.
+					if (get_rtcc_on_cycle()) do_rtcc();
+
+					if (!dec_nop_delay())
+					{
+						// notice the count_freq call, this costs about 3% in performance,
+						// but it delivers a nice profiling feature in return.
+						sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
+						if (instruction == BREAKPOINT)
+						{
+							dec_pc();
+							break;
+						}
+
+						decoder_t::feed(
+							instruction, *this
+							);
+					}
 				}
 			}
 
