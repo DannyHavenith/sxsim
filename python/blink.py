@@ -1,4 +1,4 @@
-from pysix import ParseListingFile, Simulator
+from pysix import ParseListingFile, Emulator
 import sys
 
 listing = ParseListingFile( "../../test/blink.lst")

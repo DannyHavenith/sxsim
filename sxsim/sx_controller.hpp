@@ -406,7 +406,7 @@ namespace sx_emulator
 			// investigate:
 			// set only bottom 8 bits with return address.
 			w = arg_lit8;
-			ret();
+			execute( ret());
 		}
 
 		void execute( const mov_w_shiftleft_fr &, int arg_register)

@@ -9,6 +9,7 @@
 #include "wx/docview.h"
 #include "wx/docmdi.h"
 #include "wx/grid.h"
+#include "wx/msgdlg.h"
 
 #include "sxgo_app.hpp"
 #include "sxgo_view.hpp"
@@ -212,6 +213,8 @@ void sxgo_view::RunSome( bool first_run)
 	static int profile_refresh_counter = 0;
 	static const int profile_refresh_treshold = 5;
 
+	try
+	{
 	if (doc->Run( run_count) != 0)
 	{
 		// we hit a breakpoint
@@ -232,7 +235,11 @@ void sxgo_view::RunSome( bool first_run)
 			profile_refresh_counter = 0;
 	    }
 	}
-
+	}
+	catch (std::exception &e)
+	{
+		::wxMessageBox( e.what(), "SX emulator error");
+	}
 	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
