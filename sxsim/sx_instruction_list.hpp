@@ -113,7 +113,7 @@ namespace sx_emulator
 
 		/* 
 		some information about bit patterns that have no official meaning.
-		you can safely ignore this:
+		you can safely ignore this. See the 'report' member function of the instruction_decoder template:
 
 		hole: 1 bits: 2 to 1
 		000000001Xzz
