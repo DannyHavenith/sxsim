@@ -150,6 +150,28 @@ struct argument_harvester
 		}
 		*/
 
+
+		template< int bit, typename on_zero, typename on_one>
+		static int graphviz( std::ostream &stream, int &id, const decide_node< bit, on_zero, on_one> &)
+		{
+			int my_id = ++id; // create our own unique id
+			declare_branch_node( stream, id);
+			int left_id = graphviz( id, on_zero());
+			int right_id = graphviz( id, on_one());
+			declare_edge( stream, my_id, "0", left_id);
+			declare_edge( stream, my_id, "1", right_id);
+			return my_id;
+
+		}
+
+		template< typename tag>
+		static int graphviz( std::ostream &stream, int &id, const call_node< tag> &)
+		{
+			int my_id = ++id;
+			declare_leaf_node( stream, id, tag_name( tag()));
+		}
+
+
 		//
 		// This function takes an instruction word, a pointer to an implementation and
 		// a decision tree. It will examine the bit indicated by the template argument
@@ -314,6 +336,7 @@ struct argument_harvester
 		{
 			typedef call_node< typename mpl::front<instructions>::type> type;
 		};
+
 /*
 		// we shouldn't be here, there are no instructions in the set.
 		template< typename instructions, int discriminating_bit, unsigned long long history>
