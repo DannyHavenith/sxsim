@@ -32,6 +32,7 @@ public:
 
 private:
 	bool do_tick();
+	bool do_forced_tick();
 	typedef std::vector< controller_ptr> controllers_type;
 	controllers_type controllers;
 };

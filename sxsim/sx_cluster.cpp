@@ -27,7 +27,7 @@ size_t sx_cluster::run( size_t count)
 	{
 		bool breakpoint_hit = false;
 		// first instruction is always executed
-		do_tick();
+		do_forced_tick();
 		// other instructions may be breakpoints.
 		while (--count && !breakpoint_hit)
 		{
@@ -46,6 +46,18 @@ bool sx_cluster::do_tick()
 		++i)
 	{
 		result = (*i)->synchronized_tick() || result ;
+	}
+	return result;
+}
+
+bool sx_cluster::do_forced_tick()
+{
+	bool result = false;
+	for ( controllers_type::iterator i = controllers.begin();
+		i != controllers.end();
+		++i)
+	{
+		result = (*i)->tick() || result ;
 	}
 	return result;
 }

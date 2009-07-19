@@ -21,6 +21,7 @@ add_library(
 	listing_parser.hpp
 	sx_controller.hpp
 	sx_instruction_list.hpp
+	sx_instruction_names.hpp
 	sx_memory.hpp
 	sx_nop.hpp
 	sx_print.hpp

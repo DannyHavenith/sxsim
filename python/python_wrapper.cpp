@@ -105,7 +105,8 @@ BOOST_PYTHON_MODULE(pysix)
         .def_readwrite( "m",			&sx_light_state::m )
         .def_readwrite( "pc",			&sx_light_state::pc )
         .def_readwrite( "stack",		&sx_light_state::stack )
-        .def_readwrite( "w",			&sx_light_state::w );
+        .def_readwrite( "w",			&sx_light_state::w )
+        ;
 
     class_< sx_state, bases< sx_light_state > >( "sx_state" )
         .def_readwrite( "ram", &sx_state::ram )
@@ -126,7 +127,5 @@ BOOST_PYTHON_MODULE(pysix)
 		.def( "new_controller", &sx_cluster::new_controller)
 		.def( "run", &sx_cluster::run)
 		;
-
-
 }
 

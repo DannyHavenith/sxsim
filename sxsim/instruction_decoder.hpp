@@ -31,6 +31,8 @@
 #include <boost/fusion/functional/invocation/invoke.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
+
+
 namespace micro_emulator
 {
 
@@ -149,27 +151,6 @@ struct argument_harvester
 			report( 0, 12, (instruction_tree*)0);
 		}
 		*/
-
-
-		template< int bit, typename on_zero, typename on_one>
-		static int graphviz( std::ostream &stream, int &id, const decide_node< bit, on_zero, on_one> &)
-		{
-			int my_id = ++id; // create our own unique id
-			declare_branch_node( stream, id);
-			int left_id = graphviz( id, on_zero());
-			int right_id = graphviz( id, on_one());
-			declare_edge( stream, my_id, "0", left_id);
-			declare_edge( stream, my_id, "1", right_id);
-			return my_id;
-
-		}
-
-		template< typename tag>
-		static int graphviz( std::ostream &stream, int &id, const call_node< tag> &)
-		{
-			int my_id = ++id;
-			declare_leaf_node( stream, id, tag_name( tag()));
-		}
 
 
 		//
