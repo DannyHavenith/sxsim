@@ -18,6 +18,7 @@ public:
 	MyApp() : frame(0), m_docManager(0) {}
 	MyFrame *GetFrame() { return frame;}
 	void OnInitCmdLine(wxCmdLineParser& parser);
+	bool OnCmdLineParsed(wxCmdLineParser& parser);
 private:
 	MyFrame *frame;
 	wxDocManager* m_docManager;

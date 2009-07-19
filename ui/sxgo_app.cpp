@@ -25,7 +25,7 @@ namespace {
             wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
         { wxCMD_LINE_SWITCH, _T("v"), _T("verbose"), _T("be verbose") },
         { wxCMD_LINE_PARAM,  NULL, NULL, _T("input file"),
-            wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_MULTIPLE },
+		wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_MULTIPLE |wxCMD_LINE_PARAM_OPTIONAL },
         { wxCMD_LINE_NONE }
     };
 
@@ -106,23 +106,14 @@ void MyApp::OnInitCmdLine(wxCmdLineParser& parser)
     parser.SetSwitchChars (wxT("-"));
 }
 
-/*
+
 bool MyApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
 
-    silent_mode = parser.Found(wxT("s"));
-
-    // to get at your unnamed parameters use
-    wxArrayString files;
-    for (int i = 0; i < parser.GetParamCount(); i++)
-    {
-            files.Add(parser.GetParam(i));
-    }
-
-    // and other command line parameters
-
-    // then do what you need with them.
-
+	if (parser.GetParamCount() >= 1)
+	{
+		m_docManager->CreateDocument( parser.GetParam(), wxDOC_SILENT);
+	}
     return true;
 }
-*/
+

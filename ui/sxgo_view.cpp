@@ -193,10 +193,13 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 void sxgo_view::UpdateAll()
 {
 	sxgo_document *doc = SafeGetDocument();
-	unsigned short address = doc->GetState().pc;
-	int line = doc->GetListing().GetLine(address);
-	textsw->JumpToLine( line);
-	MyFrame::GetMainFrame()->UpdateAll( *doc);
+	if (doc->IsLoaded())
+	{
+		unsigned short address = doc->GetState().pc;
+		int line = doc->GetListing().GetLine(address);
+		textsw->JumpToLine( line);
+		MyFrame::GetMainFrame()->UpdateAll( *doc);
+	}
 }
 
 //

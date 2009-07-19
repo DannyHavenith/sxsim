@@ -39,6 +39,11 @@ public:
 	void SetState( const sx_simulator::state &new_state);
 	void Reset();
 
+	bool IsLoaded() const 
+	{
+		return simulator_ptr;
+	}
+
 private:
 	listing_info listing;
 	boost::scoped_ptr< sx_simulator> simulator_ptr;
