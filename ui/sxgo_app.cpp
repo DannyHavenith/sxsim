@@ -18,6 +18,18 @@
 #include "sxgoui.xpm"
 IMPLEMENT_APP(MyApp)
 
+namespace {
+    static const wxCmdLineEntryDesc cmdLineDesc[] =
+    {
+        { wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
+            wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+        { wxCMD_LINE_SWITCH, _T("v"), _T("verbose"), _T("be verbose") },
+        { wxCMD_LINE_PARAM,  NULL, NULL, _T("input file"),
+            wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_MULTIPLE },
+        { wxCMD_LINE_NONE }
+    };
+
+}
 /*
 * Centralised code for creating a document frame.
 * Called from view.cpp, when a view is created.
@@ -89,28 +101,28 @@ bool MyApp::OnInit()
 
 void MyApp::OnInitCmdLine(wxCmdLineParser& parser)
 {
-    //parser.SetDesc (g_cmdLineDesc);
+    parser.SetDesc (cmdLineDesc);
     // must refuse '/' as parameter starter or cannot use "/path" style paths
     parser.SetSwitchChars (wxT("-"));
 }
- 
+
 /*
 bool MyApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
 
     silent_mode = parser.Found(wxT("s"));
- 
+
     // to get at your unnamed parameters use
     wxArrayString files;
     for (int i = 0; i < parser.GetParamCount(); i++)
     {
             files.Add(parser.GetParam(i));
     }
- 
+
     // and other command line parameters
- 
+
     // then do what you need with them.
- 
+
     return true;
 }
 */
