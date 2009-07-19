@@ -8,6 +8,7 @@
 #include "wx/docmdi.h"
 #include "wx/menu.h"
 #include "wx/config.h"
+#include "wx/cmdline.h"
 
 #include "sxgo_frame.hpp"
 #include "sxgo_app.hpp"
@@ -15,7 +16,6 @@
 #include "sxgo_view.hpp"
 
 #include "sxgoui.xpm"
-
 IMPLEMENT_APP(MyApp)
 
 /*
@@ -83,7 +83,34 @@ bool MyApp::OnInit()
 
 	SetTopWindow(frame);
 	frame->Show();
-	return true;
+	return wxApp::OnInit();
 }
 
 
+void MyApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+    //parser.SetDesc (g_cmdLineDesc);
+    // must refuse '/' as parameter starter or cannot use "/path" style paths
+    parser.SetSwitchChars (wxT("-"));
+}
+ 
+/*
+bool MyApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
+
+    silent_mode = parser.Found(wxT("s"));
+ 
+    // to get at your unnamed parameters use
+    wxArrayString files;
+    for (int i = 0; i < parser.GetParamCount(); i++)
+    {
+            files.Add(parser.GetParam(i));
+    }
+ 
+    // and other command line parameters
+ 
+    // then do what you need with them.
+ 
+    return true;
+}
+*/
