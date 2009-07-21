@@ -32,6 +32,10 @@ add_subdirectory (sxsim)
 add_subdirectory (ui)
 add_subdirectory (python) 
 
+#INSTALL(TARGETS 
+#	"${CMAKE_CURRENT_SOURCE_DIR}/test/blink.lst"
+#	DESTINATION bin)
+
 
 set(CPACK_PACKAGE_NAME "sxgo")
 set(CPACK_PACKAGE_VENDOR "havenith.net")

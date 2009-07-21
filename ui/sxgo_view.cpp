@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include <boost/timer.hpp>
+#include <boost/lexical_cast.hpp>
 #include "wx/docview.h"
 #include "wx/docmdi.h"
 #include "wx/grid.h"
@@ -183,8 +184,8 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 		{
 			reset_on_stop = false;
 			SafeGetDocument()->Reset();
-			UpdateAll();
 			MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Reset"));
+			UpdateAll();
 		}
 		textsw->ClearProfile();
 	}
@@ -221,7 +222,9 @@ void sxgo_view::RunSome( bool first_run)
 	if (doc->Run( run_count) != 0)
 	{
 		// we hit a breakpoint
-	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Breakpoint hit"));
+		std::string status_text =
+			"Breakpoint hit at address " + boost::lexical_cast< std::string>( doc->GetState().pc);
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( status_text.c_str(), wxConvUTF8));
 		running = false;
 		unsigned short address = doc->GetState().pc;
 		int line = doc->GetListing().GetLine(address);

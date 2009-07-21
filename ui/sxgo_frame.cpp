@@ -122,6 +122,12 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 		ToolbarPane().Top().Row(1).
 		LeftDockable(true).RightDockable(true));
 
+	// prevent the toolbar to intervene with status bar texts
+	// the toolbar would remember the texts in the status bar on mouse enter
+	// and then reset those texts on mouse leave, ignoring the fact that
+	// I would have changed the toolbar text in between (in reaction to a tool click).
+	SetStatusBarPane( -1);
+
 	m_ram_window = new sxgo_ram_window(this);
     m_mgr.AddPane(	m_ram_window,
 					wxAuiPaneInfo().Name(wxT("ram window"))

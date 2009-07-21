@@ -8,7 +8,7 @@
 
 #if !defined( SX_SIMULATOR_HPP)
 #define SX_SIMULATOR_HPP
-#include <boost/function.hpp> 
+#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "sx_memory.hpp"
