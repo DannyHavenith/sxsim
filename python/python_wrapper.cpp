@@ -72,7 +72,11 @@ BOOST_PYTHON_MODULE(pysix)
     using namespace boost::python;
 	using namespace sx_emulator;
 
-    class_<listing_info>("ListingInfo");
+    class_<listing_info>("ListingInfo")
+		.def( "GetLabelAddress",			&::listing_info::GetLabelAddress,
+			arg("label"))
+
+    ;
 
     def( "ParseListingFile", ParseListingFromFilename);
 

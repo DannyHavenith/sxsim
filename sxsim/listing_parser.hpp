@@ -38,6 +38,12 @@ struct listing_info
 		std::fill( address_to_line, address_to_line + rom_size, 0);
 	}
 
+	///
+	/// find the nearest rom addres that corresponds to a line in the listing file
+	/// Actually this algorithm searches for the highest address whose corresponding line number
+	/// is at least the requested linenr.
+	///
+	///
 	unsigned short GetNearestAddress( int line) const
 	{
 		unsigned short nearest_address = 0;
@@ -64,6 +70,8 @@ struct listing_info
 
 		return address_to_line[address];
 	}
+
+	unsigned short GetLabelAddress( const std::string &label) const;
 
 	static const size_t rom_size = 4 * 1024;
 	typedef std::map< std::string, int> label_container_type;

@@ -4,14 +4,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-/// implementation of the listing parser 
+/// implementation of the listing parser
 
 #include <boost/xpressive/xpressive.hpp>
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include <iostream>
 #include <sstream>
-
+#include <algorithm> // for std::find_if
 #include "listing_parser.hpp"
 
 using namespace std;
@@ -26,6 +26,76 @@ unsigned short hex_to_int(const string &str)
 	return num;
 }
 
+
+struct major_rom_label_matches
+{
+	major_rom_label_matches( const std::string search_)
+		:search( search_)
+		{}
+
+	bool operator()( const listing_info::major_rom_label &label) const
+	{
+		return label.name == search;
+	}
+
+private:
+	const std::string search;
+};
+struct minor_rom_label_matches
+{
+	minor_rom_label_matches( const std::string &search_)
+	:search( search_)
+	{
+
+	}
+
+	bool operator()( const listing_info::rom_label &label) const
+	{
+		return label.first == search;
+	}
+private:
+	std::string search;
+};
+
+unsigned short listing_info::GetLabelAddress( const std::string &label) const
+{
+	const sregex e = (s1 = +(~as_xpr(':'))) >> !(':' >> (s2 = *_));
+	smatch match;
+
+	if (regex_match(label, match, e))
+	{
+		std::cerr << "looking for label: " << match[1] << std::endl;
+		const std::string major_label = match[1];
+		jumplabel_container_type::const_iterator i;
+		i = std::find_if( jump_labels.begin(), jump_labels.end(),
+				major_rom_label_matches( major_label));
+		if (i != jump_labels.end())
+		{
+			if (match[2])
+			{
+				std::cerr << "looking for sublabel: " << match[2] << std::endl;
+				rom_label_container_type::const_iterator j =
+					std::find_if( i->minor_labels.begin(), i->minor_labels.end(),
+							minor_rom_label_matches( match[2]));
+				if (j != i->minor_labels.end())
+				{
+					std::cerr << "line = " << (j->second) << std::endl;
+					return GetNearestAddress( j->second);
+				}
+			}
+			else
+			{
+				std::cerr << "line = " << (i->line) << std::endl;
+				return GetNearestAddress( i->line);
+			}
+		}
+	}
+	else
+	{
+		return -1;
+	}
+
+}
 
 listing_info ParseListingFile( istream &listing)
 {
