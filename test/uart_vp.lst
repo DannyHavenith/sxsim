@@ -1,0 +1,1145 @@
+     1                  ;*****************************************************************************************
+****** D:\Programming\sxsim\test\uart_vp.src(1) Line 1, Warning 65, Pass 1: No IRC_CAL directive. Default IRC_SLOW being used
+****** D:\Programming\sxsim\test\uart_vp.src(1) Line 1, Warning 66, Pass 1: No FREQ directive. Default 50 MHz being used
+     2                  ; Copyright © [01/26/1999] Scenix Semiconductor, Inc. All rights reserved.
+     3                  ;
+     4                  ; Scenix Semiconductor, Inc. assumes no responsibility or liability for
+     5                  ; the use of this [product, application, software, any of these products].
+     6                  ; Scenix Semiconductor conveys no license, implicitly or otherwise, under
+     7                  ; any intellectual property rights.
+     8                  ; Information contained in this publication regarding (e.g.: application,
+     9                  ; implementation) and the like is intended through suggestion only and may
+    10                  ; be superseded by updates. Scenix Semiconductor makes no representation
+    11                  ; or warranties with respect to the accuracy or use of these information,
+    12                  ; or infringement of patents arising from such use or otherwise.
+    13                  ;*****************************************************************************************
+    14                  ; 
+    15                  ; Filename:     UART.SRC
+    16                  ;
+    17                  ; Authors:      Bruce Wilson
+    18                  ;               Application Engineer
+    19                  ;               Scenix Semiconductor            
+    20                  ;
+    21                  ; Revision:     1.00
+    22                  ;
+    23                  ; Part:         SX28AC datecode 9929AA
+    24                  ; Freq:         50Mhz
+    25                  ; Compiled using Parallax SX-Key software v1.07 and SASM 1.40
+    26                  ;
+    27                  ; Last Revised: 10/18/99
+    28                  ;
+    29                  ; Introduction:
+    30                  ;   The SX can easily implement a serial UART capable of running at baud rates from 2400 to 115200.
+    31                  ; This UART VP will handle all the low level UART functionality, all that is required from the user
+    32                  ; is to make calls to simple access subroutines to send and receive data.
+    33                  ;
+    34                  ; Program Description:
+    35                  ;   This program is currently running a very simple UART demo which can be used to test that the 
+    36                  ; UART is working. If you are using the Scenix I2C/UART demo board simply program U2 with this source 
+    37                  ; and conenct a serial cable to your PC.  Otherwise, connect a MAX232 tranciever chip between the SX 
+    38                  ; and your PC. Then load up hyperterminal and set up to run at 19200, no parity, 1 stop bit, 
+    39                  ; 8 data bits and no flow control.
+    40                  ; Your setup should look as follows:
+    41                  ;
+    42                  ;        SX           |          |      MAX232     |          9-pin plug  
+    43                  ;               RA.3 -|----------|- T1IN    T1OUT -|-----TD-----|-2-|----------------  SERIAL
+    44                  ;      PORT A   RA.2 -|----------|- T2IN    T2OUT -|-----CTS----|-8 |----------------   PORT
+    45                  ;               RA.1 -|----------|- R1OUT   R1IN  -|-----RD-----|-3 |----------------    ON
+    46                  ;               RA.0 -|----------|- R2OUT   R2IN  -|-----RTS----|-7 |----------------    PC
+    47                  ;                     |          |                 |
+    48                  ;
+    49                  ;       
+    50                  ;
+    51                  ; Revision History:
+    52                  ;       1.0     Implemented the UART VP and tested at 2400 baud to 57600 baud. This was running
+    53                  ;               with an interrupt period set at 217. Also added a simple echo character demo.
+    54                  ;
+    55                  ;*****************************************************************************************
+    56                  
+    57                  ;*****************************************************************************************
+    58                  ; Target SX
+    59                  ; Uncomment one of the following lines to choose the SX18AC, SX20AC, SX28AC, SX48BD/ES,
+    60                  ; SX48BD, SX52BD/ES or SX52BD. For SX48BD/ES and SX52BD/ES, uncomment both defines,
+    61                  ; SX48_52 and SX48_52_ES.
+    62                  ;*****************************************************************************************
+    63                  ;SX18_20
+    64  =00000000       SX28
+    65                  ;SX48_52
+    66                  ;SX48_52_ES
+    67                  
+    68                  ;*****************************************************************************************
+    69                  ; Assembler Used
+    70                  ; Uncomment the following line if using the Parallax SX-Key assembler. SASM assembler
+    71                  ; enabled by default.
+    72                  ;*****************************************************************************************
+    73                  ;SX_Key
+    74                  
+    75                          ;*********************************************************************************
+    76                          ; Assembler directives:
+    77                          ;       high speed external osc, turbo mode, 8-level stack, and extended option reg.
+    78                          ;
+    79                          ;       SX18/20/28 - 4 pages of program memory and 8 banks of RAM enabled by default.
+    80                          ;       SX48/52 - 8 pages of program memory and 16 banks of RAM enabled by default.
+    81                          ;                
+    82                          ;*********************************************************************************
+    83                  
+    84                  IFDEF SX_Key                            ;SX-Key Directives
+    85                    IFDEF SX18_20                         ;SX18AC or SX20AC device directives for SX-Key
+    86                                  device  SX18L,oschs2,turbo,stackx_optionx
+    87                    ENDIF
+    88                    IFDEF SX28                            ;SX28AC device directives for SX-Key            
+    89                                  device  SX28L,oschs2,turbo,stackx_optionx
+    90                    ENDIF
+    91                    IFDEF SX48_52_ES                      ;SX48BD/ES or SX52BD/ES device directives for SX-Key
+    92                                  device  oschs,turbo,stackx,optionx
+    93                    ELSE
+    94                      IFDEF SX48_52                               ;SX48/52/BD device directives for SX-Key
+    95                                  device  oschs2
+    96                      ENDIF
+    97                    ENDIF
+    98                                  freq    50_000_000
+    99                  ELSE                                    ;SASM Directives
+   100                    IFDEF SX18_20                         ;SX18AC or SX20AC device directives for SASM
+   101                                  device  SX18,oschs2,turbo,stackx,optionx
+   102                    ENDIF
+   103                    IFDEF SX28                            ;SX28AC device directives for SASM
+   104  07F9  0F7F                      device  SX28,oschs2,turbo,stackx,optionx
+   105                    ENDIF
+   106                    IFDEF SX48_52_ES                      ;SX48BD/ES or SX52BD/ES device directives for SASM
+   107                                  device  SX52,oschs,turbo,stackx,optionx
+   108                    ELSE
+   109                      IFDEF SX48_52                       ;SX48BD or SX52BD device directives for SASM
+   110                                  device  SX52,oschs2  
+   111                      ENDIF
+   112                    ENDIF
+   113                  ENDIF
+   114                                  id      '  '                    ;
+   115  07FF  0A27                      reset   reset_entry             ; set reset vector
+   116                  
+   117                  ;*****************************************************************************************
+   118                  ; Macros
+   119                  ;*****************************************************************************************
+   120                  
+   121                          ;*********************************************************************************
+   122                          ; Macro: _bank
+   123                          ; Sets the bank appropriately for all revisions of SX.
+   124                          ;
+   125                          ; This is required since the bank instruction has only a 3-bit operand, it cannot
+   126                          ; be used to access all 16 banks of the SX48/52. For this reason FSR.4 (for SX48/52BD/ES)
+   127                          ; or FSR.7 (SX48/52bd production release) needs to be set appropriately, depending
+   128                          ; on the bank address being accessed. This macro fixes this.
+   129                          ;
+   130                          ; So, instead of using the bank instruction to switch between banks, use _bank instead.
+   131                          ; 
+   132                          ;*********************************************************************************
+   133                  _bank   macro   1
+   134                    noexpand
+   135                          bank    \1
+   136                          IFDEF SX48_52
+   137                            IFDEF SX48_52_ES
+   138                              IF \1 & %00010000           ;SX48BD/ES and SX52BD/ES (engineering sample) bank instruction
+   139                    expand
+   140                                  setb    fsr.4           ;modifies FSR bits 5,6 and 7. FSR.4 needs to be set by software.
+   141                    noexpand
+   142                              ENDIF
+   143                            ELSE
+   144                              IF \1 & %10000000           ;SX48BD and SX52BD (production release) bank instruction 
+   145                    expand
+   146                                  setb    fsr.7           ;modifies FSR bits 4,5 and 6. FSR.7 needs to be set by software.
+   147                    noexpand
+   148                              ELSE
+   149                    expand
+   150                                  clrb    fsr.7
+   151                    noexpand
+   152                              ENDIF
+   153                            ENDIF
+   154                          ENDIF
+   155                          endm
+   156                  
+   157                          ;*********************************************************************************
+   158                          ; Macro: _mode
+   159                          ; Sets the MODE register appropriately for all revisions of SX.
+   160                          ;
+   161                          ; This is required since the MODE (or MOV M,#) instruction has only a 4-bit operand. 
+   162                          ; The SX18/20/28AC use only 4 bits of the MODE register, however the SX48/52BD have 
+   163                          ; the added ability of reading or writing some of the MODE registers, and therefore use
+   164                          ; 5-bits of the MODE register. The  MOV M,W instruction modifies all 8-bits of the 
+   165                          ; MODE register, so this instruction must be used on the SX48/52BD to make sure the MODE
+   166                          ; register is written with the correct value. This macro fixes this.
+   167                          ;
+   168                          ; So, instead of using the MODE or MOV M,# instructions to load the M register, use
+   169                          ;  _mode instead.
+   170                          ; 
+   171                          ;*********************************************************************************
+   172                  _mode   macro   1
+   173                    noexpand
+   174                          IFDEF SX48_52
+   175                    expand
+   176                                  mov     w,#\1&$1F       ;loads the M register correctly for the SX48BD and SX52BD
+   177                                  mov     m,w
+   178                    noexpand
+   179                          ELSE
+   180                    expand
+   181                                  mov     m,#\1&$0F       ;loads the M register correctly for the SX18AC, SX20AC
+   182                                                          ;and SX28AC
+   183                    noexpand
+   184                          ENDIF
+   185                          endm
+   186                  
+   187                  ;*****************************************************************************************
+   188                  ; Data Memory address definitions
+   189                  ; These definitions ensure the proper address is used for banks 0 - 7 for 2K SX devices
+   190                  ; (SX18/20/28) and 4K SX devices (SX48/52). 
+   191                  ;*****************************************************************************************
+   192                  IFDEF SX48_52
+   193                  
+   194                  global_org      =       $0A
+   195                  bank0_org       =       $00
+   196                  bank1_org       =       $10
+   197                  bank2_org       =       $20
+   198                  bank3_org       =       $30
+   199                  bank4_org       =       $40
+   200                  bank5_org       =       $50
+   201                  bank6_org       =       $60
+   202                  bank7_org       =       $70
+   203                  
+   204                  ELSE
+   205                  
+   206  =00000008       global_org      =       $08
+   207  =00000010       bank0_org       =       $10
+   208  =00000030       bank1_org       =       $30
+   209  =00000050       bank2_org       =       $50
+   210  =00000070       bank3_org       =       $70
+   211  =00000090       bank4_org       =       $90
+   212  =000000B0       bank5_org       =       $B0
+   213  =000000D0       bank6_org       =       $D0
+   214  =000000F0       bank7_org       =       $F0
+   215                  
+   216                  ENDIF
+   217                  ;*****************************************************************************************
+   218                  ; Global Register definitions
+   219                  ; NOTE: Global data memory starts at $0A on SX48/52 and $08 on SX18/20/28.
+   220                  ;*****************************************************************************************
+   221  =00000008                       org     global_org
+   222                  
+   223  =00000008       function_temp   equ     global_org+0    ; Temporary variable used in:
+   224                                                          ; -send_hex function
+   225  =00000009       global_temp     equ     global_org+1    ; Temporary variable used in main line code
+   226  =0000000A       flags           equ     global_org+2    ; Flags to indicate various things..
+   227  =0000000A.1             rx_flag         equ     flags.1 ; Indicates the reception of a bit from the UART
+   228                  
+   229                  ;*****************************************************************************************
+   230                  ; RAM Bank Register definitions
+   231                  ;*****************************************************************************************
+   232                  
+   233                          ;*********************************************************************************
+   234                          ; Bank 0
+   235                          ;*********************************************************************************
+   236  =00000010                       org     bank0_org
+   237                  
+   238  =00000010       bank0           =       $
+   239                  
+   240                  
+   241                          ;*********************************************************************************
+   242                          ; Bank 1
+   243                          ;*********************************************************************************
+   244  =00000030                       org     bank1_org
+   245                  
+   246  =00000030       bank1           =       $
+   247  =00000030       SERIAL          =       $       ;UART bank
+   248  =00000030       tx_high         ds      1       ;hi byte to transmit
+   249  =00000031       tx_low          ds      1       ;low byte to transmit
+   250  =00000032       tx_count        ds      1       ;number of bits sent
+   251  =00000033       tx_divide       ds      1       ;xmit timing (/16) counter
+   252  =00000034       rx_count        ds      1       ;number of bits received
+   253  =00000035       rx_divide       ds      1       ;receive timing counter
+   254  =00000036       rx_byte         ds      1       ;buffer for incoming byte
+   255  =00000037       string          ds      1       ;used by send_string to store the address in memory
+   256  =00000038       byte            ds      1       ;used by serial routines
+   257  =00000039       hex             ds      1
+   258                  
+   259                  
+   260                          ;*********************************************************************************
+   261                          ; Bank 2
+   262                          ;*********************************************************************************
+   263  =00000050                       org     bank2_org
+   264                  
+   265  =00000050       bank2           =       $
+   266                  
+   267                  
+   268                          ;*********************************************************************************
+   269                          ; Bank 3
+   270                          ;*********************************************************************************
+   271  =00000070                       org     bank3_org
+   272                  
+   273  =00000070       bank3           =       $
+   274                  
+   275                  
+   276                          ;*********************************************************************************
+   277                          ; Bank 4
+   278                          ;*********************************************************************************
+   279  =00000090                       org     bank4_org
+   280                  
+   281  =00000090       bank4           =       $
+   282                  
+   283                  
+   284                          ;*********************************************************************************
+   285                          ; Bank 5
+   286                          ;*********************************************************************************
+   287  =000000B0                       org     bank5_org
+   288                  
+   289  =000000B0       bank5           =       $
+   290                  
+   291                  
+   292                          ;*********************************************************************************
+   293                          ; Bank 6
+   294                          ;*********************************************************************************
+   295  =000000D0                       org     bank6_org
+   296                  
+   297  =000000D0       bank6           =       $
+   298                  
+   299                  
+   300                          ;*********************************************************************************
+   301                          ; Bank 7
+   302                          ;*********************************************************************************
+   303  =000000F0                       org     bank7_org
+   304                  
+   305  =000000F0       bank7           =       $
+   306                  
+   307                  
+   308                  IFDEF SX48_52
+   309                          ;*********************************************************************************
+   310                          ; Bank 8
+   311                          ;*********************************************************************************
+   312                                  org     $80     ;bank 8 address on SX52
+   313                  
+   314                  bank8           =       $
+   315                  
+   316                  
+   317                          ;*********************************************************************************
+   318                          ; Bank 9
+   319                          ;*********************************************************************************
+   320                                  org     $90     ;bank 9 address on SX52
+   321                  
+   322                  bank9           =       $
+   323                  
+   324                  
+   325                          ;*********************************************************************************
+   326                          ; Bank A
+   327                          ;*********************************************************************************
+   328                                  org     $A0     ;bank A address on SX52
+   329                  
+   330                  bankA           =       $
+   331                  
+   332                  
+   333                          ;*********************************************************************************
+   334                          ; Bank B
+   335                          ;*********************************************************************************
+   336                                  org     $B0     ;bank B address on SX52
+   337                  
+   338                  bankB           =       $
+   339                  
+   340                  
+   341                          ;*********************************************************************************
+   342                          ; Bank C
+   343                          ;*********************************************************************************
+   344                                  org     $C0     ;bank C address on SX52
+   345                  
+   346                  bankC           =       $
+   347                  
+   348                  
+   349                          ;*********************************************************************************
+   350                          ; Bank D
+   351                          ;*********************************************************************************
+   352                                  org     $D0     ;bank D address on SX52
+   353                  
+   354                  bankD           =       $
+   355                  
+   356                  
+   357                          ;*********************************************************************************
+   358                          ; Bank E
+   359                          ;*********************************************************************************
+   360                                  org     $E0     ;bank E address on SX52
+   361                  
+   362                  bankE           =       $
+   363                  
+   364                  
+   365                          ;*********************************************************************************
+   366                          ; Bank F
+   367                          ;*********************************************************************************
+   368                                  org     $F0     ;bank F address on SX52
+   369                  
+   370                  bankF           =       $
+   371                  
+   372                  
+   373                  ENDIF
+   374                  ;*****************************************************************************************
+   375                  ; Port Assignment
+   376                  ;*****************************************************************************************
+   377  =00000008       RA_latch        equ     %00001000               ;SX18/20/28/48/52 port A latch init
+   378  =000000F7       RA_DDIR         equ     %11110111               ;SX18/20/28/48/52 port A DDIR value
+   379  =00000000       RA_LVL          equ     %00000000               ;SX18/20/28/48/52 port A LVL value
+   380  =000000FF       RA_PLP          equ     %11111111               ;SX18/20/28/48/52 port A PLP value
+   381                  
+   382  =00000000       RB_latch        equ     %00000000               ;SX18/20/28/48/52 port B latch init
+   383  =000000FF       RB_DDIR         equ     %11111111               ;SX18/20/28/48/52 port B DDIR value
+   384  =000000FF       RB_ST           equ     %11111111               ;SX18/20/28/48/52 port B ST value
+   385  =00000000       RB_LVL          equ     %00000000               ;SX18/20/28/48/52 port B LVL value
+   386  =000000FF       RB_PLP          equ     %11111111               ;SX18/20/28/48/52 port B PLP value
+   387                  
+   388  =00000000       RC_latch        equ     %00000000               ;SX18/20/28/48/52 port C latch init
+   389  =000000FA       RC_DDIR         equ     %11111010               ;SX18/20/28/48/52 port C DDIR value
+   390  =000000FF       RC_ST           equ     %11111111               ;SX18/20/28/48/52 port C ST value
+   391  =00000000       RC_LVL          equ     %00000000               ;SX18/20/28/48/52 port C LVL value
+   392  =000000FF       RC_PLP          equ     %11111111               ;SX18/20/28/48/52 port C PLP value
+   393                                  
+   394                  IFDEF SX48_52   ;SX48BD/52BD Port initialization values
+   395                  RD_latch        equ     %00000000               ;SX48/52 port D latch init
+   396                  RD_DDIR         equ     %11111111               ;SX48/52 port D DDIR value
+   397                  RD_ST           equ     %11111111               ;SX48/52 port D ST value
+   398                  RD_LVL          equ     %00000000               ;SX48/52 port D LVL value
+   399                  RD_PLP          equ     %11111111               ;SX48/52 port D PLP value
+   400                  
+   401                  RE_latch        equ     %00000000               ;SX48/52 port E latch init
+   402                  RE_DDIR         equ     %11111111               ;SX48/52 port E DDIR value
+   403                  RE_ST           equ     %11111111               ;SX48/52 port E ST value
+   404                  RE_LVL          equ     %00000000               ;SX48/52 port E LVL value
+   405                  RE_PLP          equ     %11111111               ;SX48/52 port E PLP value
+   406                  ENDIF
+   407                  
+   408                          ;*********************************************************************************
+   409                          ; Pin Definitions
+   410                          ;*********************************************************************************
+   411  =00000005       rts_pin         equ     ra.0    ;UART 1 RTS input
+   412  =00000005.1     cts_pin         equ     ra.1    ;UART 1 CTS output
+   413  =00000005.2     rx_pin          equ     ra.2    ;UART receive input
+   414  =00000005.3     tx_pin          equ     ra.3    ;UART transmit output
+   415                  
+   416                  ;*****************************************************************************************
+   417                  ; Program constants
+   418                  ;*****************************************************************************************
+   419                  
+   420  =000000D9       int_period      equ     217     ; Interrupt to operate at 20ns x 217 = 4.34us
+   421  =0000000D       _enter          equ     13      ; ASCII value for carridge return
+   422  =0000000A       _line_feed      equ     10      ; ASCII value for a line feed
+   423                  
+   424                          ;*********************************************************************************
+   425                          ; UART Constants
+   426                          ; The following five values determine the UART baud rate.
+   427                          ; The value of baud_rate and int_period affect the baud rate as follows:
+   428                          ;  Baud rate = 50MHz/(baud_rate * int_period * RTCC_prescaler)
+   429                          ;
+   430                          ; Note: *int_period must <256 and longer than the length of the slowest possible
+   431                          ; interrupt sequence in instruction cycles. Changing the value of int_period will
+   432                          ; affect the rest of the virtual peripherals due to timing issues. The start delay
+   433                          ; value must be set equal to (baud_rate)*1.5 + 1
+   434                          ;*********************************************************************************
+   435                  
+   436                  ; *** 2400 baud (for slower baud rates, increase the RTCC prescaler)
+   437  =00000060       baud_rate_24    =       96                      ;for 2400 baud rate generation
+   438  =00000091       start_delay_24  =       145
+   439                  
+   440                  ; *** 9600 baud
+   441  =00000018       baud_rate_96    =       24                      ;for 9600 baud rate generation
+   442  =00000025       start_delay_96  =       37
+   443                  
+   444                  ; *** 19200 baud
+   445  =0000000C       baud_rate_192   =       12                      ;for 19200 baud rate generation
+   446  =00000013       start_delay_192 =       19
+   447                  
+   448                  ; *** 38400 baud
+   449  =00000006       baud_rate_384   =       6                       ;for 38400 baud rate generation
+   450  =0000000A       start_delay_384 =       10
+   451                  
+   452                  ; *** 57600 baud
+   453  =00000004       baud_rate_576   =       4                       ;for 57600 baud rate generation
+   454  =00000006       start_delay_576 =       6
+   455                  
+   456                  IFDEF SX48_52
+   457                          ;*********************************************************************************
+   458                          ; SX48BD/52BD Mode addresses
+   459                          ; *On SX48BD/52BD, most registers addressed via mode are read and write, with the
+   460                          ; exception of CMP and WKPND which do an exchange with W.
+   461                          ;*********************************************************************************
+   462                  ; Timer (read) addresses
+   463                  TCPL_R          equ     $00             ;Read Timer Capture register low byte
+   464                  TCPH_R          equ     $01             ;Read Timer Capture register high byte
+   465                  TR2CML_R        equ     $02             ;Read Timer R2 low byte
+   466                  TR2CMH_R        equ     $03             ;Read Timer R2 high byte
+   467                  TR1CML_R        equ     $04             ;Read Timer R1 low byte
+   468                  TR1CMH_R        equ     $05             ;Read Timer R1 high byte
+   469                  TCNTB_R         equ     $06             ;Read Timer control register B
+   470                  TCNTA_R         equ     $07             ;Read Timer control register A
+   471                  
+   472                  ; Exchange addresses
+   473                  CMP             equ     $08             ;Exchange Comparator enable/status register with W
+   474                  WKPND           equ     $09             ;Exchange MIWU/RB Interrupts pending with W
+   475                  
+   476                  ; Port setup (read) addresses
+   477                  WKED_R          equ     $0A             ;Read MIWU/RB Interrupt edge setup, 0 = falling, 1 = rising
+   478                  WKEN_R          equ     $0B             ;Read MIWU/RB Interrupt edge setup, 0 = enabled, 1 = disabled
+   479                  ST_R            equ     $0C             ;Read Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   480                  LVL_R           equ     $0D             ;Read Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   481                  PLP_R           equ     $0E             ;Read Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   482                  DDIR_R          equ     $0F             ;Read Port Direction
+   483                  
+   484                  ; Timer (write) addresses
+   485                  CLR_TMR         equ     $10             ;Resets 16-bit Timer
+   486                  TR2CML_W        equ     $12             ;Write Timer R2 low byte
+   487                  TR2CMH_W        equ     $13             ;Write Timer R2 high byte
+   488                  TR1CML_W        equ     $14             ;Write Timer R1 low byte
+   489                  TR1CMH_W        equ     $15             ;Write Timer R1 high byte
+   490                  TCNTB_W         equ     $16             ;Write Timer control register B
+   491                  TCNTA_W         equ     $17             ;Write Timer control register A
+   492                  
+   493                  ; Port setup (write) addresses
+   494                  WKED_W          equ     $1A             ;Write MIWU/RB Interrupt edge setup, 0 = falling, 1 = rising
+   495                  WKEN_W          equ     $1B             ;Write MIWU/RB Interrupt edge setup, 0 = enabled, 1 = disabled
+   496                  ST_W            equ     $1C             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   497                  LVL_W           equ     $1D             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   498                  PLP_W           equ     $1E             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   499                  DDIR_W          equ     $1F             ;Write Port Direction
+   500                  
+   501                  ELSE
+   502                  
+   503                          ;*********************************************************************************
+   504                          ; SX18AC/20AC/28AC Mode addresses
+   505                          ; *On SX18/20/28, all registers addressed via mode are write only, with the exception of
+   506                          ; CMP and WKPND which do an exchange with W.
+   507                          ;*********************************************************************************
+   508                  ; Exchange addresses
+   509  =00000008       CMP             equ     $08             ;Exchange Comparator enable/status register with W
+   510  =00000009       WKPND           equ     $09             ;Exchange MIWU/RB Interrupts pending with W
+   511                  
+   512                  ; Port setup (read) addresses
+   513  =0000000A       WKED_W          equ     $0A             ;Write MIWU/RB Interrupt edge setup, 0 = falling, 1 = rising
+   514  =0000000B       WKEN_W          equ     $0B             ;Write MIWU/RB Interrupt edge setup, 0 = enabled, 1 = disabled
+   515  =0000000C       ST_W            equ     $0C             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   516  =0000000D       LVL_W           equ     $0D             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   517  =0000000E       PLP_W           equ     $0E             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   518  =0000000F       DDIR_W          equ     $0F             ;Write Port Direction
+   519                  ENDIF
+   520                  
+   521                  ;*****************************************************************************************
+   522                  ; Interrupt Service Routine
+   523                  ;*****************************************************************************************
+   524                  ; Note: The interrupt code must always originate at address $0.
+   525                  ;
+   526                  ; Interrupt Frequency = (Cycle Frequency / -(retiw value))  For example:
+   527                  ; With a retiw value of -217 and an oscillator frequency of 50MHz, this
+   528                  ; code runs every 4.34us.
+   529                  ;*****************************************************************************************
+   530  =00000000                       org     $0
+   531  =00000000       interrupt                                       ;3
+   532                  
+   533                          ;*********************************************************************************
+   534                          ; Virtual Peripheral: Universal Asynchronous Receiver Transmitter (UART) 
+   535                          ; These routines send and receive RS232 serial data, and are currently
+   536                          ; configured (though modifications can be made) for the popular
+   537                          ; "No parity-checking, 8 data bit, 1 stop bit" (N,8,1) data format.
+   538                          ; RECEIVING: The rx_flag is set high whenever a valid byte of data has been
+   539                          ; received and it is the calling routine's responsibility to reset this flag
+   540                          ; once the incoming data has been collected.
+   541                          ; TRANSMITTING: The transmit routine requires the data to be inverted
+   542                          ; and loaded (tx_high+tx_low) register pair (with the inverted 8 data bits
+   543                          ; stored in tx_high and tx_low bit 7 set high to act as a start bit). Then
+   544                          ; the number of bits ready for transmission (10=1 start + 8 data + 1 stop)
+   545                          ; must be loaded into the tx_count register. As soon as this latter is done,
+   546                          ; the transmit routine immediately begins sending the data.
+   547                          ; This routine has a varying execution rate and therefore should always be
+   548                          ; placed after any timing-critical virtual peripherals such as timers,
+   549                          ; adcs, pwms, etc.
+   550                          ; Note: The transmit and receive routines are independent and either may be
+   551                          ;       removed, if not needed, to reduce execution time and memory usage,
+   552                          ;       as long as the initial "BANK serial" (common) instruction is kept.
+   553                          ;
+   554                          ;       Input variable(s) : tx_low (only high bit used), tx_high, tx_count
+   555                          ;       Output variable(s) : rx_flag, rx_byte
+   556                          ;       Variable(s) affected : tx_divide, rx_divide, rx_count
+   557                          ;       Flag(s) affected : rx_flag
+   558                          ;
+   559                          ;*********************************************************************************
+   560                                  _bank   SERIAL                  ;switch to serial register bank
+   583  0001  02F3      :transmit       decsz   tx_divide               ;only execute the transmit routine
+   584  0002  0A10                      jmp     :receive                ; 
+   585  0003  0C0C                      mov     w,#baud_rate_192        ;load UART baud rate (50MHz)
+   586  0004  0033                      mov     tx_divide,w             ; 
+   587  0005  0232                      test    tx_count                ;are we sending?
+   588  0006  0643                      snz                             ; 
+   589  0007  0A10                      jmp     :receive                ;
+   590  0008  0403                      clc                             ;yes, ready stop bit
+   591  0009  0330                      rr      tx_high                 ; and shift to next bit
+   592  000A  0331                      rr      tx_low                  ; 
+   593  000B  00F2                      dec     tx_count                ;decrement bit counter
+   594  000C  06D1                      snb     tx_low.6                ;output next bit
+   595  000D  0465                      clrb    tx_pin                  ; 
+   596  000E  07D1                      sb      tx_low.6                ; 
+   597  000F  0565                      setb    tx_pin                  ; 
+   598  0010  0745      :receive        sb      rx_pin                  ;get current rx bit
+   599  0011  0403                      clc                             ; 
+   600  0012  0645                      snb     rx_pin                  ; 
+   601  0013  0503                      stc                             ; 
+   602  0014  0234                      test    rx_count                ;currently receiving byte?
+   603  0015  0743                      sz                              ; 
+   604  0016  0A1C                      jmp     :rxbit                  ;if so, jump ahead
+   605  0017  0C09                      mov     w,#9                    ;in case start, ready 9 bits
+   606  0018  0703                      sc                              ;skip ahead if not start bit
+   607  0019  0034                      mov     rx_count,w              ;it is, so renew bit count
+   608  001A  0C13                      mov     w,#start_delay_192      ;ready 1.5 bit periods (50MHz)
+   609  001B  0035                      mov     rx_divide,w             ; 
+   610  001C  02F5      :rxbit          decsz   rx_divide               ;middle of next bit?
+   611  001D  0A25                      jmp     :rxdone                 ;
+   612  001E  0C0C                      mov     w,#baud_rate_192        ;yes, ready 1 bit period (50MHz)
+   613  001F  0035                      mov     rx_divide,w             ; 
+   614                  
+   615  0020  00F4                      dec     rx_count                ;last bit?
+   616  0021  0743                      sz                              ;if not
+   617  0022  0336                      rr      rx_byte                 ; then save bit
+   618  0023  0643                      snz                             ;if so,
+   619  0024  052A                      setb    rx_flag                 ; then set flag
+   620  =00000025       :rxdone                                         ; else, exit
+   621                  
+   622                          ; PUT YOUR OWN VPs HERE
+   623                  
+   624                          ;*********************************************************************************
+   625                          ; Virtual Peripheral: 
+   626                          ;
+   627                          ;
+   628                          ;       Input variable(s): 
+   629                          ;       Output variable(s): 
+   630                          ;       Variable(s) affected: 
+   631                          ;       Flag(s) affected: 
+   632                          ;*********************************************************************************
+   633  =00000025       label1
+   634                  
+   635                          ;*********************************************************************************
+   636                          ; Set Interrupt Rate
+   637                          ;*********************************************************************************
+   638  0025  0C27      isr_end         mov     w,#-int_period          ;refresh RTCC on return
+****** D:\Programming\sxsim\test\uart_vp.src(616) Line 638, Warning 37, Pass 2: Literal truncated to 8 bits
+   639  0026  000F                      retiw                           ;return from the interrupt
+   640                                                                  ; = 1/(int_period*RTCC prescaler*1/50MHz)
+   641                                                                  ; = 1/(217*1*20ns) = 4.34us
+   642                  ;*****************************************************************************************
+   643                  ; End of the Interrupt Service Routine
+   644                  ;*****************************************************************************************
+   645                  
+   646                  ;*****************************************************************************************
+   647                  ; RESET VECTOR 
+   648                  ;*****************************************************************************************
+   649                  
+   650                          ;*********************************************************************************
+   651                          ; Program execution begins here on power-up or after a reset
+   652                          ;*********************************************************************************
+   653  =00000027       reset_entry             
+   654                          ;*********************************************************************************
+   655                          ; Initialise all port configuration
+   656                          ;*********************************************************************************
+   657                  
+   658                                  _mode   ST_W                    ;point MODE to write ST register
+   667  0027  005C   m                  mov     m,#ST_W&$0F     ;loads the M register correctly for the SX18AC, SX20AC
+   668               m                                          ;and SX28AC
+   672  0028  0CFF                      mov     w,#RB_ST                ;Setup RB Schmitt Trigger, 0 = enabled, 1 = disabled
+   673  0029  0006                      mov     !rb,w           
+   674  002A  0CFF                      mov     w,#RC_ST                ;Setup RC Schmitt Trigger, 0 = enabled, 1 = disabled
+   675  002B  0007                      mov     !rc,w   
+   676                  IFDEF SX48_52
+   677                                  mov     w,#RD_ST                ;Setup RD Schmitt Trigger, 0 = enabled, 1 = disabled
+   678                                  mov     !rd,w           
+   679                                  mov     w,#RE_ST                ;Setup RE Schmitt Trigger, 0 = enabled, 1 = disabled
+   680                                  mov     !re,w           
+   681                  ENDIF
+   682                                  _mode   LVL_W                   ;point MODE to write LVL register
+   691  002C  005D   m                  mov     m,#LVL_W&$0F    ;loads the M register correctly for the SX18AC, SX20AC
+   692               m                                          ;and SX28AC
+   696  002D  0C00                      mov     w,#RA_LVL               ;Setup RA CMOS or TTL levels, 0 = TTL, 1 = CMOS
+   697  002E  0005                      mov     !ra,w            
+   698  002F  0C00                      mov     w,#RB_LVL               ;Setup RB CMOS or TTL levels, 0 = TTL, 1 = CMOS
+   699  0030  0006                      mov     !rb,w           
+   700  0031  0C00                      mov     w,#RC_LVL               ;Setup RC CMOS or TTL levels, 0 = TTL, 1 = CMOS
+   701  0032  0007                      mov     !rc,w   
+   702                  IFDEF SX48_52
+   703                                  mov     w,#RD_LVL               ;Setup RD CMOS or TTL levels, 0 = TTL, 1 = CMOS
+   704                                  mov     !rd,w           
+   705                                  mov     w,#RE_LVL               ;Setup RE CMOS or TTL levels, 0 = TTL, 1 = CMOS
+   706                                  mov     !re,w           
+   707                  ENDIF
+   708                                  _mode   PLP_W                   ;point MODE to write PLP register
+   717  0033  005E   m                  mov     m,#PLP_W&$0F    ;loads the M register correctly for the SX18AC, SX20AC
+   718               m                                          ;and SX28AC
+   722  0034  0CFF                      mov     w,#RA_PLP               ;Setup RA Weak Pull-up, 0 = enabled, 1 = disabled
+   723  0035  0005                      mov     !ra,w            
+   724  0036  0CFF                      mov     w,#RB_PLP               ;Setup RB Weak Pull-up, 0 = enabled, 1 = disabled
+   725  0037  0006                      mov     !rb,w           
+   726  0038  0CFF                      mov     w,#RC_PLP               ;Setup RC Weak Pull-up, 0 = enabled, 1 = disabled
+   727  0039  0007                      mov     !rc,w   
+   728                  IFDEF SX48_52
+   729                                  mov     w,#RD_PLP               ;Setup RD Weak Pull-up, 0 = enabled, 1 = disabled
+   730                                  mov     !rd,w           
+   731                                  mov     w,#RE_PLP               ;Setup RE Weak Pull-up, 0 = enabled, 1 = disabled
+   732                                  mov     !re,w           
+   733                  ENDIF
+   734                                  _mode   DDIR_W                  ;point MODE to write DDIR register
+   743  003A  005F   m                  mov     m,#DDIR_W&$0F   ;loads the M register correctly for the SX18AC, SX20AC
+   744               m                                          ;and SX28AC
+   748  003B  0CF7                      mov     w,#RA_DDIR              ;Setup RA Direction register, 0 = output, 1 = input             
+   749  003C  0005                      mov     !ra,w   
+   750  003D  0CFF                      mov     w,#RB_DDIR              ;Setup RB Direction register, 0 = output, 1 = input
+   751  003E  0006                      mov     !rb,w                   
+   752  003F  0CFA                      mov     w,#RC_DDIR              ;Setup RC Direction register, 0 = output, 1 = input
+   753  0040  0007                      mov     !rc,w                   
+   754                  IFDEF SX48_52
+   755                                  mov     w,#RD_DDIR              ;Setup RD Direction register, 0 = output, 1 = input
+   756                                  mov     !rd,w                   
+   757                                  mov     w,#RE_DDIR              ;Setup RE Direction register, 0 = output, 1 = input
+   758                                  mov     !re,w                   
+   759                  ENDIF
+   760  0041  0C08                      mov     w,#RA_latch             ;Initialize RA data latch
+   761  0042  0025                      mov     ra,w            
+   762  0043  0C00                      mov     w,#RB_latch             ;Initialize RB data latch
+   763  0044  0026                      mov     rb,w            
+   764  0045  0C00                      mov     w,#RC_latch             ;Initialize RC data latch
+   765  0046  0027                      mov     rc,w            
+   766                  IFDEF SX48_52
+   767                                  mov     w,#RD_latch             ;Initialize RD data latch
+   768                                  mov     rd,w                    
+   769                                  mov     w,#RE_latch             ;Initialize RE data latch
+   770                                  mov     re,w                    
+   771                  ENDIF
+   772                  
+   773                          ;*********************************************************************************
+   774                          ; Clear all Data RAM locations
+   775                          ;*********************************************************************************
+   776                  IFDEF SX48_52                                   ;SX48/52 RAM clear routine
+   777                                  mov     w,#$0a                  ;reset all ram starting at $0A
+   778                                  mov     fsr,w
+   779                  :zero_ram       clr     ind                     ;clear using indirect addressing
+   780                                  incsz   fsr                     ;repeat until done
+   781                                  jmp     :zero_ram
+   782                  
+   783                                  _bank   bank0                   ;clear bank 0 registers
+   784                                  clr     $10
+   785                                  clr     $11
+   786                                  clr     $12
+   787                                  clr     $13
+   788                                  clr     $14
+   789                                  clr     $15
+   790                                  clr     $16
+   791                                  clr     $17
+   792                                  clr     $18
+   793                                  clr     $19
+   794                                  clr     $1a
+   795                                  clr     $1b
+   796                                  clr     $1c
+   797                                  clr     $1d
+   798                                  clr     $1e
+   799                                  clr     $1f
+   800                  
+   801                  ELSE                                            ;SX18/20/28 RAM clear routine
+   802  0047  0064                      clr     fsr                     ;reset all ram banks
+   803  0048  0784      :zero_ram       sb      fsr.4                   ;are we on low half of bank?
+   804  0049  0564                      setb    fsr.3                   ;If so, don't touch regs 0-7
+   805  004A  0060                      clr     ind                     ;clear using indirect addressing
+   806  004B  03E4                      incsz   fsr                     ;repeat until done
+   807  004C  0A48                      jmp     :zero_ram
+   808                  ENDIF
+   809                          ;*********************************************************************************
+   810                          ; Initialize program/VP registers
+   811                          ;*********************************************************************************
+   812                  
+   813                  
+   814                          ;*********************************************************************************
+   815                          ; Setup and enable RTCC interrupt, WREG register, RTCC/WDT prescaler
+   816                          ;*********************************************************************************
+   817                  
+   818  =00000080       RTCC_ON         =       %10000000       ;Enables RTCC at address $01 (RTW hi)
+   819                                                          ;*WREG at address $01 (RTW lo) by default
+   820  =00000040       RTCC_ID         =       %01000000       ;Disables RTCC edge interrupt (RTE_IE hi)
+   821                                                          ;*RTCC edge interrupt (RTE_IE lo) enabled by default
+   822  =00000020       RTCC_INC_EXT    =       %00100000       ;Sets RTCC increment on RTCC pin transition (RTS hi)
+   823                                                          ;*RTCC increment on internal instruction (RTS lo) is default
+   824  =00000010       RTCC_FE         =       %00010000       ;Sets RTCC to increment on falling edge (RTE_ES hi)
+   825                                                          ;*RTCC to increment on rising edge (RTE_ES lo) is default
+   826  =00000000       RTCC_PS_ON      =       %00000000       ;Assigns prescaler to RTCC (PSA lo)
+   827  =00000008       RTCC_PS_OFF     =       %00001000       ;Assigns prescaler to RTCC (PSA lo)
+   828  =00000000       PS_000          =       %00000000       ;RTCC = 1:2, WDT = 1:1
+   829  =00000001       PS_001          =       %00000001       ;RTCC = 1:4, WDT = 1:2
+   830  =00000002       PS_010          =       %00000010       ;RTCC = 1:8, WDT = 1:4
+   831  =00000003       PS_011          =       %00000011       ;RTCC = 1:16, WDT = 1:8
+   832  =00000004       PS_100          =       %00000100       ;RTCC = 1:32, WDT = 1:16
+   833  =00000005       PS_101          =       %00000101       ;RTCC = 1:64, WDT = 1:32
+   834  =00000006       PS_110          =       %00000110       ;RTCC = 1:128, WDT = 1:64
+   835  =00000007       PS_111          =       %00000111       ;RTCC = 1:256, WDT = 1:128
+   836                  
+   837  004D  0C88                      mov     w,#RTCC_ON | RTCC_PS_OFF        ;setup option register
+   838  004E  0002                      mov     !option,w
+   839  004F  0010                      jmp     @main
+        0050  0A51
+   840                  
+   841                  ;*****************************************************************************************
+   842                  ; MAIN PROGRAM CODE 
+   843                  ;*****************************************************************************************
+   844                  
+   845                          ;*********************************************************************************
+   846                          ; Main
+   847                          ;*********************************************************************************
+   848  0051  0C00      main            mov     w,#_hello               ; Send greating to user on UART
+****** D:\Programming\sxsim\test\uart_vp.src(774) Line 848, Warning 37, Pass 2: Literal truncated to 8 bits
+   849  0052  0012                      call    @send_string
+        0053  0911
+   850  0054  0C10                      mov     w,#_instructions        ; Send instructinos
+****** D:\Programming\sxsim\test\uart_vp.src(776) Line 850, Warning 37, Pass 2: Literal truncated to 8 bits
+   851  0055  0012                      call    @send_string
+        0056  0911
+   852  =00000057       keep_doing_it
+   853  0057  0012                      call    @get_byte               ; Get a character from the users terminal
+        0058  0900
+   854  0059  0029                      mov     global_temp,w
+   855  005A  0C0D                      mov     w,#_enter               ; Check if user pressed enter
+   856  005B  0089                      mov     w,global_temp-w
+   857  005C  0743                      jnz     echo_char               ; if so then send a LF and CR
+        005D  0A61
+   858  005E  0C0A                      mov     w,#_line_feed           
+   859  005F  0012                      call    @send_byte
+        0060  0907
+   860  =00000061       echo_char
+   861  0061  0209                      mov     w,global_temp
+   862  0062  0012                      call    @send_byte
+        0063  0907
+   863  0064  0A57                      jmp     keep_doing_it
+   864                  
+   865  =00000300       org     $300
+   866                  ;*****************************************************************************************
+   867                  ; String data (for RS-232 output)
+   868                  ;*****************************************************************************************
+   869  0300  000D      _hello          dw      13,10,10,'SX UART Demo',0
+        0301  000A 000A 0053 0058
+        0305  0020 0055 0041 0052
+        0309  0054 0020 0044 0065
+        030D  006D 006F 0000
+   870  0310  000D      _instructions   dw      13,10,'Enter some characters and they will be echod to your terminal',13,10,'>',0
+        0311  000A 0045 006E 0074
+        0315  0065 0072 0020 0073
+        0319  006F 006D 0065 0020
+        031D  0063 0068 0061 0072
+        0321  0061 0063 0074 0065
+        0325  0072 0073 0020 0061
+        0329  006E 0064 0020 0074
+        032D  0068 0065 0079 0020
+        0331  0077 0069 006C 006C
+        0335  0020 0062 0065 0020
+        0339  0065 0063 0068 006F
+        033D  0064 0020 0074 006F
+        0341  0020 0079 006F 0075
+        0345  0072 0020 0074 0065
+        0349  0072 006D 0069 006E
+        034D  0061 006C 000D 000A
+        0351  003E 0000
+   871  0353  000D      _enter_hex      dw      13,10,' Enter Value : ',0
+        0354  000A 0020 0045 006E
+        0358  0074 0065 0072 0020
+        035C  0056 0061 006C 0075
+        0360  0065 0020 003A 0020
+        0364  0000
+   872                  
+   873  =00000400       org     $400
+   874                  ;*****************************************************************************************
+   875                  ; UART Subroutines
+   876                  ;*****************************************************************************************
+   877                  
+   878                          ;*********************************************************************************
+   879                          ; Function: get_byte
+   880                          ; Get byte via serial port and echo it back to the serial port
+   881                          ; INPUTS:
+   882                          ;       -NONE
+   883                          ; OUTPUTS:
+   884                          ;       -received byte in rx_byte
+   885                          ;*********************************************************************************
+   886  0400  072A      get_byte        sb      rx_flag                 ;wait till byte is received
+   887  0401  0A00                      jmp     get_byte
+   888  0402  042A                      clrb    rx_flag                 ;reset the receive flag
+   889                                  _bank   SERIAL
+   912  0404  0216                      mov     w,rx_byte               ;store byte (copy using W)
+   913  0405  0038                      mov     byte,w                  ; & fall through to echo char back
+   914  0406  000D                      retp
+   915                  
+   916                          ;*********************************************************************************
+   917                          ; Function: send_byte
+   918                          ; Send byte via serial port
+   919                          ; INPUTS:
+   920                          ;       w       -       The byte to be sent via RS-232
+   921                          ; OUTPUTS:
+   922                          ;       outputs the byte via RS-232
+   923                          ;*********************************************************************************
+   924                  send_byte       _bank    SERIAL
+   947                  
+   948  0408  0232      :wait           test    tx_count                ;wait for not busy
+   949  0409  0743                      sz
+   950  040A  0A08                      jmp     :wait                   ;
+   951                  
+   952  040B  0FFF                      not     w                       ;ready bits (inverse logic)
+   953  040C  0030                      mov     tx_high,w               ; store data byte
+   954  040D  05F1                      setb    tx_low.7                ; set up start bit
+   955  040E  0C0A                      mov     w,#10                   ;1 start + 8 data + 1 stop bit
+   956  040F  0032                      mov     tx_count,w
+   957  0410  000D                      retp                            ;leave and fix page bits
+   958                  
+   959                          ;*********************************************************************************
+   960                          ; Function: send_string
+   961                          ; Send string pointed to by address in W register
+   962                          ; INPUTS:
+   963                          ;       w       -       The address of a null-terminated string in program
+   964                          ;                       memory
+   965                          ; OUTPUTS:
+   966                          ;       outputs the string via RS-232
+   967                          ;*********************************************************************************
+   968                  send_string     _bank   SERIAL
+   991  0412  0037                      mov     string,w                ;store string address
+   992  0413  0217      :loop           mov     w,string                ;read next string character
+   993  0414  0053                      mov     m,#3                    ;with indirect addressing (set to $300)
+   994  0415  0041                      iread                           ;using the mode register
+   995  0416  0D00                      test    w                       ;are we at the last char?
+   996  0417  0643                      snz                             ;if not=0, skip ahead
+   997  0418  0A1D                      jmp     :exit                   ;yes, leave & fix page bits
+   998  0419  005F                      mov     m,#$0f                  ;reset the mode register to RX directions
+   999  041A  0907                      call    send_byte               ;not 0, so send character
+  1000  041B  02B7                      inc     string                  ;point to next character
+  1001  041C  0A13                      jmp     :loop                   ;loop until done
+  1002  041D  005F      :exit           mov     m,#$0f                   ;reset the mode register
+  1003  041E  000D                      retp
+  1004                          ;*********************************************************************************
+  1005                          ; Function: uppercase
+  1006                          ; Convert byte to uppercase.
+  1007                          ; INPUTS:
+  1008                          ;       byte - the byte to be converted
+  1009                          ; OUTPUTS:
+  1010                          ;       byte - converted byte
+  1011                          ;*********************************************************************************
+  1012  041F  0C61      uppercase       mov     w,#'a'                  ;if byte is lowercase, then skip ahead
+  1013  0420  0098                      mov     w,byte-w
+  1014  0421  0703                      sc
+  1015  0422  000D                      retp
+  1016  0423  0C20                      mov     w,#'a'-'A'              ;change byte to uppercase
+  1017  0424  00B8                      sub     byte,w
+  1018  0425  000D                      retp                            ;leave and fix page bits
+  1019                  
+  1020                          ;*********************************************************************************
+  1021                          ; Function: send_hex
+  1022                          ; Output a hex number
+  1023                          ; INPUTS:
+  1024                          ;       w       -       The byte to be output
+  1025                          ; OUTPUTS:
+  1026                          ;       outputs the hex byte via RS-232
+  1027                          ;*********************************************************************************
+  1028  0426  0028      send_hex        mov     function_temp,w
+  1029  0427  03A1                      swap    wreg
+  1030  0428  0E0F                      and     w,#$0f
+  1031  0429  0953                      call    hex_table
+  1032  042A  0907                      call    send_byte
+  1033  042B  0208                      mov     w,function_temp
+  1034  042C  0E0F                      and     w,#$0f
+  1035  042D  0953                      call    hex_table
+  1036  042E  0907                      call    send_byte
+  1037  042F  000D                      retp
+  1038                  
+  1039                          ;*********************************************************************************
+  1040                          ; Function: get_hex
+  1041                          ;       This routine returns with an 8-bit value in the W and in the hex 
+  1042                          ;       register.  It accepts a hex number from the terminal screen and
+  1043                          ;       returns. Remember to write a prompt to the screen before calling get_hex
+  1044                          ; OUTPUTS:
+  1045                          ;       -received byte in rx_byte
+  1046                          ;*********************************************************************************
+  1047                  get_hex         _bank   SERIAL
+  1070  0431  0C53                      mov     w,#_enter_hex
+****** D:\Programming\sxsim\test\uart_vp.src(908) Line 1070, Warning 37, Pass 2: Literal truncated to 8 bits
+  1071  0432  0012                      call    @send_string
+        0433  0911
+  1072  0434  0942                      call    :get_valid_hex
+  1073  0435  0218                      mov     w,byte                  ; send the received (good) byte
+  1074  0436  0907                      call    send_byte
+  1075  0437  03A8                      swap    function_temp                   ; put the nibble in the upper nibble of
+  1076  0438  0208                      mov     w,function_temp
+  1077  0439  0039                      mov     hex,w                   ; hex register
+  1078                  
+  1079  043A  0942                      call    :get_valid_hex
+  1080  043B  0218                      mov     w,byte                  ; send the second received byte
+  1081  043C  0907                      call    send_byte
+  1082  043D  0208                      mov     w,function_temp                 
+  1083  043E  0E0F                      and     w,#$0f
+  1084  043F  0119                      or      w,hex
+  1085  0440  0039                      mov     hex,w
+  1086  0441  000D                      retp
+  1087                  
+  1088  =00000442       :get_valid_hex
+  1089  0442  0068      :gh1            clr     function_temp
+  1090  0443  072A                      jnb     rx_flag,$               ; get a byte from the terminal
+        0444  0A43
+  1091  0445  042A                      clrb    rx_flag
+  1092  0446  0216                      mov     byte,rx_byte
+        0447  0038
+  1093  0448  091F                      call    uppercase               ; uppercase it.
+  1094                  
+  1095  0449  0208      :loop           mov     w,function_temp         ; get the value at temp (index)
+  1096  044A  0953                      call    hex_table
+  1097  044B  0198                      xor     w,byte
+  1098  044C  0643                      snz                             ; compare it to the received byte
+  1099  044D  000C                      ret
+  1100  044E  02A8                      inc     function_temp           ; if they are equal, we have the
+  1101  044F  0688                      jb      function_temp.4,:gh1    ; upper nybble.  Continue if not.
+        0450  0A42
+  1102  0451  0A49                      jmp     :loop
+  1103  0452  000C                      ret
+  1104                  
+  1105  0453  01E2      hex_table       add     pc,w
+  1106  0454  0830                      retw    '0'
+  1107  0455  0831                      retw    '1'
+  1108  0456  0832                      retw    '2'
+  1109  0457  0833                      retw    '3'
+  1110  0458  0834                      retw    '4'
+  1111  0459  0835                      retw    '5'
+  1112  045A  0836                      retw    '6'
+  1113  045B  0837                      retw    '7'
+  1114  045C  0838                      retw    '8'
+  1115  045D  0839                      retw    '9'
+  1116  045E  0841                      retw    'A'
+  1117  045F  0842                      retw    'B'
+  1118  0460  0843                      retw    'C'
+  1119  0461  0844                      retw    'D'
+  1120  0462  0845                      retw    'E'
+  1121  0463  0846                      retw    'F'
+  1122                  
+  1123                  
+  1124                  ;*****************************************************************************************
+  1125                  END             ;End of program code
+
+Cross Reference
+126 symbols
+
+Symbol                            Type   Value      Line
+__SASM                            DATA   00000001   0000
+__SX_FREQ                         DATA   02FAF080   1126
+__SX_IRC_CAL                      DATA   00000000   1126
+__SX_RESET                        RESB   00000A27   0115
+_enter                            DATA   0000000D   0421
+_enter_hex                        ADDR   00000353   0871
+_hello                            ADDR   00000300   0869
+_instructions                     ADDR   00000310   0870
+_line_feed                        DATA   0000000A   0422
+bank0                              VAR   00000010   0238
+bank0_org                          VAR   00000010   0207
+bank1                              VAR   00000030   0246
+bank1_org                          VAR   00000030   0208
+bank2                              VAR   00000050   0265
+bank2_org                          VAR   00000050   0209
+bank3                              VAR   00000070   0273
+bank3_org                          VAR   00000070   0210
+bank4                              VAR   00000090   0281
+bank4_org                          VAR   00000090   0211
+bank5                              VAR   000000B0   0289
+bank5_org                          VAR   000000B0   0212
+bank6                              VAR   000000D0   0297
+bank6_org                          VAR   000000D0   0213
+bank7                              VAR   000000F0   0305
+bank7_org                          VAR   000000F0   0214
+baud_rate_192                      VAR   0000000C   0445
+baud_rate_24                       VAR   00000060   0437
+baud_rate_384                      VAR   00000006   0449
+baud_rate_576                      VAR   00000004   0453
+baud_rate_96                       VAR   00000018   0441
+byte                              MEMV   00000038   0256
+CMP                               DATA   00000008   0509
+cts_pin                           DATA   00000005.1 0412
+DDIR_W                            DATA   0000000F   0518
+echo_char                         ADDR   00000061   0860
+flags                             DATA   0000000A   0226
+fsr                               RESV   00000004   0802
+function_temp                     DATA   00000008   0223
+get_byte                          ADDR   00000400   0886
+get_hex                           ADDR   00000430   1047
+get_hex:get_valid_hex             ADDR   00000442   1088
+get_hex:gh1                       ADDR   00000442   1089
+get_hex:loop                      ADDR   00000449   1095
+global_org                         VAR   00000008   0206
+global_temp                       DATA   00000009   0225
+hex                               MEMV   00000039   0257
+hex_table                         ADDR   00000453   1105
+ind                               RESV   00000000   0805
+int_period                        DATA   000000D9   0420
+interrupt                         ADDR   00000000   0531
+interrupt:receive                 ADDR   00000010   0598
+interrupt:rxbit                   ADDR   0000001C   0610
+interrupt:rxdone                  ADDR   00000025   0620
+interrupt:transmit                ADDR   00000001   0583
+isr_end                           ADDR   00000025   0638
+keep_doing_it                     ADDR   00000057   0852
+label1                            ADDR   00000025   0633
+LVL_W                             DATA   0000000D   0516
+main                              ADDR   00000051   0848
+pc                                RESV   00000002   1105
+PLP_W                             DATA   0000000E   0517
+PS_000                             VAR   00000000   0828
+PS_001                             VAR   00000001   0829
+PS_010                             VAR   00000002   0830
+PS_011                             VAR   00000003   0831
+PS_100                             VAR   00000004   0832
+PS_101                             VAR   00000005   0833
+PS_110                             VAR   00000006   0834
+PS_111                             VAR   00000007   0835
+ra                                RESV   00000005   0411
+RA_DDIR                           DATA   000000F7   0378
+RA_latch                          DATA   00000008   0377
+RA_LVL                            DATA   00000000   0379
+RA_PLP                            DATA   000000FF   0380
+rb                                RESV   00000006   0763
+RB_DDIR                           DATA   000000FF   0383
+RB_latch                          DATA   00000000   0382
+RB_LVL                            DATA   00000000   0385
+RB_PLP                            DATA   000000FF   0386
+RB_ST                             DATA   000000FF   0384
+rc                                RESV   00000007   0765
+RC_DDIR                           DATA   000000FA   0389
+RC_latch                          DATA   00000000   0388
+RC_LVL                            DATA   00000000   0391
+RC_PLP                            DATA   000000FF   0392
+RC_ST                             DATA   000000FF   0390
+reset_entry                       ADDR   00000027   0653
+reset_entry:zero_ram              ADDR   00000048   0803
+RTCC_FE                            VAR   00000010   0824
+RTCC_ID                            VAR   00000040   0820
+RTCC_INC_EXT                       VAR   00000020   0822
+RTCC_ON                            VAR   00000080   0818
+RTCC_PS_OFF                        VAR   00000008   0827
+RTCC_PS_ON                         VAR   00000000   0826
+rts_pin                           DATA   00000005   0411
+rx_byte                           MEMV   00000036   0254
+rx_count                          MEMV   00000034   0252
+rx_divide                         MEMV   00000035   0253
+rx_flag                           DATA   0000000A.1 0227
+rx_pin                            DATA   00000005.2 0413
+send_byte                         ADDR   00000407   0924
+send_byte:wait                    ADDR   00000408   0948
+send_hex                          ADDR   00000426   1028
+send_string                       ADDR   00000411   0968
+send_string:exit                  ADDR   0000041D   1002
+send_string:loop                  ADDR   00000413   0992
+SERIAL                             VAR   00000030   0247
+ST_W                              DATA   0000000C   0515
+start_delay_192                    VAR   00000013   0446
+start_delay_24                     VAR   00000091   0438
+start_delay_384                    VAR   0000000A   0450
+start_delay_576                    VAR   00000006   0454
+start_delay_96                     VAR   00000025   0442
+string                            MEMV   00000037   0255
+SX28                              ADDR   00000000   0064
+tx_count                          MEMV   00000032   0250
+tx_divide                         MEMV   00000033   0251
+tx_high                           MEMV   00000030   0248
+tx_low                            MEMV   00000031   0249
+tx_pin                            DATA   00000005.3 0414
+uppercase                         ADDR   0000041F   1012
+w                                 RESV   00000000   0856
+WKED_W                            DATA   0000000A   0513
+WKEN_W                            DATA   0000000B   0514
+WKPND                             DATA   00000009   0510
+wreg                              RESV   00000001   1029

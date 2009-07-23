@@ -1,0 +1,89 @@
+     1                  ;=======================================================================
+     2                  ;TITLE:         RETW_Table.src
+     3                  ;
+     4                  ;PURPOSE:       This SX28 code demonstrates the creation and use of an
+     5                  ;               8-bit data table with the RETW command.
+     6                  ;
+     7                  ;AUTHOR:        Parallax, Inc.
+     8                  ;
+     9                  ;REVISIONS:
+    10                  ;  08/12/99 -   Initial release.
+    11                  ;  09/17/04 -   Updated to support SASM.
+    12                  ;
+    13                  ;CONNECTIONS:
+    14                  ;  None.
+    15                  ;
+    16                  ;DETAILS:
+    17                  ;  Use Run -> Debug option to program SX chip.  After it has downloaded and
+    18                  ;  the Debug screens appear, use the Hop or Step buttons to step one
+    19                  ;  instruction at a time.  Watch the Data register in the Watch window
+    20                  ;  after the call to the Table for the value returned from the table
+    21                  ;=======================================================================
+    22                  
+    23                  
+    24                  ;-------------------------- DEVICE DIRECTIVES --------------------------
+    25                  
+    26  071B  0F7F                      DEVICE          SX28,OSC4MHZ,TURBO
+    27                  
+    28                  IFDEF   __SASM  ;SASM Directives
+    29  071B  0F7F                      DEVICE          STACKX,OPTIONX
+    30  =00000000                       IRC_CAL         IRC_SLOW
+    31                                  
+    32                  ELSE            ;Parallax Assember Directives
+    33                                  DEVICE          STACKX_OPTIONX
+    34                  ENDIF
+    35                  
+    36  07FF  0A0C                      RESET           Initialize
+    37                  
+    38                  ;------------------------------ CONSTANTS ------------------------------
+    39  =00000000                       ORG     0
+    40                  
+    41  0000  01E2      Table           jmp     PC+W                    ;(3)Jump into lookup table
+    42  0001  0841                      retw    'ABCDEFG'               ;(3)Store text
+        0002  0842 0843 0844 0845
+        0006  0846 0847
+    43  0008  080A                      retw    10,100,255,0            ;(3)Store numbers
+        0009  0864 08FF 0800
+    44                  
+    45                  ;------------------------------ VARIABLES ------------------------------
+    46                  
+    47  =00000008                       Idx     EQU     $08
+    48  =00000009                       Data    EQU     $09
+    49                  
+    50                  ;---------------------------- DEBUG SETTINGS ---------------------------
+    51                  
+    52  =003D0900                       FREQ    4_000_000
+    53                          
+    54  =00000009                       WATCH   Data,1,FSTR
+    55                  
+    56                  ;------------------------ INITIALIZATION ROUTINE -----------------------
+    57                  
+    58  =0000000C       Initialize
+    59  000C  0CFF                      mov     Idx,#$FF                ;Reset Table Index
+        000D  0028
+    60                  
+    61                  ;---------------------------- MAIN PROGRAM -----------------------------
+    62                  
+    63  =0000000E       Main
+    64  000E  02A8                      inc     Idx                     ;(1)Increment table index
+    65  000F  0208                      mov     w,Idx                   ;(1)
+    66  0010  0900                      call    Table                   ;(3)Retrieve data
+    67  0011  0029                      mov     Data,W
+    68  0012  0C00                      cjne    Data,#0,Main
+        0013  0089 0743 0A0E
+    69                                  END
+
+Cross Reference
+10 symbols
+
+Symbol                            Type   Value      Line
+__SASM                            DATA   00000001   0000
+__SX_FREQ                         DATA   003D0900   0052
+__SX_IRC_CAL                      DATA   00000000   0030
+__SX_RESET                        RESB   00000A0C   0036
+__SX_WATCH:Data                   FSTR   00000009 01 0054
+Data                              DATA   00000009   0048
+Idx                               DATA   00000008   0047
+Initialize                        ADDR   0000000C   0058
+Main                              ADDR   0000000E   0063
+Table                             ADDR   00000000   0041
