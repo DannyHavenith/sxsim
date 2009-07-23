@@ -7,6 +7,7 @@
 #include <sstream>
 #include <boost/timer.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem/path.hpp>
 #include "wx/docview.h"
 #include "wx/docmdi.h"
 #include "wx/grid.h"
@@ -35,6 +36,16 @@ BEGIN_EVENT_TABLE(sxgo_view, wxView)
 	EVT_COMMAND(wxID_ANY, EVT_CHANGE_RAMVALUE, sxgo_view::ChangeRam)
 END_EVENT_TABLE()
 
+namespace
+{
+	wxString SimplifyTitle( const wxString &filename)
+	{
+		using namespace boost::filesystem;
+		path p( (const char *)filename);
+
+		return wxString( p.stem().c_str());
+	}
+}
 //
 // someone doubleclicked on a label in the
 // label window.
@@ -88,7 +99,6 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 	frame->GetClientSize(&width, &height);
 	textsw = new sxgo_listing_window( frame, wxID_ANY, wxPoint(0,0), wxSize( width, height));
 
-	frame->SetTitle(doc->GetTitle());
 
 	int x, y;
 	textsw->SetSize( wxDefaultCoord, wxDefaultCoord, width, height);
@@ -251,7 +261,9 @@ void sxgo_view::RunSome( bool first_run)
 
 void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)
 {
+
 	sxgo_document *doc = (sxgo_document *)GetDocument();
+	frame->SetTitle(SimplifyTitle( doc->GetFilename()));
 	textsw->SetListing( doc->GetListing());
 	textsw->SetFont( wxFont( 9, wxFONTFAMILY_MODERN,
 		wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ));

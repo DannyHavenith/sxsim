@@ -1,6 +1,13 @@
+import sys
 import pysix
+
 # load a listing file
-listing = pysix.ParseListingFile("../../test/thermostat.lst")
+if len(sys.argv) > 1:
+	filename = sys.argv[1]
+else:
+	filename = "../../test/thermostat.lst"
+
+listing = pysix.ParseListingFile( filename)
 
 # create an emulator
 sx = pysix.Emulator()

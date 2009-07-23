@@ -42,6 +42,7 @@ struct major_rom_label_matches
 private:
 	const std::string search;
 };
+
 struct minor_rom_label_matches
 {
 	minor_rom_label_matches( const std::string &search_)
@@ -209,7 +210,7 @@ listing_info ParseListingFile( istream &listing)
 /// Actually this algorithm searches for the lowest address whose corresponding line number
 /// is at least the requested linenr.
 ///
-unsigned short listing_info::GetNearestAddress( int line) const 
+unsigned short listing_info::GetNearestAddress( int line) const
 {
 	unsigned short nearest_address = 0;
 	int nearest_line = std::numeric_limits<int>::max();

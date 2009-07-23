@@ -12,6 +12,7 @@
  *      Author: danny
  */
 
+
 #ifndef SX_COMPILER_HPP_
 #define SX_COMPILER_HPP_
 #include <boost/scoped_ptr.hpp>
@@ -20,14 +21,12 @@ template< typename implementation>
 struct instruction_interface
 {
 	virtual void execute( implementation *) const = 0;
+	//virtual ~instruction_interface() {};
 };
 
 template< typename implementation, typename tag>
 struct ins0 : instruction_interface<implementation>
 {
-	ins0( )
-	{}
-
 	virtual void execute( implementation *imp) const
 	{
 		imp->execute( tag());
@@ -67,6 +66,10 @@ private:
 	const short arg2;
 };
 
+///
+/// special instance of the instruction interface.
+/// This one can point to any nullary member function of the implementation
+/// class.
 template< typename implementation>
 struct ins_notag : instruction_interface< implementation>
 {
@@ -85,9 +88,11 @@ private:
 };
 
 /// \brief class template that can translate sx-instructions to
-/// boost::function instances that will call a handler with the right arguments.
+/// instances that will call a handler with the right arguments.
+///
 /// This class template is used to translate a rom full of sx-instructions into an array full
-/// of function pointers to the right functions.
+/// of member function pointers each member function points to the implementation of the corresponding
+/// instruction.
 template< typename implementation>
 class sx_compiler
 {

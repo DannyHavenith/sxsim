@@ -49,6 +49,11 @@ namespace sx_emulator
 				break;
 			};
 		}
+
+		unsigned long prescale_mask( unsigned char val)
+		{
+			return 255 >> (7 - val);
+		}
 	}
 
 	using arithmetic_with_flags::flagged;
@@ -56,6 +61,8 @@ namespace sx_emulator
 
 #define MEM ram( arg_register)
 
+	///
+	/// base class for all recoverable exceptions thrown by the emulator
 	struct recoverable_error : public std::runtime_error
 	{
 		recoverable_error( const char *what, unsigned short program_counter)
@@ -67,6 +74,7 @@ namespace sx_emulator
 		unsigned short pc;
 	};
 
+	/// exception that is thrown when the call depth exceeds the microcontrollers limits
 	struct stack_overflow_exception : public recoverable_error
 	{
 		stack_overflow_exception( unsigned short pc)
@@ -75,6 +83,7 @@ namespace sx_emulator
 		}
 	};
 
+	/// exception that is thrown when a ret, retw instruction is encountered with no return address on the stack
 	struct stack_underflow_exception : public recoverable_error
 	{
 		stack_underflow_exception(unsigned short pc)
@@ -83,6 +92,7 @@ namespace sx_emulator
 		}
 	};
 
+	/// exception that is thrown when an reti or retiw instruction is encountered outside an interrupt service routine
 	struct reti_outside_interrupt_exception : public recoverable_error
 	{
 		reti_outside_interrupt_exception(unsigned short pc)
@@ -91,6 +101,18 @@ namespace sx_emulator
 		}
 	};
 
+	/// exception that is thrown when an rtcc interrupt occurs while still processing the previous one.
+	struct rtcc_overflow_exception : public recoverable_error
+	{
+		rtcc_overflow_exception( unsigned short pc)
+			: recoverable_error( "rtcc interrupt while in interrupt", pc)
+		{
+		}
+
+	};
+
+	//
+	/// This class implements the actual sx instruction set.
 	using namespace micro_emulator;
 	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
@@ -103,10 +125,11 @@ namespace sx_emulator
 			in_interrupt(false),
 			sleeping( false),
 			nop_delay( 0),
+			throw_on_rtcc_overflow( true),
 			enable_rtcc_interrupt(false),
 			rtcc_on_cycle( false),
-			rtcc_prescale( 256),
-			rtcc_prescale_counter( 256)
+			rtcc_prescale_mask( 255),
+			cycle_counter( 0)
 		{
 			reset();
 		}
@@ -118,8 +141,8 @@ namespace sx_emulator
 			m = 0x0f;
 			in_interrupt = false;
 			stack = stack_t();
+			cycle_counter = 0;
 		}
-
 
 		sx_state get_state() const
 		{
@@ -142,7 +165,6 @@ namespace sx_emulator
 			in_interrupt = s.in_interrupt;
 			set_pc( s.pc);
 			stack = s.stack;
-
 		}
 
 		template< typename Range>
@@ -185,16 +207,15 @@ namespace sx_emulator
 			return ram;
 		}
 
-		bool get_rtcc_on_cycle()
+		bool get_rtcc_on_cycle() const
 		{
 			return rtcc_on_cycle;
 		}
 
 		void do_rtcc()
 		{
-			if (!(--rtcc_prescale_counter))
+			if (!(++cycle_counter & rtcc_prescale_mask))
 			{
-				rtcc_prescale_counter = rtcc_prescale;
 				if (++ram( sx_ram::RTCC) == 0 && enable_rtcc_interrupt)
 				{
 					do_interrupt();
@@ -214,6 +235,13 @@ namespace sx_emulator
 				ram( sx_ram::STATUS) &= 0x1f; // clear page bits.
 				set_pc(0);
 				set_nop_delay( 3);
+			}
+			else
+			{
+				if (throw_on_rtcc_overflow)
+				{
+					throw rtcc_overflow_exception(get_pc());
+				}
 			}
 		}
 
@@ -676,13 +704,12 @@ namespace sx_emulator
 			rtcc_on_cycle = (value & (1<<5)) == 0;
 			if ((value & (1<<3)) == 0)
 			{
-				rtcc_prescale = quick_pow2( value & 0x07);
+				rtcc_prescale_mask = prescale_mask( value & 0x07);
 			}
 			else
 			{
-				rtcc_prescale = 1;
+				rtcc_prescale_mask = 0;
 			}
-			rtcc_prescale_counter = rtcc_prescale;
 		}
 
 		void push( address_t value)
@@ -697,12 +724,13 @@ namespace sx_emulator
 		register_t &flags;
 		bool in_interrupt;
 		bool sleeping;
+		bool throw_on_rtcc_overflow;
 		unsigned long nop_delay;
 
 		bool enable_rtcc_interrupt;
 		bool rtcc_on_cycle;
-		short rtcc_prescale;
-		short rtcc_prescale_counter;
+		unsigned long rtcc_prescale_mask;
+		unsigned long cycle_counter;
 
 		stored_interrupt_state interrupt_state;
 		int program_counter; // program_counter is not a single register.
@@ -859,8 +887,9 @@ namespace sx_emulator
 				// other instructions may be breakpoints.
 				while (--count)
 				{
-					// the body of this function is essentially a copy of 
+					// the body of this function is essentially a copy of
 					// the synchronized_tick function, but calling that function
+					// instead of just copying the contents
 					// costs us about 25% performance on msvc (9)
 					//
 
@@ -869,7 +898,7 @@ namespace sx_emulator
 
 					if (!dec_nop_delay())
 					{
-						// notice the count_freq call, this costs about 3% in performance,
+						// notice the count_freq call, this costs about 3% in execution time,
 						// but it delivers a nice profiling feature in return.
 						sx_rom::register_t instruction = shadow_rom( count_freq(inc_pc()));
 						if (instruction == BREAKPOINT)
@@ -907,6 +936,28 @@ namespace sx_emulator
 			compile();
 		}
 
+		bool synchronized_tick()
+		{
+			try
+			{
+				//
+				// handle realtime clock, if enabled.
+				if (get_rtcc_on_cycle()) do_rtcc();
+				if (!dec_nop_delay())
+				{
+					precompiled[ count_freq(inc_pc())]->execute( this);
+				}
+			}
+			catch( const breakpoint_exception &)
+			{
+				return false;
+			}
+		}
+
+		size_t tick()
+		{
+			return sx_controller::tick();
+		}
 		//
 		// there are a few subtle differences between 'tick' and 'ticks'.
 		// The former always executes an instruction, whereas 'ticks' may break on

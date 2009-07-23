@@ -25,7 +25,10 @@ class sx_simulator
 public:
 	static const int rom_size = 4096;
 
-	typedef sx_emulator::sx_controller emulator_type;
+	//typedef sx_emulator::sx_controller emulator_type;
+	// uncomment this to use the precompiled sx_controller, which can be a lot faster
+	// on 64-bit systems.
+	typedef sx_emulator::precompiled_sx_controller emulator_type;
 	typedef boost::shared_ptr<emulator_type> emulator_pointer_type;
 	typedef unsigned short address_type;
 	typedef unsigned short pc_type;

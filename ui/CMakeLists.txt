@@ -36,7 +36,7 @@ ADD_EXECUTABLE(sxgoui WIN32
 	sxgo_label_window.hpp
 	)
 	
-   TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES})
+   TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES} ${Boost_SYSTEM_LIBRARY})
 
    INSTALL(TARGETS 
 		sxgoui

@@ -38,17 +38,16 @@ struct listing_info
 		std::fill( address_to_line, address_to_line + rom_size, 0);
 	}
 
-	unsigned short GetNearestAddress( int line) const;
 
 	int GetLine( unsigned short address) const
 	{
 		// todo: assert.
 		if (address >= rom_size) return 0;
-
 		return address_to_line[address];
 	}
 
 	unsigned short GetLabelAddress( const std::string &label) const;
+	unsigned short GetNearestAddress( int line) const;
 
 	static const size_t rom_size = 4 * 1024;
 	typedef std::map< std::string, int> label_container_type;

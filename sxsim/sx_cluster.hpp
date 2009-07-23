@@ -24,7 +24,7 @@ class sx_controller;
 class sx_cluster
 {
 public:
-	typedef sx_controller controller_type;
+	typedef sx_simulator::emulator_type controller_type;
 	typedef boost::shared_ptr< controller_type> controller_ptr;
 
 	sx_simulator new_controller();
