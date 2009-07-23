@@ -56,7 +56,10 @@ namespace sx_emulator
 		//
 		void set( address_t address, register_t value)
 		{
-			memory[address] = value;
+			if (address < memory_size)
+			{
+				memory[address] = value;
+			}
 		}
 
 	private:

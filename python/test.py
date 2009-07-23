@@ -14,7 +14,7 @@ sx = pysix.Emulator()
 sx.load_rom( listing)
 
 # some code labels
-send_byte = 0x0405
+send_byte = listing.GetLabelAddress( "send_byte:wait") + 3
 after_spi_read = 0x0141
 
 #some data labels
@@ -35,7 +35,7 @@ while True:
 		sys.stdout.write( chr(sx.state.w))
 		
 	elif	after_spi_read	== sx.state.pc:
-		# bit convoluted right now. state can only be copied as a whole, not changed
+		# a bit convoluted right now. state can only be copied as a whole, not changed
 		state = sx.state
 		state.ram.set_absolute( spi_value, 100)
 		state.ram.set_absolute( spi_value + 1, 0)

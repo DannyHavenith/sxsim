@@ -38,30 +38,7 @@ struct listing_info
 		std::fill( address_to_line, address_to_line + rom_size, 0);
 	}
 
-	///
-	/// find the nearest rom addres that corresponds to a line in the listing file
-	/// Actually this algorithm searches for the highest address whose corresponding line number
-	/// is at least the requested linenr.
-	///
-	///
-	unsigned short GetNearestAddress( int line) const
-	{
-		unsigned short nearest_address = 0;
-		int nearest_line = 0;
-		// simple implementation for now:
-		// linear search.
-		for ( int index = 0; index < rom_size; ++index)
-		{
-			int current_line = address_to_line[index];
-			if ( current_line <= line && current_line > nearest_line)
-			{
-				nearest_line = current_line;
-				nearest_address = index;
-			}
-		}
-
-		return nearest_address;
-	}
+	unsigned short GetNearestAddress( int line) const;
 
 	int GetLine( unsigned short address) const
 	{

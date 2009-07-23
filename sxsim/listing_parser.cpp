@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm> // for std::find_if
+#include <limits>
 #include "listing_parser.hpp"
 
 using namespace std;
@@ -57,14 +58,17 @@ private:
 	std::string search;
 };
 
+/// Given a label string, return the closest address.
+/// The string can be either in the format "major:minor" or "major".
 unsigned short listing_info::GetLabelAddress( const std::string &label) const
 {
+	// this regex splits the major label (s1) from an optional minor label (s2).
 	const sregex e = (s1 = +(~as_xpr(':'))) >> !(':' >> (s2 = *_));
 	smatch match;
+	unsigned short result = numeric_limits< unsigned short>::max();
 
 	if (regex_match(label, match, e))
 	{
-		std::cerr << "looking for label: " << match[1] << std::endl;
 		const std::string major_label = match[1];
 		jumplabel_container_type::const_iterator i;
 		i = std::find_if( jump_labels.begin(), jump_labels.end(),
@@ -73,30 +77,24 @@ unsigned short listing_info::GetLabelAddress( const std::string &label) const
 		{
 			if (match[2])
 			{
-				std::cerr << "looking for sublabel: " << match[2] << std::endl;
 				rom_label_container_type::const_iterator j =
 					std::find_if( i->minor_labels.begin(), i->minor_labels.end(),
 							minor_rom_label_matches( match[2]));
 				if (j != i->minor_labels.end())
 				{
-					std::cerr << "line = " << (j->second) << std::endl;
-					return GetNearestAddress( j->second);
+					result = GetNearestAddress( j->second);
 				}
 			}
 			else
 			{
-				std::cerr << "line = " << (i->line) << std::endl;
-				return GetNearestAddress( i->line);
+				result = GetNearestAddress( i->line);
 			}
 		}
 	}
-	else
-	{
-		return -1;
-	}
-
+	return result;
 }
 
+/// Parse a listing file and create a listing info object
 listing_info ParseListingFile( istream &listing)
 {
 	listing_info result;
@@ -204,4 +202,28 @@ listing_info ParseListingFile( istream &listing)
 	}
 
 	return result;
+}
+
+///
+/// find the nearest rom addres that corresponds to a line in the listing file
+/// Actually this algorithm searches for the lowest address whose corresponding line number
+/// is at least the requested linenr.
+///
+unsigned short listing_info::GetNearestAddress( int line) const 
+{
+	unsigned short nearest_address = 0;
+	int nearest_line = std::numeric_limits<int>::max();
+	// simple implementation for now:
+	// linear search.
+	for ( int index = 0; index < rom_size; ++index)
+	{
+		int current_line = address_to_line[index];
+		if ( current_line >= line && current_line < nearest_line)
+		{
+			nearest_line = current_line;
+			nearest_address = index;
+		}
+	}
+
+	return nearest_address;
 }
