@@ -59,10 +59,6 @@ namespace sx_emulator
 		template< typename tag_type>
 		void execute( const tag_type &, int arg1)
 		{
-			// this function call uses the fact that fr addresses
-			// are  always in arg1. If this wasn't sure, we'd need some
-			// meta-programming to determine the right argument from the
-			// tag_type
 			event_dispatcher< tag_type>::dispatch( *this, arg1);
 		}
 
