@@ -952,6 +952,8 @@ namespace sx_emulator
 			{
 				return false;
 			}
+
+			return true;
 		}
 
 		size_t tick()

@@ -9,8 +9,12 @@ namespace sx_emulator
 {
 	namespace mpl = boost::mpl;
 
-	/// This class keeps an array of event handlers that are invoked when the sx changes
-	/// a memory location.
+	/// An implementation of an SX controller that does nothing more than fire memory events when ram is written to.
+	/// This class is an SX controller implementation (that is, it implements an execute(...) method for all sx instruction tags),
+	/// but the only thing that these execute implementations do is to call registered callbacks for those instructions that
+	/// write to a RAM location (including the RA, RB, etc. registers).
+	/// This implementation is intended as a mix-in with a 'real' implementation.
+	/// Internally, object of this class contain an array with one callback for every ram location.
 	class memory_events
 	{
 	public:
@@ -31,17 +35,22 @@ namespace sx_emulator
 				dest_reg_
 			> {};
 
+		/// \brief This template is used to make a distinction between SX instructions that potentially change ram
+		/// and those that don't.
+		///
 		/// the event dispatcher comes in two variations:
 		/// - null dispatcher, which does nothing and is used for all instructions that
 		///   do not change memory locations at all (e.g. "mov w, fr")
 		/// - real dispatcher, which calls the trigger method on the event dispatcher.
+		/// The primary template implements the null dispatcher. I.e. it does nothing.
 		template<typename tag_type, typename memory_changed = typename changes_memory<tag_type>::type>
 		struct event_dispatcher
 		{
 			static void dispatch( const memory_events &, sx_ram::address_t) {};
 		};
 
-		// special case: this specialization is used when changes_memory< tag> is true.
+		/// This specialization is used when changes_memory< tag> is true. It implements the event dispatching
+		/// by merely calling the trigger method on the memory_events class. 
 		template<typename tag_type>
 		struct event_dispatcher< tag_type, boost::mpl::true_>
 		{
@@ -51,11 +60,13 @@ namespace sx_emulator
 			}
 		};
 
+		/// Nullary operations never change ram, therefore this overload is empty
 		template< typename tag_type>
 		void execute( const tag_type &)
 		{
 		}
 
+		/// Implementation for operations with one argument
 		template< typename tag_type>
 		void execute( const tag_type &, int arg1)
 		{
@@ -63,6 +74,7 @@ namespace sx_emulator
 		}
 
 
+		/// Implementation for operations with two arguments
 		template< typename tag_type>
 		void execute( const tag_type &, int arg1, int)
 		{
