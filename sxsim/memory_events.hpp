@@ -91,7 +91,7 @@ namespace sx_emulator
 			// first, do a quick test to see if there are handlers for this limited (0x00-0x1f) addres
 			if (handler_flags[ address])
 			{
-				// if so, expand the addres to a real internal address.
+				// if so, expand the addres to a real internal address and check again.
 				sx_ram::address_t internal_address = ram.limited_to_internal( address);
 				if (handlers[internal_address])
 				{

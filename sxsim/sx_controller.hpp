@@ -929,6 +929,7 @@ namespace sx_emulator
 	{
 
 	public:
+
 		template< typename Range>
 		void load_rom( const Range &r, sx_rom::address_t offset = 0)
 		{
@@ -945,7 +946,7 @@ namespace sx_emulator
 				if (get_rtcc_on_cycle()) do_rtcc();
 				if (!dec_nop_delay())
 				{
-					precompiled[ count_freq(inc_pc())]->execute( this);
+					precompiled[ count_freq(inc_pc())].execute( this);
 				}
 			}
 			catch( const breakpoint_exception &)
@@ -984,7 +985,7 @@ namespace sx_emulator
 						if (get_rtcc_on_cycle()) do_rtcc();
 						if (!dec_nop_delay())
 						{
-							precompiled[ count_freq(inc_pc())]->execute( this);
+							precompiled[ count_freq(inc_pc())].execute( this);
 						}
 					}
 				}
@@ -998,7 +999,9 @@ namespace sx_emulator
 		/// set a breakpoint at a given address
 		void set_breakpoint( address_t address)
 		{
-			precompiled[address].reset( new ins_notag<precompiled_sx_controller>( &precompiled_sx_controller::throw_breakpoint));
+			static const ins_notag<precompiled_sx_controller> breakpoint_caller( &precompiled_sx_controller::throw_breakpoint);
+			const instruction_interface< precompiled_sx_controller> *interface_ptr = &breakpoint_caller;
+			precompiled[address] = compiler_type::slot_type( interface_ptr);
 		}
 
 		/// remove the breakpoint at the given address
