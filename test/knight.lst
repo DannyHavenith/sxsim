@@ -1,0 +1,251 @@
+     1                  ;=======================================================================
+     2                  ;TITLE:         knight.src
+     3                  ;
+     4                  ;PURPOSE:       Generate 'knight rider' pattern on all bits of Port B.
+     5                  ;
+     6                  ;
+     7                  ;CONNECTIONS:
+     8                  ;  All bits of Port B are outputs.  Connect LEDs or use oscilloscope to
+     9                  ;  see PWM signals.
+    10                  ;
+    11                  ;DETAILS:
+    12                  ;  Use Run -> Run option to program SX chip, or use Program and connect
+    13                  ;  a 50 MHz resonator to the chip afterward.  All bits of Port B will
+    14                  ;  generate a PWM signal.  They are each updated every 1 us.  Set and
+    15                  ;  modify values in duty0-duty7 to change the individual duty cycles.
+    16                  ;=======================================================================
+    17                  
+    18                  
+    19                  ;-------------------------- DEVICE DIRECTIVES --------------------------
+    20                  
+    21  073B  0F7F              DEVICE      SX28,OSC1MHZ,TURBO
+    22                  
+    23                  IFDEF   __SASM  ;SASM Directives
+    24  073B  0F7F              DEVICE      STACKX,OPTIONX
+    25  =00000000               IRC_CAL     IRC_SLOW
+    26                          
+    27                  ELSE        ;Parallax Assember Directives
+    28                          DEVICE      STACKX_OPTIONX
+    29                  ENDIF
+    30                  
+    31  07FF  0A61              RESET       Initialize
+    32                  
+    33                  ;------------------------------ VARIABLES ------------------------------
+    34  =00000008                   ORG $8
+    35                  
+    36  =00000008       duty0       DS  1           ;pwm duty cycles
+    37  =00000009       duty1       DS  1
+    38  =0000000A       duty2       DS  1
+    39  =0000000B       duty3       DS  1
+    40  =0000000C       duty4       DS  1
+    41  =0000000D       duty5       DS  1
+    42  =0000000E       duty6       DS  1
+    43  =0000000F       duty7       DS  1
+    44                  
+    45                  
+    46  =00000010                   ORG $10
+    47                  
+    48  =00000010       acc0        DS  1           ;pwm accumulators
+    49  =00000011       acc1        DS  1
+    50  =00000012       acc2        DS  1
+    51  =00000013       acc3        DS  1
+    52  =00000014       acc4        DS  1
+    53  =00000015       acc5        DS  1
+    54  =00000016       acc6        DS  1
+    55  =00000017       acc7        DS  1
+    56                  
+    57  =00000018       temp        DS  1           ;temporary workspace
+    58  =00000019       temploop    DS  1
+    59  =0000001A       temploop2   DS  1
+    60  =0000001B       CurrentPos  DS  1
+    61  =0000001C       PosCounter  DS  1
+    62                  
+    63                  ;---------------------------- DEBUG SETTINGS ---------------------------
+    64                  
+    65  =000F4240               FREQ    1_000_000
+    66                  
+    67                  ;-------------------------- INTERRUPT ROUTINE --------------------------
+    68  =00000000               ORG 0
+    69                          
+    70  =00000000       Interrupt
+    71                  ;Update eight 8-bit pwm's on rb pins with a 1 MHz refresh rate.  Total
+    72                  ;service time is 32 clocks; at 50MHz, 18 MIPS are left over for main app.
+    73                                          ;3  interrupt entry
+    74  0000  0208              add acc0,duty0      ;2  update pwm0
+        0001  01F0
+    75  0002  0378              rl  temp            ;1
+    76  0003  0209              add acc1,duty1      ;2  update pwm1
+        0004  01F1
+    77  0005  0378              rl  temp            ;1
+    78  0006  020A              add acc2,duty2      ;2  update pwm2
+        0007  01F2
+    79  0008  0378              rl  temp            ;1
+    80  0009  020B              add acc3,duty3      ;2  update pwm3
+        000A  01F3
+    81  000B  0378              rl  temp            ;1
+    82  000C  020C              add acc4,duty4      ;2  update pwm4
+        000D  01F4
+    83  000E  0378              rl  temp            ;1
+    84  000F  020D              add acc5,duty5      ;2  update pwm5
+        0010  01F5
+    85  0011  0378              rl  temp            ;1
+    86  0012  020E              add acc6,duty6      ;2  update pwm6
+        0013  01F6
+    87  0014  0378              rl  temp            ;1
+    88  0015  020F              add acc7,duty7      ;2  update pwm7
+        0016  01F7
+    89  0017  0358              mov w,<<temp        ;1
+    90  0018  0026              mov rb,w            ;1  output pwm states
+    91  0019  0CCE              mov w,#-50          ;1  repeat every 1us
+    92  001A  000F              retiw               ;3 (32) interrupt exit
+    93                  
+    94  =0000001B       sixteen2eight   ; convert 16 'virtual' led positions to
+    95                          ; 8 real positions. This is done by 'folding' the
+    96                          ; high 8 positions back on the low 8 positions.
+    97                          ; This makes it possible to repeatedly count from 0 to 15, while
+    98                          ; it seems we're counting from 0 to 7 and back
+    99                          ; IN: w, number between 0 and 15 (inclusive)
+   100                          ; OUT: w, number between 0 and 7 (inclusive)
+   101  001B  0E0F              and w, #%00001111
+   102  001C  01E2              jmp pc + w
+   103  001D  0800              retw 0, 1, 2, 3, 4, 5, 6, 7 
+        001E  0801 0802 0803 0804
+        0022  0805 0806 0807
+   104  0025  0807              retw 7, 6, 5, 4, 3, 2, 1, 0
+        0026  0806 0805 0804 0803
+        002A  0802 0801 0800
+   105                          
+   106                          
+   107  =0000002D       ResetLeds   ; reset all leds (pwm duty cycles) to zero
+   108  002D  0C08              mov temploop, #8
+        002E  0039
+   109  002F  0C08              mov FSR, #duty0
+        0030  0024
+   110  0031  0CFF      ResetLoop:  mov IND, #255
+        0032  0020
+   111  0033  02A4              inc FSR 
+   112  0034  02F9              djnz temploop, ResetLoop
+        0035  0A31
+   113  0036  000D              retp
+   114                  
+   115  =00000037       SetLeds     ; set the pwm pattern
+   116  0037  092D              call ResetLeds      ; reset all leds to off
+   117                  
+   118  0038  0C08              mov fsr, #duty0     ; move fsr to start of duty cycle table
+        0039  0024
+   119  003A  021B              mov PosCounter, CurrentPos ; read start position (sets w as well)
+        003B  003C
+   120  003C  091B              call sixteen2eight ; convert w from virtual pos to real
+   121  003D  01E4              add fsr, w     ; offset into duty cycle table
+   122  003E  0CFC              mov ind, #252   ; set brightness value
+        003F  0020
+   123                  
+   124  0040  0C08              mov fsr, #duty0     ; move fsr to start of duty cycle table
+        0041  0024
+   125  0042  029C              mov w, ++PosCounter     ; next led
+   126  0043  003B              mov CurrentPos, w   ; make sure we start here next time
+   127  0044  003C              mov PosCounter, w   ; store running counter
+   128                  
+   129  0045  091B              call sixteen2eight
+   130  0046  01E4              add fsr, w     ; offset into duty cycle table
+   131  0047  0CE8              mov ind, #232   ; set a slightly lighter brightness value
+        0048  0020
+   132                  
+   133                  
+   134  0049  0C08              mov fsr, #duty0
+        004A  0024
+   135  004B  029C              mov w, ++PosCounter
+   136  004C  003C              mov PosCounter, w
+   137  004D  091B              call sixteen2eight
+   138  004E  01E4              add fsr, w     ; offset into duty cycle table
+   139  004F  0CD0              mov ind, #208   ; set brightness value
+        0050  0020
+   140                  
+   141  0051  0C08              mov fsr, #duty0
+        0052  0024
+   142  0053  029C              mov w, ++PosCounter
+   143  0054  003C              mov PosCounter, w
+   144  0055  091B              call sixteen2eight
+   145  0056  01E4              add fsr, w     ; offset into duty cycle table
+   146  0057  0CB0              mov ind, #176   ; set brightness value
+        0058  0020
+   147                  
+   148  0059  0C08              mov fsr, #duty0
+        005A  0024
+   149  005B  029C              mov w, ++PosCounter
+   150                          ;mov PosCounter, w  ; not needed here
+   151                  
+   152  005C  091B              call sixteen2eight
+   153  005D  01E4              add fsr, w     ; offset into duty cycle table
+   154  005E  0C00              mov ind, #0 ; set brightness value
+        005F  0020
+   155                  
+   156  0060  000D              retp
+   157                  
+   158                  ;------------------------ INITIALIZATION ROUTINE -----------------------
+   159                  
+   160  =00000061       Initialize
+   161  0061  0C00              mov !rb,#%00000000      ;make rb outputs
+        0062  0006
+   162  0063  0C9F              mov !option,#%10011111  ;enable rtcc interrupt
+        0064  0002
+   163  0065  0018              bank    #CurrentPos
+   164  0066  0C00              mov     CurrentPos, #0
+        0067  003B
+   165                  ;---------------------------- MAIN PROGRAM -----------------------------
+   166                  
+   167  =00000068       Main
+   168                  
+   169  =00000068       :loop       
+   170  0068  0937              call SetLeds
+   171  0069  0C20              mov temploop2, #32
+        006A  003A
+   172  006B  0C00              mov temploop, #0
+        006C  0039
+   173  006D  02F9      :wait       djnz temploop, :wait
+        006E  0A6D
+   174  006F  02FA              djnz temploop2, :wait           
+        0070  0A6D
+   175  0071  0A68              jmp :loop
+
+Cross Reference
+37 symbols
+
+Symbol                            Type   Value      Line
+__SASM                            DATA   00000001   0000
+__SX_FREQ                         DATA   000F4240   0065
+__SX_IRC_CAL                      DATA   00000000   0025
+__SX_RESET                        RESB   00000A61   0031
+acc0                              MEMV   00000010   0048
+acc1                              MEMV   00000011   0049
+acc2                              MEMV   00000012   0050
+acc3                              MEMV   00000013   0051
+acc4                              MEMV   00000014   0052
+acc5                              MEMV   00000015   0053
+acc6                              MEMV   00000016   0054
+acc7                              MEMV   00000017   0055
+CurrentPos                        MEMV   0000001B   0060
+duty0                             MEMV   00000008   0036
+duty1                             MEMV   00000009   0037
+duty2                             MEMV   0000000A   0038
+duty3                             MEMV   0000000B   0039
+duty4                             MEMV   0000000C   0040
+duty5                             MEMV   0000000D   0041
+duty6                             MEMV   0000000E   0042
+duty7                             MEMV   0000000F   0043
+FSR                               RESV   00000004   0109
+IND                               RESV   00000000   0110
+Initialize                        ADDR   00000061   0160
+Interrupt                         ADDR   00000000   0070
+Main                              ADDR   00000068   0167
+Main:loop                         ADDR   00000068   0169
+Main:wait                         ADDR   0000006D   0173
+PosCounter                        MEMV   0000001C   0061
+rb                                RESV   00000006   0090
+ResetLeds                         ADDR   0000002D   0107
+ResetLoop                         ADDR   00000031   0110
+SetLeds                           ADDR   00000037   0115
+sixteen2eight                     ADDR   0000001B   0094
+temp                              MEMV   00000018   0057
+temploop                          MEMV   00000019   0058
+temploop2                         MEMV   0000001A   0059
