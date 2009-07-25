@@ -26,19 +26,21 @@ add_subdirectory (sxsim)
 add_subdirectory (ui)
 add_subdirectory (python) 
 
-#INSTALL(TARGETS 
-#	"${CMAKE_CURRENT_SOURCE_DIR}/test/blink.lst"
-#	DESTINATION bin)
+INSTALL(FILES 
+	"${CMAKE_CURRENT_SOURCE_DIR}/test/blink.lst"
+	"${CMAKE_CURRENT_SOURCE_DIR}/test/knight.lst"
+	"${CMAKE_CURRENT_SOURCE_DIR}/test/simple_timer.lst"
+	DESTINATION examples)
 
 
 set(CPACK_PACKAGE_NAME "sxgo")
 set(CPACK_PACKAGE_VENDOR "havenith.net")
 set(CPACK_PACKAGE_CONTACT "dh.sxgo@havenith.net")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "sxgo, parallax sx28 emulator")
-set(CPACK_PACKAGE_VERSION "0.1.3")
+set(CPACK_PACKAGE_VERSION "0.1.6")
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
 set(CPACK_PACKAGE_VERSION_MINOR "1")
-set(CPACK_PACKAGE_VERSION_PATCH "5")
+set(CPACK_PACKAGE_VERSION_PATCH "6")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "sxgo")
 set(CPACK_PACKAGE_EXECUTABLES "sxgoui;sxgo emulator")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE_1_0.txt")

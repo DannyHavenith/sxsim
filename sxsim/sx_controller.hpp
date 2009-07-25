@@ -362,6 +362,7 @@ namespace sx_emulator
 		void execute( const jmp &, int addr9_)
 		{
 			set_pc( addr9_ | ((address_t( ram( sx_ram::STATUS)) & 0x00e0) << 4));
+			set_nop_delay( 2);
 		}
 
 		void execute( const mov_w_inc_fr &, int arg_register)
@@ -526,7 +527,7 @@ namespace sx_emulator
 				throw stack_underflow_exception( get_pc());
 			}
 			set_pc( pop());
-			set_nop_delay( 3);
+			set_nop_delay( 2);
 		}
 
 		void execute( const retp &)
@@ -540,7 +541,7 @@ namespace sx_emulator
 			// put bits 9-11 of the PC into bits 5-7 of status
 			const address_t status_mask = as_binary< 11100000>();
 			flags = (flags & ~status_mask) | ( (return_address >> 4) & status_mask);
-			set_nop_delay( 3);
+			set_nop_delay( 2);
 		}
 
 		void execute( const reti &)
@@ -1015,6 +1016,7 @@ namespace sx_emulator
 
 		void throw_breakpoint()
 		{
+			dec_pc();
 			throw breakpoint_exception();
 		}
 

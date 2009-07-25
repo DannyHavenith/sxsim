@@ -1,0 +1,43 @@
+     1  073B  0FFF              DEVICE          STACKX,OPTIONX
+     2  =00000000               IRC_CAL         IRC_SLOW
+     3  =02FAF080               FREQ 50_000_000
+     4  073B  0FFF              DEVICE          SX28,OSC1MHZ,TURBO
+     5  07FF  0A13              RESET   repeat
+     6  =00000010               ORG $10
+     7  =00000010       counter1        DS      1
+     8  =00000011       counter2        DS      1
+     9  =00000012       counter3        DS      1
+    10                  
+    11  =00000013       repeat
+    12  0013  0018              bank counter1
+    13  0014  0C00              mov counter1, #0
+        0015  0030
+    14  0016  0C00      loop1   mov counter2, #0
+        0017  0031
+    15  0018  0C00      loop2   mov counter3, #0
+        0019  0032
+    16  001A  02F2      loop3   djnz counter3, loop3
+        001B  0A1A
+    17  001C  02F1              djnz counter2, loop3
+        001D  0A1A
+    18  001E  02F0              djnz counter1, loop3
+        001F  0A1A
+    19                          
+    20  0020  0A13              jmp repeat
+    21                          
+
+Cross Reference
+11 symbols
+
+Symbol                            Type   Value      Line
+__SASM                            DATA   00000001   0000
+__SX_FREQ                         DATA   02FAF080   0003
+__SX_IRC_CAL                      DATA   00000000   0002
+__SX_RESET                        RESB   00000A13   0005
+counter1                          MEMV   00000010   0007
+counter2                          MEMV   00000011   0008
+counter3                          MEMV   00000012   0009
+loop1                             ADDR   00000016   0014
+loop2                             ADDR   00000018   0015
+loop3                             ADDR   0000001A   0016
+repeat                            ADDR   00000013   0011

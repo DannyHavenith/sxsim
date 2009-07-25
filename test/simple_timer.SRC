@@ -1,0 +1,21 @@
+	DEVICE		STACKX,OPTIONX
+	IRC_CAL		IRC_SLOW
+	FREQ 50_000_000
+	DEVICE		SX28,OSC1MHZ,TURBO
+	RESET	repeat
+	ORG $10
+counter1	DS	1
+counter2	DS	1
+counter3	DS	1
+
+repeat
+	bank counter1
+	mov counter1, #0
+loop1	mov counter2, #0
+loop2   mov counter3, #0
+loop3	djnz counter3, loop3
+	djnz counter2, loop3
+	djnz counter1, loop3
+	
+	jmp repeat
+	
