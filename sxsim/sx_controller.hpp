@@ -29,26 +29,6 @@ namespace sx_emulator
 {
 	namespace // unnamed
 	{
-		//
-		// very dedicated function to translate option register values
-		// to rtcc prescaler values.
-		unsigned short quick_pow2( unsigned char val)
-		{
-			switch (val)
-			{
-			case 0: return 2; // actually pow2( val + 1)...
-			case 1: return 4;
-			case 2: return 8;
-			case 3: return 16;
-			case 4: return 32;
-			case 5: return 64;
-			case 6: return 128;
-			case 7: return 256;
-			default:
-				throw std::logic_error( "unexpected value for quick_pow2");
-				break;
-			};
-		}
 
 		unsigned long prescale_mask( unsigned char val)
 		{
@@ -111,9 +91,14 @@ namespace sx_emulator
 
 	};
 
+	using namespace micro_emulator;
+
 	//
 	/// This class implements the actual sx instruction set.
-	using namespace micro_emulator;
+	///
+	/// This class implements the actual emulation functions and nothing more.
+	/// it is up to some base class to implement the fetch-decode-and call cycle, or to implement
+	/// other fancy stuff, like memory events, frequency counting, pre-compilation, etc.
 	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
 		typedef sx_ram::address_t address_t;
@@ -121,6 +106,7 @@ namespace sx_emulator
 		sx_controller_impl()
 			:real_w(0), w( real_w), m(0), wdt(0),
 			pc_register( ram( sx_ram::PC)),
+			rtcc_register( ram( sx_ram::RTCC)),
 			flags( ram( sx_ram::STATUS)),
 			in_interrupt(false),
 			sleeping( false),
@@ -234,7 +220,7 @@ namespace sx_emulator
 				interrupt_state.status = ram( sx_ram::STATUS);
 				ram( sx_ram::STATUS) &= 0x1f; // clear page bits.
 				set_pc(0);
-				set_nop_delay( 3);
+				set_nop_delay( 2);
 			}
 			else
 			{
@@ -433,7 +419,7 @@ namespace sx_emulator
 		void execute( const retw &, int arg_lit8)
 		{
 			// investigate:
-			// set only bottom 8 bits with return address.
+			// set only lower 8 bits with return address.
 			w = arg_lit8;
 			execute( ret());
 		}
@@ -665,7 +651,7 @@ namespace sx_emulator
 			set_nop_delay( std::numeric_limits< time_counter_t>::max());
 		}
 
-		int bitmask( int bit)
+		static int bitmask( int bit)
 		{
 			return (1<<bit);
 		}
@@ -736,26 +722,23 @@ namespace sx_emulator
 		stored_interrupt_state interrupt_state;
 		int program_counter; // program_counter is not a single register.
 		register_t &pc_register; // ...but is reflected in ram...
+		register_t &rtcc_register; 
 		sx_ram ram;
 		sx_rom rom;
 		stack_t stack;
 	};
 
-	class sx_controller : public sx_controller_impl, private memory_events
+	/// This class implements the basic functions of the emulator.
+	/// The actual instructions are implemented by sx_controller_impl, while some 
+	/// derived class must implement the fetch-decode-execute loop.
+	class basic_sx_controller : public sx_controller_impl, private memory_events
 	{
-		typedef micro_emulator::instruction_decoder<
-			sx_instruction_list,
-			sx_controller
-		> decoder_t;
-
-		static const sx_rom::register_t BREAKPOINT = 0x4f;
-		sx_rom shadow_rom;
-
-
 	public:
+		static const sx_rom::register_t BREAKPOINT = 0x4f;
+
 		typedef unsigned long histogram_type[ sx_rom::memory_size];
 
-		sx_controller()
+		basic_sx_controller()
 			: memory_events( sx_controller_impl::get_ram())
 		{
 		}
@@ -802,6 +785,24 @@ namespace sx_emulator
 			memory_events::set( address, handler);
 		}
 
+
+		/// keep track of how often a certain instruction was run
+		address_t count_freq( address_t address)
+		{
+			++histogram[ address];
+			return address;
+		}
+
+	private:
+		// keep a count of how often each instruction was run
+		histogram_type histogram;
+	};
+
+	/// \brief sx emulator implementation that uses an instruction decoder to decode
+	/// instructions on the fly.
+	class sx_controller : public basic_sx_controller
+	{
+	public:
 		/// load a range of instruction words into rom.
 		template< typename Range>
 		void load_rom( const Range &r, sx_rom::address_t offset = 0)
@@ -821,14 +822,6 @@ namespace sx_emulator
 		{
 			shadow_rom.set( address, get_rom()( address));
 		}
-
-		/// keep track of how often a certain instruction was run
-		address_t count_freq( address_t address)
-		{
-			++histogram[ address];
-			return address;
-		}
-
 		/// run one clock cycle/instruction
 		size_t tick()
 		{
@@ -907,7 +900,8 @@ namespace sx_emulator
 							dec_pc();
 							break;
 						}
-
+						
+						// decode the instruction and execute it
 						decoder_t::feed(
 							instruction, *this
 							);
@@ -919,14 +913,17 @@ namespace sx_emulator
 		}
 
 	private:
-		// keep a count of how often each instruction was run
-		histogram_type histogram;
+		typedef micro_emulator::instruction_decoder<
+			sx_instruction_list,
+			sx_controller
+		> decoder_t;
 
+		sx_rom shadow_rom;
 	};
 
 	//
-	// todo: refactor sx_controller into a non-leaf class.
-	class precompiled_sx_controller : public sx_controller
+	/// sx emulator implementation that 'precompiles' its rom before running from it.
+	class precompiled_sx_controller : public basic_sx_controller
 	{
 
 	public:
@@ -958,9 +955,36 @@ namespace sx_emulator
 			return true;
 		}
 
+		/// run the current instruction, ignoring breakpoints.
 		size_t tick()
 		{
-			return sx_controller::tick();
+			//
+			// handle realtime clock, if enabled.
+			if (get_rtcc_on_cycle())
+				do_rtcc();
+
+			reset_nop_delay();
+			
+			// re-compile an instruction from real rom, in case there's a 
+			// breakpoint in the precompiled one.
+			compiler_type::slot_type precompiled;
+			typedef micro_emulator::instruction_decoder<
+				sx_instruction_list,
+				compiler_type
+			> compiler_decoder_type;
+			compiler_type c( precompiled);
+			compiler_decoder_type::feed( get_rom()( count_freq(inc_pc())), c);
+
+			try
+			{
+				precompiled.execute( this);
+			}
+			catch( const breakpoint_exception &)
+			{
+				return 1;
+			}
+
+			return 0;
 		}
 		//
 		// there are a few subtle differences between 'tick' and 'ticks'.
@@ -976,7 +1000,7 @@ namespace sx_emulator
 				// first instruction is always executed
 				if (count)
 				{
-					sx_controller::tick();
+					tick();
 
 					// other instructions may be breakpoints.
 					while (--count)
@@ -1008,6 +1032,8 @@ namespace sx_emulator
 		/// remove the breakpoint at the given address
 		void remove_breakpoint( address_t address)
 		{
+			// just recompile the instruction at the given rom location into the 
+			// shadow rom.
 			compile( address, get_rom()(address));
 		}
 
