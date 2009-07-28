@@ -19,6 +19,7 @@
 
 #include "sx_simulator.hpp"
 
+
 #ifdef GENERATE_GRAPHVIZ_INSTRUCTION_TREE
 #include "sx_instruction_names.hpp"
 struct graphviz_printer
@@ -86,6 +87,7 @@ public:
 	}
 };
 #endif
+
 
 sx_simulator::sx_simulator()
 :emulator( new emulator_type())

@@ -10,7 +10,10 @@ add_library(
 	listing_parser.cpp
 	sx_simulator.cpp
 	sx_cluster.cpp
+	simulated_devices.cpp
 	
+	simulated_devices.hpp
+	sx_lcd_display.hpp
 	memory_events.hpp
 	arithmetic_with_flags.hpp
 	as_binary.hpp
