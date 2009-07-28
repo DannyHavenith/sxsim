@@ -1,0 +1,1171 @@
+     1                  ;=======================================================================
+     2                  ;TITLE:         temp_sensor.src
+     3                  ;
+     4                  ;PURPOSE:       Read temperature from a SPI-based temperature sensor and
+     5                  ;               display the results on an LCD-screen.
+     6                  ;
+     7                  ;AUTHOR:        Danny Havenith
+     8                  ;       Copyright (c) 2008 Danny Havenith
+     9                  ; Use, modification and distribution is subject to the Boost Software
+    10                  ; License, Version 1.0. (See copy at 
+    11                  ; http://www.boost.org/LICENSE_1_0.txt)
+    12                  ;
+    13                  ; UART VP and associated subroutines:
+    14                  ; Copyright © [01/26/1999] Scenix Semiconductor, Inc. All rights reserved.
+    15                  ;
+    16                  ;REVISIONS:
+    17                  ; see SVN-logs
+    18                  ;
+    19                  ;CONNECTIONS:
+    20                  ; tbs
+    21                  ;
+    22                  ;=======================================================================
+    23                  
+    24                  ;; define this symbol to skip most wait-loops and to simulate some input
+    25                  ;SIMULATION             equ 1
+    26                  ;-------------------------- DEVICE DIRECTIVES --------------------------
+    27                  
+    28  071B  0F7F                      DEVICE          SX28,OSC4MHZ,TURBO
+    29  071B  0F7F                      DEVICE          STACKX, OPTIONX
+    30                  
+    31  =00000000                       IRC_CAL         IRC_SLOW
+    32                  
+    33  07FF  0A27                      RESET           Initialize
+    34                  ;------------------------------ CONSTANTS ------------------------------
+    35                  ; LCD Definitions
+    36                  ; LCD_Interface Constants.
+    37                  ;  Commands
+    38  =00000001       LCD_Clear               equ     %00000001
+    39  =00000002       LCD_Cursor_Home         equ     %00000010
+    40  =00000004       LCD_Entry_Mode          equ     %00000100
+    41  =00000008       LCD_Display_control     equ     %00001000
+    42  =00000010       LCD_Cursor              equ     %00010000
+    43  =00000020       LCD_Function            equ     %00100000
+    44  =00000040       LCD_Set_CGRam           equ     %01000000
+    45  =00000080       LCD_Set_DDRam           equ     %10000000
+    46                  ;  Control Bits
+    47  =00000001       LCD_S                   equ     %00000001       ; Display Shift
+    48  =00000001       LCD_B                   equ     %00000001       ; Cursor Blink
+    49  =00000002       LCD_ID                  equ     %00000010       ; Cursor Position Decrement
+    50  =00000002       LCD_C                   equ     %00000010       ; Cursor off/ on
+    51  =00000004       LCD_RL                  equ     %00000100       ; Cursor direction (Right = 1 left =0)
+    52  =00000004       LCD_F                   equ     %00000100       ; Character resolution 1= 5x10, 0= 5x7
+    53  =00000004       LCD_D                   equ     %00000100       ; Display 0n = 1 off = 0
+    54  =00000008       LCD_SC                  equ     %00001000       ; Shift 0=cursor 1=diaplay
+    55  =00000008       LCD_N                   equ     %00001000       ; Number od lines 0 for 1 line 
+    56  =00000010       LCD_DL                  equ     %00010000       ; Data lines 0 for 4 data lines 1 for 8 data lines
+    57                  
+    58                  
+    59  =00000001       LCD_Delay       equ     1
+    60                  
+    61                  ;------------------------------ --------- ------------------------------
+    62                  ; The following constants are meant to be changed to configure for 
+    63                  ; diverse hardware.
+    64                  
+    65  =003D0900       Frequency               EQU     4_000_000 ; clock frequency
+    66  =00002580       BaudRate                EQU     9600      ; serial port baudrate
+    67  =00000005       InterruptsPerBit        EQU     5       ; samples per serial bit, minimum of 3
+    68                  
+    69                  ; uncomment the following EQU if using a MAX232, since we need to
+    70                  ; reverse the rs-232 signals while not using a MAX232
+    71                  ;UsingMAX232    EQU 1           ; we're using a max232 
+    72                  
+    73                  ;------------------------------ --------- ------------------------------
+    74                  ; some derived constants (derived from the ones above)
+    75                  ; These are not meant to be changed manually.
+    76                  ;
+    77                                  ; clock ticks per interrupt
+    78  =00000054       InterruptPeriod EQU     Frequency/(InterruptsPerBit * BaudRate) + 1
+    79                                  ; value to put in W to obtain the clock ticks per interrupt
+    80                                  ; formulated in this particular way to get rid of 'Literal 
+    81                                  ; truncated to 8 bits' warning
+    82                                  ; If you still get that warning, it probably means the interrupt
+    83                                  ; period is larger than 256. Reconsider your baudrate or InterruptsPerBit
+    84  =000000AC       RetiwValue      EQU     256-InterruptPeriod 
+    85                  
+    86                  ; number of interrupts to pass between detection of the start bit ("flank") and
+    87                  ; the middle of the first bit, plus one (see code for that 'plus one').
+    88  =00000008       StartDelay      EQU InterruptsPerBit/2 + InterruptsPerBit + 1
+    89                  
+    90                                  ; port definitions
+    91                  
+    92  =00000005.1     SerialOut       EQU     ra.1 ; pins are serial output and
+    93  =00000005       SerialIn        EQU     ra.0 ; input respectively.
+    94                  
+    95  =00000006.1     led             =       rb.1
+    96                  ;lcd_           =       rb.0            ; This output could be used
+    97                                                          ; for backlight or contrast.
+    98  =00000006.5     lcd_RS          =       rb.5            ; 0 = i--nstruction, 1 = data
+    99  =00000006.6     lcd_RW          =       rb.6            ; 0 = write, 1 = read
+   100  =00000006.7     lcd_E           =       rb.7            ; 1,1-->0 is the LCD enable
+   101                  
+   102  =00000007       lcd_data        =       rc              ; databits must be in upper nibble see (1)
+   103  =000000F0       LCD_DATA_MASK   EQU     0f0h            ; (1)
+   104  =00000080       LCD_BF                  equ     %10000000       ; Busy Flag,  0 = not busy
+   105  =00000007.4     lcd_DB4         =       rc.4            ; DB4 = Data bus line 4 (LSB)
+   106  =00000007.5     lcd_DB5         =       rc.5
+   107  =00000007.6     lcd_DB6         =       rc.6
+   108  =00000007.7     lcd_DB7         =       rc.7            ; DB7 = Data bus line 7 (MSB)
+   109                  
+   110                  
+   111                  ;------------------------------ VARIABLES ------------------------------
+   112  =00000008                               ORG     $08
+   113                  ; 'global' bank, registers that can be accessed regardles of the current
+   114                  ; bank.
+   115                  
+   116                  ; temporary register for interrupt routines
+   117  =00000008       InterruptScratch DS 1
+   118  =00000009       function_temp   DS      1
+   119  =0000000A       function_temp2  DS      1
+   120  =0000000B       function_temp3  DS      1
+   121  =0000000C       global_temp     DS      1
+   122                  
+   123  =0000000D       SPI_BANK        = $
+   124  =00000006.2     spi_so          EQU     rb.2
+   125  =00000006.3     spi_cs          EQU     rb.3
+   126  =00000006.4     spi_clock       EQU     rb.4
+   127  =00000009       spi_bit         EQU     function_temp
+   128  =0000000D       spi_value       DS 2
+   129                  
+   130                  
+   131                  
+   132  =00000010                               ORG $10
+   133  =00000010       SERIAL          =       $       ;UART bank
+   134  =00000010       SENDTEXT        =       $       ;SENDTEXT bank
+   135  =00000010       LCD_BANK        =       $
+   136  =00000010       tx_high         ds      1       ;hi byte to transmit
+   137  =00000011       tx_low          ds      1       ;low byte to transmit
+   138  =00000012       tx_count        ds      1       ;number of bits sent
+   139  =00000013       tx_divide       ds      1       ;xmit timing (/16) counter
+   140  =00000014       rx_count        ds      1       ;number of bits received
+   141  =00000015       rx_divide       ds      1       ;receive timing counter
+   142  =00000016       rx_byte         ds      1       ;buffer for incoming byte
+   143  =00000017       flags           ds      1       ;only contains the rx_flag
+   144  =00000017       rx_flag         EQU flags.0
+   145  =00000018       string          ds      1       ;used by send_string to store the address in memory
+   146  =00000019       byte            ds      1       ;used by serial routines
+   147  =0000001A       output_dir      ds      1       ; should data go to the LCD or to serial?
+   148                  
+   149                  
+   150                  ; lcd driver registers
+   151  =0000001B       lcd_temp        ds      1               ; Temporary register
+   152  =0000001C       lcd_count       ds      1               ; Temporary register
+   153                  
+   154  =0000001D       delay_regs      =       $
+   155                  
+   156  =0000001D       dlycnt1         ds      1               ; register used by delay routine
+   157  =0000001E       dlycnt2         ds      1               ; register used by delay routine
+   158                  
+   159  =00000030                               ORG $30
+   160                                  
+   161                  
+   162                  
+   163                  ;---------------------------- SETTINGS ---------------------------
+   164                  
+   165  =003D0900                       FREQ    Frequency
+   166                          
+   167  =0000000A       WKED_W          equ     $0A             ;Write MIWU/RB Interrupt edge setup, 0 = falling, 1 = rising
+   168  =0000000B       WKEN_W          equ     $0B             ;Write MIWU/RB Interrupt edge setup, 0 = enabled, 1 = disabled
+   169  =0000000C       ST_W            equ     $0C             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   170  =0000000D       LVL_W           equ     $0D             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   171  =0000000E       PLP_W           equ     $0E             ;Write Port Schmitt Trigger setup, 0 = enabled, 1 = disabled
+   172  =0000000F       DDIR_W          equ     $0F             ;Write Port Direction
+   173                  
+   174                   IFDEF UsingMAX232
+   175                  RA_latch        equ     %00001111               ;SX18/20/28/48/52 port A latch init
+   176                   ELSE
+   177  =00000007       RA_latch        equ     %00000111               ;SX18/20/28/48/52 port A latch init
+   178                   ENDIF
+   179  =000000FE       RA_DDIR         equ     %11111110               ;see under pin definitions for port A DDIR value
+   180  =00000000       RA_LVL          equ     %00000000               ;SX18/20/28/48/52 port A LVL value
+   181  =000000FF       RA_PLP          equ     %11111111               ;SX18/20/28/48/52 port A PLP value
+   182                  
+   183  =00000000       RB_latch        equ     %00000000               ;SX18/20/28/48/52 port B latch init
+   184  =00000004       RB_DDIR         equ     %00000100               ;SX18/20/28/48/52 port B DDIR value
+   185  =000000FF       RB_ST           equ     %11111111               ;SX18/20/28/48/52 port B ST value
+   186  =00000000       RB_LVL          equ     %00000000               ;SX18/20/28/48/52 port B LVL value
+   187  =00000000       RB_PLP          equ     %00000000               ;SX18/20/28/48/52 port B PLP value
+   188                  
+   189  =00000000       RC_latch        equ     %00000000               ;SX18/20/28/48/52 port C latch init
+   190  =000000FF       RC_DDIR         equ     %11111111               ;SX18/20/28/48/52 port C DDIR value
+   191  =000000FF       RC_ST           equ     %11111111               ;SX18/20/28/48/52 port C ST value
+   192  =00000000       RC_LVL          equ     %00000000               ;SX18/20/28/48/52 port C LVL value
+   193  =000000FF       RC_PLP          equ     %11111111               ;SX18/20/28/48/52 port C PLP value
+   194                  
+   195                  ;-------------------------- MACRO DEFINITIONS --------------------------
+   196                  
+   197                  ; These macros control whether our serial line is high-active
+   198                  ; or low-active.
+   199                  Rs232Up         MACRO pin
+   200                                          IFDEF UsingMAX232 THEN
+   201                                                  setb pin
+   202                                          ELSE
+   203                                                  clrb pin
+   204                                          ENDIF
+   205                                  ENDM
+   206                  
+   207                  Rs232Down       MACRO pin
+   208                                          IFDEF UsingMAX232 THEN
+   209                                                  clrb pin
+   210                                          ELSE
+   211                                                  setb pin
+   212                                          ENDIF
+   213                                  ENDM
+   214                  
+   215                  ; transfer the state of the rs232 input pin to the carry flag
+   216                  Rs232PinToCarry MACRO pin
+   217                                  sb      pin                     ;get current rx bit
+   218                                  IFDEF UsingMAX232 THEN
+   219                                          clc
+   220                                  ELSE
+   221                                          stc
+   222                                  ENDIF
+   223                                  snb     pin                     ; 
+   224                                  IFDEF UsingMAX232 THEN
+   225                                          stc
+   226                                  ELSE
+   227                                          clc             
+   228                                  ENDIF
+   229                                  ENDM
+   230                  
+   231  =00000000                       ORG 0
+   232  =00000000       Interrupt
+   233                          ;*********************************************************************************
+   234                          ; Virtual Peripheral: Universal Asynchronous Receiver Transmitter (UART) 
+   235                          ; These routines send and receive RS232 serial data, and are currently
+   236                          ; configured (though modifications can be made) for the popular
+   237                          ; "No parity-checking, 8 data bit, 1 stop bit" (N,8,1) data format.
+   238                          ; RECEIVING: The rx_flag is set high whenever a valid byte of data has been
+   239                          ; received and it is the calling routine's responsibility to reset this flag
+   240                          ; once the incoming data has been collected.
+   241                          ; TRANSMITTING: The transmit routine requires the data to be inverted
+   242                          ; and loaded (tx_high+tx_low) register pair (with the inverted 8 data bits
+   243                          ; stored in tx_high and tx_low bit 7 set high to act as a start bit). Then
+   244                          ; the number of bits ready for transmission (10=1 start + 8 data + 1 stop)
+   245                          ; must be loaded into the tx_count register. As soon as this latter is done,
+   246                          ; the transmit routine immediately begins sending the data.
+   247                          ; This routine has a varying execution rate and therefore should always be
+   248                          ; placed after any timing-critical virtual peripherals such as timers,
+   249                          ; adcs, pwms, etc.
+   250                          ; Note: The transmit and receive routines are independent and either may be
+   251                          ;       removed, if not needed, to reduce execution time and memory usage,
+   252                          ;       as long as the initial "BANK serial" (common) instruction is kept.
+   253                          ;
+   254                          ;       Input variable(s) : tx_low (only high bit used), tx_high, tx_count
+   255                          ;       Output variable(s) : rx_flag, rx_byte
+   256                          ;       Variable(s) affected : tx_divide, rx_divide, rx_count
+   257                          ;       Flag(s) affected : rx_flag
+   258                          ;
+   259                          ;*********************************************************************************
+   260  =00000000       SerialVP
+   261  0000  0018                      bank    SERIAL                  ;switch to serial register bank
+   262  0001  02F3      :transmit       decsz   tx_divide               ;only execute the transmit routine
+   263  0002  0A10                      jmp     :receive                ; 
+   264  0003  0C05                      mov     w,#InterruptsPerBit     ;
+   265  0004  0033                      mov     tx_divide,w             ; 
+   266  0005  0232                      test    tx_count                ;are we sending?
+   267  0006  0643                      snz                             ; 
+   268  0007  0A10                      jmp     :receive                ;
+   269  0008  0503                      stc                             ;yes, ready stop bit
+   270  0009  0330                      rr      tx_high                 ; and shift to next bit
+   271  000A  0331                      rr      tx_low                  ; 
+   272  000B  00F2                      dec     tx_count                ;decrement bit counter
+   273  000C  06D1                      snb     tx_low.6                ;output next bit
+   274                                  Rs232Up SerialOut               ; 
+   275               m                          IFDEF UsingMAX232 THEN
+   276               m                                  setb SerialOut
+   277               m                          ELSE
+   278  000D  0425   m                                  clrb SerialOut
+   279               m                          ENDIF
+   281  000E  07D1                      sb      tx_low.6                ; 
+   282                                  Rs232Down SerialOut             ; 
+   283               m                          IFDEF UsingMAX232 THEN
+   284               m                                  clrb SerialOut
+   285               m                          ELSE
+   286  000F  0525   m                                  setb SerialOut
+   287               m                          ENDIF
+   289                                  
+   290                                  ; transfer input to carry flag.
+   291                  :receive        Rs232PinToCarry SerialIn
+   292  0010  0705   m                  sb      SerialIn                        ;get current rx bit
+   293               m                  IFDEF UsingMAX232 THEN
+   294               m                          clc
+   295               m                  ELSE
+   296  0011  0503   m                          stc
+   297               m                  ENDIF
+   298  0012  0605   m                  snb     SerialIn                        ; 
+   299               m                  IFDEF UsingMAX232 THEN
+   300               m                          stc
+   301               m                  ELSE
+   302  0013  0403   m                          clc             
+   303               m                  ENDIF
+   305                  
+   306  0014  0234                      test    rx_count                ;currently receiving byte?
+   307  0015  0743                      sz                              ; 
+   308  0016  0A1C                      jmp     :rxbit                  ;if so, jump ahead
+   309  0017  0C09                      mov     w,#9                    ;in case start, ready 9 bits
+   310  0018  0703                      sc                              ;skip ahead if not start bit
+   311  0019  0034                      mov     rx_count,w              ;it is, so renew bit count
+   312  001A  0C08                      mov     w,#StartDelay           ;ready 1.5 bit periods plus one
+   313  001B  0035                      mov     rx_divide,w             ; 
+   314  001C  02F5      :rxbit          decsz   rx_divide               ;middle of next bit?
+   315  001D  0A25                      jmp     :rxdone                 ;
+   316  001E  0C05                      mov     w,#InterruptsPerBit     ;yes, ready 1 bit period
+   317  001F  0035                      mov     rx_divide,w             ; 
+   318                  
+   319  0020  00F4                      dec     rx_count                ;last bit?
+   320  0021  0743                      sz                              ;if not
+   321  0022  0336                      rr      rx_byte                 ; then save bit
+   322  0023  0643                      snz                             ;if so,
+   323  0024  0517                      setb    rx_flag                 ; then set flag
+   324  =00000025       :rxdone                                         ; else, exit
+   325                  
+   326  0025  0CAC      EndInterrupt    mov w, #RetiwValue
+   327  0026  000F                      retiw
+   328                  
+   329                                  
+   330                  ;------------------------ INITIALIZATION ROUTINE -----------------------
+   331  =00000027       Initialize
+   332                                  
+   333  0027  005C                      mov     m, #ST_W                        ;point MODE to write ST register
+   334  0028  0CFF                      mov     !rb,#RB_ST              ;Setup RB Schmitt Trigger, 0 = enabled, 1 = disabled
+        0029  0006
+   335  002A  0CFF                      mov     !rc,#RC_ST              ;Setup RC Schmitt Trigger, 0 = enabled, 1 = disabled
+        002B  0007
+   336                  
+   337  002C  005D                      mov     m, #LVL_W                       ;point MODE to write LVL register
+   338  002D  0C00                      mov     !ra,#RA_LVL             ;Setup RA CMOS or TTL levels, 0 = TTL, 1 = CMOS
+        002E  0005
+   339  002F  0C00                      mov     !rb,#RB_LVL             ;Setup RB CMOS or TTL levels, 0 = TTL, 1 = CMOS
+        0030  0006
+   340  0031  0C00                      mov     !rc,#RC_LVL             ;Setup RC CMOS or TTL levels, 0 = TTL, 1 = CMOS
+        0032  0007
+   341                  
+   342  0033  005E                      mov     m, #PLP_W
+   343  0034  0CFF                      mov     !ra,#RA_PLP             ;Setup RA Weak Pull-up, 0 = enabled, 1 = disabled
+        0035  0005
+   344  0036  0C00                      mov     !rb,#RB_PLP             ;Setup RB Weak Pull-up, 0 = enabled, 1 = disabled
+        0037  0006
+   345  0038  0CFF                      mov     !rc,#RC_PLP             ;Setup RC Weak Pull-up, 0 = enabled, 1 = disabled
+        0039  0007
+   346                  
+   347  003A  0C07                      mov     ra,#RA_latch            ;Initialize RA data latch
+        003B  0025
+   348  003C  0C00                      mov     rb,#RB_latch            ;Initialize RB data latch
+        003D  0026
+   349  003E  0C00                      mov     rc,#RC_latch            ;Initialize RC data latch
+        003F  0027
+   350                  
+   351  0040  005F                      mov     m, #DDIR_W                      ;point MODE to write DDIR register
+   352  0041  0CFE                      mov     !ra,#RA_DDIR            ;Setup RA Direction register, 0 = output, 1 = input             
+        0042  0005
+   353  0043  0C04                      mov     !rb,#RB_DDIR            ;Setup RB Direction register, 0 = output, 1 = input
+        0044  0006
+   354  0045  0CFF                      mov     !rc,#RC_DDIR            ;Setup RC Direction register, 0 = output, 1 = input
+        0046  0007
+   355                  
+   356                  ; zero all ram (SX28)
+   357  0047  0064                      clr     fsr                     ;reset all ram banks
+   358  0048  0784      :zero_ram       sb      fsr.4                   ;are we on low half of bank?
+   359  0049  0564                      setb    fsr.3                   ;If so, don't touch regs 0-7
+   360  004A  0060                      clr     ind                     ;clear using indirect addressing
+   361  004B  03E4                      incsz   fsr                     ;repeat until done
+   362  004C  0A48                      jmp     :zero_ram
+   363                  
+   364  004D  0CC8                      mov     !option,#%11001000      ;disable, not enable rtcc interrupt
+        004E  0002
+   365                  
+   366                  ;---------------------------- MAIN PROGRAM -----------------------------
+   367                  
+   368  =0000004F       Main            
+   369  004F  0011                      call    @WaitASec
+        0050  09C7
+   370  0051  0426                      clrb    rb.1
+   371                  
+   372  0052  0011                      call    @lcd_init
+        0053  0949
+   373  0054  0C01                      mov     W, #LCD_Clear           ; Clear the screen
+   374  0055  0011                      call    @lcd_write_command      
+        0056  0964
+   375                  
+   376  0057  0018                      bank    SENDTEXT                
+   377  0058  051A                      setb    output_dir.0 ; output to LCD
+   378                  
+   379  =00000059       MainLoop
+   380  0059  0206                      mov w, rb
+   381  005A  0F02                      xor w, #$02
+   382  005B  0026                      mov rb, w
+   383  005C  0011                      call @SpiRead
+        005D  0900
+   384  005E  064D                      jb spi_value.2, :no_sensor
+        005F  0A80
+   385                  
+   386                                  
+   387                  
+   388  0060  0403                      clc
+   389  0061  032E                      rr spi_value + 1
+   390  0062  032D                      rr spi_value
+   391  0063  0403                      clc
+   392  0064  032E                      rr spi_value + 1
+   393  0065  032D                      rr spi_value
+   394  0066  0403                      clc
+   395  0067  032E                      rr spi_value + 1
+   396  0068  032D                      rr spi_value
+   397  0069  0403                      clc
+   398  006A  032E                      rr spi_value + 1
+   399  006B  032D                      rr spi_value
+   400  006C  0403                      clc
+   401  006D  032E                      rr spi_value + 1
+   402  006E  032D                      rr spi_value
+   403                  
+   404                  IFDEF  SIMULATION
+   405                                  mov spi_value, #23
+   406                                  mov spi_value + 1, 0
+   407                  ENDIF
+   408                  
+   409  006F  0C01                      mov     w, #LCD_clear
+   410  0070  0011                      call    @lcd_write_command
+        0071  0964
+   411  0072  0C02                      mov     w, #LCD_Cursor_Home
+   412  0073  0011                      call    @lcd_write_command
+        0074  0964
+   413  0075  0C00                      mov w, #TemperatureMessage // 256
+   414  0076  0012                      call @send_string
+        0077  0914
+   415  0078  0011                      call @send_decimal
+        0079  0912
+   416  007A  0011                      call @WaitASec
+        007B  09C7
+   417  007C  0011                      call @WaitASec
+        007D  09C7
+   418  007E  0010                      jmp @MainLoop
+        007F  0A59
+   419                  
+   420  0080  0C01      :no_sensor      mov     w, #LCD_clear
+   421  0081  0011                      call    @lcd_write_command
+        0082  0964
+   422  0083  0C02                      mov     w, #LCD_Cursor_Home
+   423  0084  0011                      call    @lcd_write_command
+        0085  0964
+   424                  
+   425  0086  0C0E                      mov w, #NoSensorMessage // 256
+   426  0087  0012                      call @send_string
+        0088  0914
+   427  0089  0011                      call @WaitASec
+        008A  09C7
+   428  008B  0011                      call @WaitASec
+        008C  09C7
+   429  008D  0010                      jmp @MainLoop
+        008E  0A59
+   430                                  
+   431                                  
+   432  =00000200                       ORG     $200
+   433                  
+   434                  SpiDelay        MACRO
+   435                                  ENDM
+   436                  
+   437                  SpiClock        MACRO clock_bit
+   438                                  setb clock_bit
+   439                                  nop
+   440                                  clrb clock_bit
+   441                                  nop
+   442                                  ENDM
+   443                                  
+   444                  SpiShift        MACRO so_bit, register
+   445                                  sb so_bit
+   446                                  clc
+   447                                  snb so_bit
+   448                                  stc
+   449                                  rl register
+   450                                  rl register + 1
+   451                                  ENDM
+   452                  
+   453  =00000200       SpiRead         
+   454  0200  0018                      bank SPI_BANK
+   455  0201  0466                      clrb spi_cs                     ; lower ~CS, this will give us the first bit.
+   456                                  SpiDelay
+   458  0202  0C10                      mov spi_bit, #16                ; reading 16 bits
+        0203  0029
+   459  =00000204       :bit_loop       
+   460                                  SpiShift spi_so, spi_value      ; read bit-value
+   461  0204  0746   m                  sb spi_so
+   462  0205  0403   m                  clc
+   463  0206  0646   m                  snb spi_so
+   464  0207  0503   m                  stc
+   465  0208  036D   m                  rl spi_value
+   466  0209  036E   m                  rl spi_value + 1
+   468                                  SpiClock spi_clock              ; move to next bit
+   469  020A  0586   m                  setb spi_clock
+   470  020B  0000   m                  nop
+   471  020C  0486   m                  clrb spi_clock
+   472  020D  0000   m                  nop
+   474                                  SpiDelay
+   476  020E  02E9                      djnz spi_bit, :bit_loop         ; do next bit
+        020F  0A04
+   477  0210  0566                      setb spi_cs                     ; set ~CS
+   478  0211  000D                      retp
+   479                  
+   480                  
+   481  =0000000E       HI      EQU spi_value + 1
+   482  =0000000D       LO      EQU spi_value
+   483  =00000009       temp    EQU function_temp
+   484  =00000212       send_decimal:
+   485  0212  0018              BANK SPI_BANK
+   486                  
+   487                  ; by Rich Leggitt with tweaks by Scott Dattalo and bugfix by Dmitry Kiryashov and Nikolai Golovchenko and Ted Inoue.
+   488                  ; given 16 bit data in HI and LO, extract decimal digits
+   489                  ; requires one Output register called temp, HI and LO are destroyed.
+   490                  ; 42 instructions and less than 290 instructions executed
+   491  0213  0069              clr     temp
+   492  0214  0702              skip
+   493  0215  02A9      sub10k  inc     temp
+   494  0216  0C10              mov     W, #10000 & 255
+   495  0217  00AD              sub     LO, W
+   496                  
+   497                  ;Scott Dattalo says:
+   498                  ;If you have a ram location that's known to be zero, then
+   499                  ;the following [the IF] can be replaced with [the ELSE]
+   500                  
+   501                  IFNDEF known_zero
+   502  0218  0C27              mov     W, #10000 >> 8
+   503  0219  0703              sb      C
+   504  021A  0C28              mov     W, #(10000 >> 8)+1
+   505                  ELSE
+   506                          mov     W, << known_zero
+   507                          add     W, #(1000 >> 8) + 1
+   508                  ENDIF
+   509  021B  00AE              sub     HI, W
+   510  021C  0603              jc sub10k               ;11*7=77 inst in loop for 60900 (worst)
+        021D  0A15
+   511  021E  0209              mov w, temp
+   512  021F  0012              call @send_digit
+        0220  0907
+   513                  
+   514  0221  0C0A              mov     W, #10
+   515  0222  0029              mov     temp, W
+   516  0223  00E9      add1K   dec     temp
+   517  0224  0CE8              mov     W, #1000 & 255
+   518  0225  01ED              add     LO, W
+   519                  
+   520                  ;Scott Dattalo says:
+   521                  ;If you have a ram location that's known to be zero, then
+   522                  ;the following [the IF] can be replaced with [the ELSE]
+   523                  
+   524                  IFNDEF known_zero
+   525  0226  0C03              mov     W, #1000 >> 8
+   526  0227  0603              snb      C
+   527  0228  0C04              mov     W, #(1000 >> 8)+1
+   528                  ELSE
+   529                          mov     W, << known_zero
+   530                          add     W, #1000 > > 8
+   531                  ENDIF
+   532  0229  01EE              add     HI, W
+   533  022A  0703              jnc add1k               ;10*10=100 inst in loop for 60900
+        022B  0A23
+   534  022C  0209              mov w, temp
+   535  022D  0012              call @send_digit
+        022E  0907
+   536                  
+   537                  
+   538                  ;Scott takes over here
+   539  022F  0069              clr     temp
+   540  0230  0C64              mov     W, #100
+   541  0231  0602              skip
+   542  =00000232       sub100
+   543  0232  02A9              inc     temp
+   544  0233  00AD              sub     LO, W
+   545  0234  0603              snb      C
+   546  0235  0A32              jmp     sub100
+   547                  
+   548  0236  00EE              dec     HI
+   549  0237  07EE              sb      HI.7    ;Check msb instead of carry for underflow.
+   550  0238  0A32              jmp     sub100  ;4 inst per loop to 200 then 7 per loop to 900.
+   551                                          ;Total 64(?) in loop for worst case
+   552                  
+   553                  ;at this point, HI = 0xff, and  0 <= LO <= 99
+   554                  
+   555  0239  0209              mov w, temp
+   556  023A  0012              call @send_digit
+        023B  0907
+   557                  
+   558  023C  0C0A              mov     W, #10
+   559  023D  0029              mov     temp, W
+   560  023E  00E9      add10   dec     temp
+   561  023F  01ED              add     LO, W
+   562  0240  0703              jnc add10               ;40 inst in loop for worst case.
+        0241  0A3E
+   563  0242  0209              mov w, temp
+   564  0243  0012              call @send_digit
+        0244  0907
+   565  0245  020D              mov w, LO
+   566  0246  0012              call @send_digit
+        0247  0907
+   567  0248  000D              retp
+   568                  
+   569                  
+   570                          ;*********************************************************************************
+   571                          ; Function:                     lcd_init
+   572                          ; 
+   573                          ; Inputs:                       None
+   574                          ;       
+   575                          ; Outputs:                      None
+   576                          ;       
+   577                          ; Registers affected:           W
+   578                          ;
+   579                          ; Functions Called:             lcd_wait_busy,  lcd_write_command
+   580                          ;
+   581                          ;*********************************************************************************
+   582                          ;*************************************************************************
+   583                          ; LCD initialization code.
+   584                          ; This code should be called at the beginning of the program to 
+   585                          ; initialize the LCD display.  It only needs to be called once.
+   586                          ;*************************************************************************
+   587                  
+   588                  
+   589  =00000249       lcd_init
+   590  0249  0C00                      mov     W,#0                    ; Delays for 5.1ms at 50MIPS
+   591  024A  0011                      call    @delay
+        024B  09B9
+   592  024C  0C00                      mov     W,#0                    ; Delays for 5.1ms at 50MIPS
+   593  024D  0011                      call    @delay
+        024E  09B9
+   594                          ; First, set the data length, number of display lines, and character font.
+   595                          ;------------------------------------------------------------------------------------------------------
+   596                          ;       RS-RA2 R/!W-RA3 DB7-RB7 DB6-RB6 DB5-RB5 DB4-RB4 DB3-RB3 DB2-RB2 DB1-RB1 DB0-RB0 Execution Time
+   597                          ;       0       0       0       0       1       DL      N       F       *       *       40us
+   598                          ;------------------------------------------------------------------------------------------------------
+   599                          ; DL--Interface Data Length             0 = 4-bit interface             1 = 8-bit interface
+   600                          ; N --Number of Display Lines           0 = 1 line                      1 = 2 lines
+   601                          ; F --Character Font                    0 = 5*7 dots                    1 = 5*10 dots
+   602                  
+   603  024F  0011                      call    @lcd_wait_busy          ; wait until the LCD is done initializing.
+        0250  0985
+   604  0251  0C22                      mov     W, #LCD_Function | LCD_C; to be sure, duplicate command to change to 4 bits on lower 4.
+   605  0252  0011                      call    @lcd_write_command
+        0253  0964
+   606                  
+   607                  
+   608  0254  0C28                      mov     W, #LCD_Function | LCD_N                ; 
+   609  0255  0011                      call    @lcd_write_command      ; set for for 4 bits, 2 lines, and 5*7 dots
+        0256  0964
+   610                  
+   611                  
+   612                          ; Next, turn the display on, turn the cursor on, and turn cursor blink on (so we know LCD is alive)
+   613                          ;------------------------------------------------------------------------------------------------------
+   614                          ;       RS-RA2 R/!W-RA3 DB7-RB7 DB6-RB6 DB5-RB5 DB4-RB4 DB3-RB3 DB2-RB2 DB1-RB1 DB0-RB0 Execution Time
+   615                          ;       0       0       0       0       0       0       1       D       C       B       40us
+   616                          ;------------------------------------------------------------------------------------------------------
+   617                          ; D --Display ON/OFF control            0 = Display OFF                 1 = Display ON
+   618                          ; C --Cursor ON/OFF control             0 = Cursor OFF                  1 = Cursor ON
+   619                          ; B --Blink ON/OFF control              0 = Blink OFF                   1 = Blink ON
+   620                  
+   621  0257  0040                      clr     W
+   622  0258  0011                      call    @lcd_write_command
+        0259  0964
+   623                  
+   624  025A  0C0C                      mov     W, #LCD_Display_Control | LCD_D; | LCD_C | LCD_B 
+   625                  
+   626  025B  0011                      call    @lcd_write_command      ; turn display on, cursor on, and blink on..
+        025C  0964
+   627                  
+   628                          ; Next, set display so that the cursor moves as characters are entered.
+   629                          ;------------------------------------------------------------------------------------------------------
+   630                          ;       RS-RA2 R/!W-RA3 DB7-RB7 DB6-RB6 DB5-RB5 DB4-RB4 DB3-RB3 DB2-RB2 DB1-RB1 DB0-RB0 Execution Time
+   631                          ;       0       0       0       0       0       1       S/C     R/L     *       *       40us
+   632                          ;------------------------------------------------------------------------------------------------------
+   633                          ; S/C--Cursor move/Display Shift        0 = Cursor Move                 1 = Shift Display 
+   634                          ; R/L--Shift Direction                  0 = Shift left                  1 = Shift right
+   635                  
+   636  025D  0C10                      mov     W, #LCD_Cursor
+   637  025E  0011                      call    @lcd_write_command      ; set for cursor move and display shift.
+        025F  0964
+   638                          
+   639                          ; Next, set entry mode (cursor move direction, shift or no shift).
+   640                          ;------------------------------------------------------------------------------------------------------
+   641                          ;       RS-RA2 R/!W-RA3 DB7-RB7 DB6-RB6 DB5-RB5 DB4-RB4 DB3-RB3 DB2-RB2 DB1-RB1 DB0-RB0 Execution Time
+   642                          ;       0       0       0       0       0       0       0       1       I/D     S       40us ~ 1.64ms
+   643                          ;------------------------------------------------------------------------------------------------------
+   644                          ; I/D--Increment/Decrement address      0 = Decrement Cursor Address    1 = Increment Cursor Address 
+   645                          ; S  --Display shift                    0 = No shift                    1 = Shift
+   646                  
+   647  0260  0C06                      mov     W, #LCD_Entry_Mode | LCD_ID
+   648  0261  0011                      call    @lcd_write_command      ; set for incrementing address and no shift..
+        0262  0964
+   649                          
+   650                  
+   651  0263  000D                      retp    ; Return fron lcd_init
+   652                  
+   653                          ;*********************************************************************************
+   654                          ; Function:                     lcd_write_command 
+   655                          ; 
+   656                          ; Inputs:                       Command to write in W
+   657                          ;       
+   658                          ; Outputs:                      None
+   659                          ;       
+   660                          ; Registers affected:           W ,  lcd_temp , lcd_count
+   661                          ;
+   662                          ; Functions Called:             nopdel,    NOTE: shared body with lcd_write_data  
+   663                          ;
+   664                          ;*********************************************************************************
+   665  =00000264       lcd_write_command
+   666                          ;------------------------------------------------------------------------------------------------------
+   667                          ; This function writes the command in W to the LCD display, using the 8-bit interface.  The procedure is:
+   668                          ; 1.  Clear RS
+   669                          ; 2.  Set up R/!W
+   670                          ; 3.  Write the data to the port
+   671                          ;------------------------------------------------------------------------------------------------------
+   672  0264  04A6                      clrb    lcd_RS          ; Drive RS low so LCD knows to write COMMAND.
+   673  0265  0A67                      jmp     lcd_write       ; goto WRITE code
+   674                  
+   675                          ;*********************************************************************************
+   676                          ; Function:                     lcd_write_data
+   677                          ; 
+   678                          ; Inputs:                       Data byte to write in W
+   679                          ;       
+   680                          ; Outputs:                      None
+   681                          ;       
+   682                          ; Registers affected:           W,  lcd_temp , lcd_count
+   683                          ;
+   684                          ; Functions Called:             nopdel, NOTE BODY shared with lcd_write_command
+   685                          ;
+   686                          ;*********************************************************************************
+   687  =00000266       send_lcd_byte
+   688  =00000266       lcd_write_data
+   689                          ;------------------------------------------------------------------------------------------------------
+   690                          ; This function writes the data in W to the LCD display, using the 8-bit interface.
+   691                          ; 1.  Set RS
+   692                          ; 2.  Set up R/!W
+   693                          ; 3.  Write the data to the port
+   694                          ;------------------------------------------------------------------------------------------------------
+   695                  
+   696  0266  05A6                      setb    lcd_RS          ; Drive RS high so LCD knows to write DATA.
+   697                  
+   698  =00000267       lcd_write       
+   699  0267  0018                      bank    LCD_BANK                ; Switch banks
+   700  0268  003B                      mov     lcd_temp,W      
+   701  0269  0C02                      mov     lcd_count,#2 
+        026A  003C
+   702  026B  005F                      mov     m, #DDIR_W
+   703  026C  0C00                      mov     w,#00h
+   704  026D  0007                      mov     !lcd_data,w     ; Switch the data pins to outputs
+   705  026E  04C6                      clrb    lcd_RW          ; Drive R/!W low so LCD knows to WRITE.
+   706                  
+   707  =0000026F       lcd_write_loop
+   708  026F  0C0F                      and     lcd_data,#0Fh   ; don't destroy the data in the lower 4 latches
+        0270  0167
+   709  0271  021B                      mov     W,lcd_temp
+   710  0272  0EF0                      and     W,#0f0h
+   711  0273  0127                      or      lcd_data,W      ; Write the data in W to the port latches.
+   712  0274  0011                      call    @nopdel
+        0275  09B0
+   713  0276  0011                      call    @nopdel
+        0277  09B0
+   714  0278  05E6                      setb    lcd_E           ; Pulse LCD's enable pin.
+   715  0279  0011                      call    @nopdel
+        027A  09B0
+   716  027B  0011                      call    @nopdel
+        027C  09B0
+   717  027D  04E6                      clrb    lcd_E           ; Force LCD to latch the data present on the data bus.
+   718  027E  0011                      call    @nopdel
+        027F  09B0
+   719  0280  0011                      call    @nopdel
+        0281  09B0
+   720  0282  03BB                      swap    lcd_temp
+   721  0283  02FC                      decsz   lcd_count
+   722  0284  0A6F                      jmp     lcd_write_loop
+   723                  
+   724                                  ; notice we're falling from lcd_write into lcd_wait_busy
+   725                  ;               retp                    ; Return from lcd_write_command and lcd_write_data
+   726                  
+   727                          ;*********************************************************************************
+   728                          ; Function:                     lcd_wait_busy
+   729                          ; 
+   730                          ; Inputs:                       None
+   731                          ;       
+   732                          ; Outputs:                      None
+   733                          ;       
+   734                          ; Registers affected:           W
+   735                          ;
+   736                          ; Functions Called:             nopdel
+   737                          ;
+   738                          ;*********************************************************************************
+   739  =00000285       lcd_wait_busy
+   740                  
+   741                          ; waits until the LCD is ready to accept a command.
+   742                          ;------------------------------------------------------------------------------------------------------
+   743                          ;       RS-RA2 R/!W-RA3 DB7-RB7 DB6-RB6 DB5-RB5 DB4-RB4 DB3-RB3 DB2-RB2 DB1-RB1 DB0-RB0 Execution Time
+   744                          ;       0       1       BF      * ------------------DDRAM Address-------------- *       1us
+   745                          ;------------------------------------------------------------------------------------------------------
+   746                  
+   747  0285  0DF0                      or      W,#LCD_DATA_MASK                ; (1) 
+   748  0286  005F                      mov     m, #DDIR_W
+   749  0287  0007                      mov     !lcd_data,W
+   750  0288  04A6                      clrb    lcd_RS          ; clear RS for instruction
+   751  0289  05C6                      setb    lcd_RW          ; set for READ. 
+   752  028A  0011                      call    @nopdel
+        028B  09B0
+   753  028C  0011                      call    @nopdel
+        028D  09B0
+   754  028E  05E6                      setb    lcd_E           ; set enable high to read busy flag
+   755  028F  0011                      call    @nopdel 
+        0290  09B0
+   756  0291  0011                      call    @nopdel         ; wait for the LCD to tx data.  
+        0292  09B0
+   757  0293  0207                      mov     W,lcd_data      ; move the contents of the port to the W register
+   758  0294  04E6                      clrb    lcd_E           ; clear LCD enable
+   759  0295  0011                      call    @nopdel
+        0296  09B0
+   760  0297  0011                      call    @nopdel
+        0298  09B0
+   761  0299  0011                      call    @nopdel         ; wait for the LCD to tx data.  
+        029A  09B0
+   762  029B  05E6                      setb    lcd_E           ; set enable high to read busy flag
+   763  029C  0011                      call    @nopdel 
+        029D  09B0
+   764  029E  0011                      call    @nopdel         ; wait for the LCD to tx data.  
+        029F  09B0
+   765  02A0  04E6                      clrb    lcd_E           ; clear LCD enable
+   766  02A1  0011                      call    @nopdel         ; Give the LCD some time to itself.
+        02A2  09B0
+   767  02A3  0011                      call    @nopdel
+        02A4  09B0
+   768  02A5  0011                      call    @nopdel
+        02A6  09B0
+   769  02A7  0011                      call    @nopdel
+        02A8  09B0
+   770  02A9  0011                      call    @nopdel
+        02AA  09B0
+   771  02AB  0E80                      and     W, #LCD_BF      ; test W for zero (Z is cleared if LCD is busy)
+   772  02AC  0743                      sb      Z               ; Busy Flag is MSB of data bus
+   773  02AD  0A85                      jmp     lcd_wait_busy   ; loop through again if the LCD is still busy
+   774  02AE  05C6                      setb    lcd_RW
+   775  02AF  000D                      retp
+   776                  
+   777                          ;*********************************************************************************
+   778                          ; Function:                     nopdel
+   779                          ; 
+   780                          ; Inputs:                       None
+   781                          ;       
+   782                          ; Outputs:                      None
+   783                          ;       
+   784                          ; Registers affected:           None
+   785                          ;
+   786                          ; Functions Called:             None
+   787                          ;
+   788                          ;*********************************************************************************
+   789  =000002B0       nopdel  ;       returns to main program in 11 cycles (11us@1MIPS) from call
+   790  02B0  0000                      nop
+   791  02B1  0000                      nop 
+   792  02B2  0000                      nop
+   793  02B3  0000                      nop
+   794  02B4  0000                      nop
+   795  02B5  0000                      nop
+   796  02B6  0000                      nop
+   797  02B7  0000                      nop
+   798  02B8  000D                      retp            ; return from nopdel
+   799                  
+   800                          ;*********************************************************************************
+   801                          ; Function:                     delay
+   802                          ; 
+   803                          ; Inputs:                       value passed in W
+   804                          ;       
+   805                          ; Outputs:                      None
+   806                          ;       
+   807                          ; Registers affected:           W, dlycnt1, dlycnt2
+   808                          ;
+   809                          ; Functions Called:             None
+   810                          ;
+   811                          ;*********************************************************************************
+   812  =000002B9       delay           ; (delays for [((w-1) * 1ms )] at 1MIPS, or [((w-1) * 20us)] at 50MIPS ... 0<=W<=255) 
+   813                          ;****************************************************************************************************** 
+   814                          ; This function delays for ((W-1)*20us), plus/minus a few ns 
+   815                          ;****************************************************************************************************** 
+   816                  IFNDEF SIMULATION
+   817  02B9  0018                      bank    LCD_BANK
+   818  02BA  003D                      mov     dlycnt1,W 
+   819                   
+   820  =000002BB       delay1 
+   821  02BB  02FD                      decsz   dlycnt1; 
+   822  02BC  0ABE                      jmp     loop1; 
+   823  02BD  000D                      retp    ; return from delay      
+   824                   
+   825  =000002BE       loop1 
+   826  02BE  0CA6                      mov     w,#166; 
+   827  02BF  003E                      mov     dlycnt2,W; 
+   828                  
+   829  =000002C0       loop; 
+   830  02C0  0000                      nop 
+   831  02C1  0000                      nop 
+   832  02C2  0000                      nop 
+   833  02C3  02FE                      decsz   dlycnt2; 
+   834  02C4  0AC0                      jmp     loop; 
+   835  02C5  0ABB                      jmp     delay1; 
+   836                  ENDIF
+   837  02C6  000D                      retp
+   838                  
+   839  =000002C7       WaitASec        
+   840  =00000009       cnt0            EQU function_temp
+   841  =0000000A       cnt1            EQU function_temp2
+   842  =0000000B       cnt2            EQU function_temp3
+   843                  IFNDEF SIMULATION
+   844  02C7  0069                      clr cnt0
+   845  02C8  006A                      clr cnt1
+   846  02C9  0C04                      mov cnt2, #4
+        02CA  002B
+   847  02CB  02E9      :loop           djnz cnt0, :loop
+        02CC  0ACB
+   848  02CD  02EA                      djnz cnt1, :loop
+        02CE  0ACB
+   849  02CF  02EB                      djnz cnt2, :loop
+        02D0  0ACB
+   850                  ENDIF
+   851  02D1  000D                      retp
+   852                                                                  
+   853  =00000400                       ORG     $400
+   854                  ;*****************************************************************************************
+   855                  ; UART Subroutines
+   856                  ;*****************************************************************************************
+   857                  
+   858                          ;*********************************************************************************
+   859                          ; Function: get_byte
+   860                          ; Get byte via serial port and echo it back to the serial port
+   861                          ; INPUTS:
+   862                          ;       -NONE
+   863                          ; OUTPUTS:
+   864                          ;       -received byte in rx_byte
+   865                          ;*********************************************************************************
+   866  0400  0018      get_byte        bank    SERIAL
+   867  0401  0717                      sb      rx_flag                 ;wait till byte is received
+   868  0402  0A00                      jmp     get_byte
+   869  0403  0417                      clrb    rx_flag                 ;reset the receive flag
+   870  0404  0216                      mov     w,rx_byte               ;store byte (copy using W)
+   871  0405  0039                      mov     byte,w                  
+   872  0406  000D                      retp
+   873                  
+   874                          ;*********************************************************************************
+   875                          ; send a character to either the serial line or the lcd display, depending on 
+   876                          ; send_output.
+   877                          ;*********************************************************************************
+   878  0407  0D30      send_digit      or      w, #'0'
+   879  =00000408       send_character  ; bank    SENDTEXT ; not needed, already in SENDTEXT bank when reaching this
+   880  0408  061A                      jb      output_dir.0, @send_lcd_byte ; the skip will actually skip the page as well!
+        0409  0011 0A66
+   881                                                  
+   882                          ;*********************************************************************************
+   883                          ; Function: send_byte
+   884                          ; Send byte via serial port
+   885                          ; INPUTS:
+   886                          ;       w       -       The byte to be sent via RS-232
+   887                          ; OUTPUTS:
+   888                          ;       outputs the byte via RS-232
+   889                          ;*********************************************************************************
+   890  040B  0018      send_byte       bank SERIAL
+   891                  
+   892  040C  0232      :wait           test    tx_count                ;wait for not busy
+   893  040D  0743                      sz
+   894  040E  0A0C                      jmp     :wait                   ;
+   895                  
+   896  040F  0030                      mov     tx_high,w               ; store data byte
+   897  0410  04F1                      clrb    tx_low.7                ; set up start bit
+   898  0411  0C0A                      mov     w,#10                   ;1 start + 8 data + 1 stop bit
+   899  0412  0032                      mov     tx_count,w
+   900  0413  000D                      retp                            ;leave and fix page bits
+   901                  
+   902                          ;*********************************************************************************
+   903                          ; Function: send_string
+   904                          ; Send string pointed to by address in W register
+   905                          ; INPUTS:
+   906                          ;       w       -       The address of a null-terminated string in program
+   907                          ;                       memory
+   908                          ; OUTPUTS:
+   909                          ;       outputs the string via RS-232
+   910                          ;*********************************************************************************
+   911  0414  0018      send_string     bank    SENDTEXT
+   912  0415  0038                      mov     string,w                ;store string address
+   913  0416  0218      :loop           mov     w,string                ;read next string character
+   914  0417  0055                      mov     m,#(StringPage>>8)      ;with indirect addressing 
+   915  0418  0041                      iread                           ;using the mode register
+   916  0419  0D00                      test    w                       ;are we at the last char?
+   917  041A  0643                      snz                             ;if not=0, skip ahead
+   918  041B  0A1F                      jmp     :exit                   ;yes, leave & fix page bits
+   919  041C  0908                      call    send_character          ;not 0, so send character
+   920  041D  02B8                      inc     string                  ;point to next character
+   921  041E  0A16                      jmp     :loop                   ;loop until done
+   922  041F  005F      :exit           mov     m,#$0f                   ;reset the mode register
+   923  0420  000D                      retp
+   924                  
+   925                  ;*****************************************************************************************
+   926                  ;               String constants
+   927                  ;*****************************************************************************************
+   928  =00000500                       org $500
+   929  =00000500       StringPage      EQU $
+   930  =00000500       TemperatureMessage
+   931  0500  0054                      DW 'Temperatuur: ', 0
+        0501  0065 006D 0070 0065
+        0505  0072 0061 0074 0075
+        0509  0075 0072 003A 0020
+        050D  0000
+   932  050E  0053      NoSensorMessage DW 'Sluit de sensor aan', 0
+        050F  006C 0075 0069 0074
+        0513  0020 0064 0065 0020
+        0517  0073 0065 006E 0073
+        051B  006F 0072 0020 0061
+        051F  0061 006E 0000
+   933                  
+   934                          
+   935                  
+
+Cross Reference
+150 symbols
+
+Symbol                            Type   Value      Line
+__SASM                            DATA   00000001   0000
+__SX_FREQ                         DATA   003D0900   0165
+__SX_IRC_CAL                      DATA   00000000   0031
+__SX_RESET                        RESB   00000A27   0033
+add10                             ADDR   0000023E   0560
+add1K                             ADDR   00000223   0516
+BaudRate                          DATA   00002580   0066
+byte                              MEMV   00000019   0146
+C                                 RESB   00000003   0503
+cnt0                              DATA   00000009   0840
+cnt1                              DATA   0000000A   0841
+cnt2                              DATA   0000000B   0842
+cnt2:loop                         ADDR   000002CB   0847
+DDIR_W                            DATA   0000000F   0172
+delay                             ADDR   000002B9   0812
+delay1                            ADDR   000002BB   0820
+delay_regs                         VAR   0000001D   0154
+dlycnt1                           MEMV   0000001D   0156
+dlycnt2                           MEMV   0000001E   0157
+EndInterrupt                      ADDR   00000025   0326
+flags                             MEMV   00000017   0143
+Frequency                         DATA   003D0900   0065
+fsr                               RESV   00000004   0357
+function_temp                     MEMV   00000009   0118
+function_temp2                    MEMV   0000000A   0119
+function_temp3                    MEMV   0000000B   0120
+get_byte                          ADDR   00000400   0866
+global_temp                       MEMV   0000000C   0121
+HI                                DATA   0000000E   0481
+ind                               RESV   00000000   0360
+Initialize                        ADDR   00000027   0331
+Initialize:zero_ram               ADDR   00000048   0358
+Interrupt                         ADDR   00000000   0232
+InterruptPeriod                   DATA   00000054   0078
+InterruptScratch                  MEMV   00000008   0117
+InterruptsPerBit                  DATA   00000005   0067
+LCD_B                             DATA   00000001   0048
+LCD_BANK                           VAR   00000010   0135
+LCD_BF                            DATA   00000080   0104
+LCD_C                             DATA   00000002   0050
+LCD_Clear                         DATA   00000001   0038
+lcd_count                         MEMV   0000001C   0152
+LCD_Cursor                        DATA   00000010   0042
+LCD_Cursor_Home                   DATA   00000002   0039
+LCD_D                             DATA   00000004   0053
+lcd_data                           VAR   00000007   0102
+LCD_DATA_MASK                     DATA   000000F0   0103
+lcd_DB4                            VAR   00000007.4 0105
+lcd_DB5                            VAR   00000007.5 0106
+lcd_DB6                            VAR   00000007.6 0107
+lcd_DB7                            VAR   00000007.7 0108
+LCD_Delay                         DATA   00000001   0059
+LCD_Display_control               DATA   00000008   0041
+LCD_DL                            DATA   00000010   0056
+lcd_E                              VAR   00000006.7 0100
+LCD_Entry_Mode                    DATA   00000004   0040
+LCD_F                             DATA   00000004   0052
+LCD_Function                      DATA   00000020   0043
+LCD_ID                            DATA   00000002   0049
+lcd_init                          ADDR   00000249   0589
+LCD_N                             DATA   00000008   0055
+LCD_RL                            DATA   00000004   0051
+lcd_RS                             VAR   00000006.5 0098
+lcd_RW                             VAR   00000006.6 0099
+LCD_S                             DATA   00000001   0047
+LCD_SC                            DATA   00000008   0054
+LCD_Set_CGRam                     DATA   00000040   0044
+LCD_Set_DDRam                     DATA   00000080   0045
+lcd_temp                          MEMV   0000001B   0151
+lcd_wait_busy                     ADDR   00000285   0739
+lcd_write                         ADDR   00000267   0698
+lcd_write_command                 ADDR   00000264   0665
+lcd_write_data                    ADDR   00000266   0688
+lcd_write_loop                    ADDR   0000026F   0707
+led                                VAR   00000006.1 0095
+LO                                DATA   0000000D   0482
+loop                              ADDR   000002C0   0829
+loop1                             ADDR   000002BE   0825
+LVL_W                             DATA   0000000D   0170
+Main                              ADDR   0000004F   0368
+MainLoop                          ADDR   00000059   0379
+MainLoop:no_sensor                ADDR   00000080   0420
+nopdel                            ADDR   000002B0   0789
+NoSensorMessage                   ADDR   0000050E   0932
+output_dir                        MEMV   0000001A   0147
+PLP_W                             DATA   0000000E   0171
+ra                                RESV   00000005   0092
+RA_DDIR                           DATA   000000FE   0179
+RA_latch                          DATA   00000007   0177
+RA_LVL                            DATA   00000000   0180
+RA_PLP                            DATA   000000FF   0181
+rb                                RESV   00000006   0095
+RB_DDIR                           DATA   00000004   0184
+RB_latch                          DATA   00000000   0183
+RB_LVL                            DATA   00000000   0186
+RB_PLP                            DATA   00000000   0187
+RB_ST                             DATA   000000FF   0185
+rc                                RESV   00000007   0102
+RC_DDIR                           DATA   000000FF   0190
+RC_latch                          DATA   00000000   0189
+RC_LVL                            DATA   00000000   0192
+RC_PLP                            DATA   000000FF   0193
+RC_ST                             DATA   000000FF   0191
+RetiwValue                        DATA   000000AC   0084
+rx_byte                           MEMV   00000016   0142
+rx_count                          MEMV   00000014   0140
+rx_divide                         MEMV   00000015   0141
+rx_flag                           DATA   00000017   0144
+send_byte                         ADDR   0000040B   0890
+send_byte:wait                    ADDR   0000040C   0892
+send_character                    ADDR   00000408   0879
+send_decimal                      ADDR   00000212   0484
+send_digit                        ADDR   00000407   0878
+send_lcd_byte                     ADDR   00000266   0687
+send_string                       ADDR   00000414   0911
+send_string:exit                  ADDR   0000041F   0922
+send_string:loop                  ADDR   00000416   0913
+SENDTEXT                           VAR   00000010   0134
+SERIAL                             VAR   00000010   0133
+SerialIn                          DATA   00000005   0093
+SerialOut                         DATA   00000005.1 0092
+SerialVP                          ADDR   00000000   0260
+SerialVP:receive                  ADDR   00000010   0291
+SerialVP:rxbit                    ADDR   0000001C   0314
+SerialVP:rxdone                   ADDR   00000025   0324
+SerialVP:transmit                 ADDR   00000001   0262
+SPI_BANK                           VAR   0000000D   0123
+spi_bit                           DATA   00000009   0127
+spi_clock                         DATA   00000006.4 0126
+spi_cs                            DATA   00000006.3 0125
+spi_so                            DATA   00000006.2 0124
+spi_value                         MEMV   0000000D   0128
+SpiRead                           ADDR   00000200   0453
+SpiRead:bit_loop                  ADDR   00000204   0459
+ST_W                              DATA   0000000C   0169
+StartDelay                        DATA   00000008   0088
+string                            MEMV   00000018   0145
+StringPage                        DATA   00000500   0929
+sub100                            ADDR   00000232   0542
+sub10k                            ADDR   00000215   0493
+temp                              DATA   00000009   0483
+TemperatureMessage                ADDR   00000500   0930
+tx_count                          MEMV   00000012   0138
+tx_divide                         MEMV   00000013   0139
+tx_high                           MEMV   00000010   0136
+tx_low                            MEMV   00000011   0137
+WaitASec                          ADDR   000002C7   0839
+WKED_W                            DATA   0000000A   0167
+WKEN_W                            DATA   0000000B   0168
+Z                                 RESB   00000203   0772

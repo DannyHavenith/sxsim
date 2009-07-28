@@ -93,30 +93,32 @@ private:
 
     void execute_command()
     {
-
-        if (assembled_word == 1)
+        if (!r_not_w)
         {
-            clear_display();
-        }
-        else if( (assembled_word>>1) == 1)
-        {
-            set_cursor(0);
-        }
-        else if( (assembled_word>>5) ==1)
-        {
-            if ( assembled_word & 0x10)
+            if (assembled_word == 1)
             {
-                four_bit = false;
+                clear_display();
             }
-            else
+            else if( (assembled_word>>1) == 1)
             {
-                expect_low_word = !four_bit;
-                four_bit = true;
+                set_cursor(0);
             }
-        }
-        else if ((assembled_word>>7) == 1)
-        {
-            set_cursor( assembled_word & 0xef);
+            else if( (assembled_word>>5) ==1)
+            {
+                if ( assembled_word & 0x10)
+                {
+                    four_bit = false;
+                }
+                else
+                {
+                    expect_low_word = !four_bit;
+                    four_bit = true;
+                }
+            }
+            else if ((assembled_word>>7) == 1)
+            {
+                set_cursor( assembled_word & 0xef);
+            }
         }
     }
 
