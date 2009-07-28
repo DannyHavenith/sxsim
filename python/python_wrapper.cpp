@@ -12,6 +12,7 @@
 #include "sx_simulator.hpp"
 #include "sx_state.hpp"
 #include "sx_cluster.hpp"
+#include "simulated_devices.hpp"
 
 #include <string>
 #include <iostream>
@@ -78,7 +79,7 @@ BOOST_PYTHON_MODULE(pysix)
 
     ;
 
-    def( "ParseListingFile", ParseListingFromFilename);
+    def( "ParseListingFile", &ParseListingFromFilename);
 
     class_< sx_emulator::sx_ram >( "sx_ram", init< >() )
         .def( "get",			&::sx_emulator::sx_ram::get,
@@ -131,5 +132,14 @@ BOOST_PYTHON_MODULE(pysix)
 		.def( "new_controller", &sx_cluster::new_controller)
 		.def( "run", &sx_cluster::run)
 		;
+
+    class_<sx_device, boost::shared_ptr<sx_device> >( "Device")
+        .def( "set_byte_value", (void (sx_device::*)( const std::string &, unsigned char)) &sx_device::set_value)
+        .def( "set_bit_value", (void (sx_device::*)( const std::string &, bool)) &sx_device::set_value)
+        .def( self_ns::str(self))
+        ;
+
+    def( "CreateDevice", &create_device);
+
 }
 
