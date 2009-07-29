@@ -17,7 +17,7 @@ class lcd_display : public sx_device
 {
 public:
     lcd_display()
-        : previous_e(false), four_bit(false), 
+        : previous_e(false), four_bit(false),
         expect_low_word( false), e(false),
         last_word(0), assembled_word(0),
         cursor_position(0)
@@ -40,7 +40,7 @@ public:
 
     virtual std::string to_string() const
     {
-        return 
+        return
             std::string( display_ram, display_ram + 20) + '\n' +
             std::string( display_ram + 64, display_ram + 84) + '\n' +
             std::string( display_ram + 20, display_ram + 40) + '\n' +
@@ -177,11 +177,11 @@ namespace {
 
         void write_data( unsigned char data)
         {
-            lcd.set_value( "db", unsigned char( data & 0xf0));
+            lcd.set_value( "db", (unsigned char)( data & 0xf0));
             lcd.set_value( "e", true);
             lcd.set_value( "e", false);
 
-            lcd.set_value( "db", unsigned char( (data << 4) & 0xf0));
+            lcd.set_value( "db", (unsigned char)( (data << 4) & 0xf0));
             lcd.set_value( "e", true);
             lcd.set_value( "e", false);
         }

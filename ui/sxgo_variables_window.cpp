@@ -9,6 +9,8 @@
 #include "sxgo_variables_window.hpp"
 #include "sx_simulator.hpp"
 #include "sxgo_doc.hpp"
+#include "flags.hpp"
+
 #include <sstream>
 
 namespace
@@ -34,6 +36,55 @@ namespace
 		};
 		return wxString( hex,  wxConvUTF8);
 	}
+
+	wxString ToFlags( int value)
+	{
+		char flags[] = "zdc";
+
+		if ( value & sx_flags::C)
+		{
+			flags[2] = 'C';
+		}
+		if ( value & sx_flags::DC)
+		{
+			flags[1] = 'D';
+		}
+		if ( value & sx_flags::Z)
+		{
+			flags[0] = 'Z';
+		}
+
+		return wxString( flags, wxConvUTF8);
+	}
+
+	wxString ToRegister( int value)
+	{
+		char str[] = {
+			DigitToHex( value/16),
+			DigitToHex( value %16),
+			' ',
+			'(',
+			'0',
+			'0',
+			'0',
+			'0',
+			'0',
+			'0',
+			'0',
+			'0',
+			')',
+			0
+		};
+
+		for (int index = 8; index != 0;--index)
+		{
+			if (value %2) str[3 + index] = '1';
+			value /= 2;
+		}
+
+		return wxString( str, wxConvUTF8);
+
+	}
 }
 
 sxgo_variables_window::sxgo_variables_window(
@@ -55,10 +106,17 @@ sxgo_variables_window::sxgo_variables_window(
 }
 
 
+void sxgo_variables_window::AddRegisterValue( int cell_index, const wxString &label, int ram_location, const sx_state &s)
+{
+	SetCellValue( cell_index, 0, label);
+	SetCellValue( cell_index, 1, ToHex(ram_location)	);
+	SetCellValue( cell_index, 2, ToRegister( s.ram.get_absolute( ram_location)));
+}
+
 void sxgo_variables_window::Update(const sxgo_document &doc)
 {
 	const listing_info listing = doc.GetListing();
-	int rowcount = listing.data_labels.size() + 1;
+	int rowcount = listing.data_labels.size() + 5;
 
 	if (GetNumberRows() > rowcount)
 	{
@@ -75,7 +133,15 @@ void sxgo_variables_window::Update(const sxgo_document &doc)
 	SetCellValue( 0, 1, wxT("na"));
 	SetCellValue( 0, 2, ToHex( s.w));
 
-	int row = 1;
+	AddRegisterValue( 1, wxT("RA"), 5, s);
+	AddRegisterValue( 2, wxT("RB"), 6, s);
+	AddRegisterValue( 3, wxT("RC"), 7, s);
+
+	SetCellValue( 4, 0, wxT("flags"));
+	SetCellValue( 4, 1, ToHex( sx_emulator::sx_ram::STATUS));
+	SetCellValue( 4, 2, ToFlags(s.ram.get_absolute( sx_emulator::sx_ram::STATUS)));
+
+	int row = 5;
 	for (listing_info::label_container_type::const_iterator i = listing.data_labels.begin();
 		i != listing.data_labels.end();
 		++i)

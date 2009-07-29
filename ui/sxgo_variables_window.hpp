@@ -10,6 +10,8 @@
 #include "wx/grid.h"
 
 class sxgo_document;
+struct sx_state;
+
 class sxgo_variables_window : public wxGrid
 {
 public:
@@ -19,7 +21,8 @@ public:
                  const wxSize& size = wxDefaultSize,
                  long style = wxWANTS_CHARS,
                  const wxString& name = wxT("Listing"));
-		
+
+	    void AddRegisterValue( int cell_index, const wxString &label, int ram_location, const sx_state &s);
 
 		void Update( const sxgo_document &doc);
 
