@@ -51,7 +51,6 @@ private:
 	static MyFrame *main_frame;
 	wxAuiManager m_mgr;
 	wxArrayString m_perspectives;
-	wxMenu* m_perspectives_menu;
 	sxgo_ram_window *m_ram_window;
 	sxgo_variables_window *m_variables_window;
 	sxgo_label_window *m_label_window;

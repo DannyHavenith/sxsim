@@ -81,18 +81,28 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	file_menu->Append( wxID_OPEN);
 	file_menu->Append(wxID_EXIT, _("Exit"));
 
-	m_perspectives_menu = new wxMenu;
-	m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
-	m_perspectives_menu->Append(ID_CopyPerspectiveCode, _("Copy Perspective Data To Clipboard"));
-	m_perspectives_menu->AppendSeparator();
-	m_perspectives_menu->Append(ID_FirstPerspective+0, _("Default Startup"));
-	m_perspectives_menu->Append(ID_FirstPerspective+1, _("All Panes"));
+	//m_perspectives_menu = new wxMenu;
+	//m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
+	//m_perspectives_menu->Append(ID_CopyPerspectiveCode, _("Copy Perspective Data To Clipboard"));
+	//m_perspectives_menu->AppendSeparator();
+	//m_perspectives_menu->Append(ID_FirstPerspective+0, _("Default Startup"));
+	//m_perspectives_menu->Append(ID_FirstPerspective+1, _("All Panes"));
+    wxMenu *run_menu = new wxMenu;
+    run_menu->Append( ID_Stop, wxT("Stop\tS"));
+    run_menu->Append( ID_Pause, wxT("Pause\tP"));
+    run_menu->Append( ID_SingleStep, wxT("Single step\tT"));
+    run_menu->Append( ID_Run, wxT("Run\tR"));
+
 
 	wxMenu* help_menu = new wxMenu;
 	help_menu->Append(wxID_ABOUT, _("About..."));
 
+
+
 	mb->Append(file_menu, _("File"));
 //	mb->Append(m_perspectives_menu, _("Perspectives"));
+
+    mb->Append( run_menu, _("Run"));
 	mb->Append(help_menu, _("Help"));
 
 	SetMenuBar(mb);
@@ -105,8 +115,7 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	// code. For now, just hard code a frame minimum size
 	SetMinSize(wxSize(800,600));
 
-	// create some toolbars
-
+	// create the run-toolbar
 	wxToolBar* controls_toolbar = new wxToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxTB_FLAT | wxTB_NODIVIDER);
 	controls_toolbar->SetToolBitmapSize(wxSize(16,16));
@@ -194,20 +203,20 @@ void MyFrame::OnUpdateUI(wxUpdateUIEvent& event)
 
 void MyFrame::OnCreatePerspective(wxCommandEvent& WXUNUSED(event))
 {
-	wxTextEntryDialog dlg(this, wxT("Enter a name for the new perspective:"),
-		wxT("wxAUI Test"));
+//	wxTextEntryDialog dlg(this, wxT("Enter a name for the new perspective:"),
+//		wxT("wxAUI Test"));
 
-	dlg.SetValue(wxString::Format(wxT("Perspective %u"), unsigned(m_perspectives.GetCount() + 1)));
-	if (dlg.ShowModal() != wxID_OK)
-		return;
+//	dlg.SetValue(wxString::Format(wxT("Perspective %u"), unsigned(m_perspectives.GetCount() + 1)));
+//	if (dlg.ShowModal() != wxID_OK)
+//		return;
 
-	if (m_perspectives.GetCount() == 0)
-	{
-		m_perspectives_menu->AppendSeparator();
-	}
+//	if (m_perspectives.GetCount() == 0)
+//	{
+//		m_perspectives_menu->AppendSeparator();
+//	}
 
-	m_perspectives_menu->Append(ID_FirstPerspective + m_perspectives.GetCount(), dlg.GetValue());
-	m_perspectives.Add(m_mgr.SavePerspective());
+//	m_perspectives_menu->Append(ID_FirstPerspective + m_perspectives.GetCount(), dlg.GetValue());
+//	m_perspectives.Add(m_mgr.SavePerspective());
 }
 
 void MyFrame::OnCopyPerspectiveCode(wxCommandEvent& WXUNUSED(evt))
@@ -225,7 +234,7 @@ void MyFrame::OnCopyPerspectiveCode(wxCommandEvent& WXUNUSED(evt))
 
 void MyFrame::OnRestorePerspective(wxCommandEvent& evt)
 {
-	m_mgr.LoadPerspective(m_perspectives.Item(evt.GetId() - ID_FirstPerspective));
+//	m_mgr.LoadPerspective(m_perspectives.Item(evt.GetId() - ID_FirstPerspective));
 }
 
 

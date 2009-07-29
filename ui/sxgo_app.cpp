@@ -52,26 +52,6 @@ wxMDIChildFrame *MyApp::CreateChildFrame(wxDocument *doc, wxView *view)
 	subframe->SetIcon(wxIcon(_T("doc.xbm")));
 #endif
 
-	//// Make a menubar
-	wxMenu *file_menu = new wxMenu;
-
-	file_menu->Append(wxID_NEW, _T("&New..."));
-	file_menu->Append(wxID_OPEN, _T("&Open..."));
-	file_menu->Append(wxID_CLOSE, _T("&Close"));
-	file_menu->Append(wxID_SAVE, _T("&Save"));
-	file_menu->Append(wxID_SAVEAS, _T("Save &As..."));
-
-
-	file_menu->AppendSeparator();
-	file_menu->Append(wxID_EXIT, _T("E&xit"));
-
-	wxMenuBar *menu_bar = new wxMenuBar;
-
-	menu_bar->Append(file_menu, _T("&File"));
-
-	//// Associate the menu bar with the frame
-	subframe->SetMenuBar(menu_bar);
-
 	return subframe;
 }
 
