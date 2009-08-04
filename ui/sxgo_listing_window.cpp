@@ -11,6 +11,9 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 {
 	listing = listing_;
 	CreateGrid( listing.lines.size(), 2);
+    const wxFont cellFont( 9, wxFONTFAMILY_MODERN,
+		wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+
 	//int max_width = 0;
 	for (unsigned int i = 0; i < listing.lines.size(); ++i)
 	{
@@ -22,12 +25,16 @@ void sxgo_listing_window::SetListing( const listing_info &listing_)
 
 		SetCellBackgroundColour( i, 0, *wxLIGHT_GREY);
 		SetCellValue( i, 1, wxString( listing.lines[i].c_str(), wxConvUTF8));
+        SetCellFont( i, 1, cellFont); 
+        SetCellFont( i, 0, cellFont); 
 		SetReadOnly( i, 0, true);
 		SetReadOnly( i, 1, true);
 	}
+    EnableDragRowSize( false);
 	InitColWidths();
 	AutoSizeColumn( 1);
 	SetColSize( 0, 16);
+    
 
 	int red_start = wxWHITE->Red();
 	int green_start = wxWHITE->Green();

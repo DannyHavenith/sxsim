@@ -16,6 +16,7 @@
 
 	struct stored_interrupt_state
 	{
+        typedef sx_emulator::sx_ram::register_t register_t;
 		sx_emulator::sx_rom::address_t pc;
 		register_t w;
 		register_t status;

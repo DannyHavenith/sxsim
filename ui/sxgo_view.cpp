@@ -99,7 +99,8 @@ bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
 	int width, height;
 	frame->GetClientSize(&width, &height);
 	textsw = new sxgo_listing_window( frame, wxID_ANY, wxPoint(0,0), wxSize( width, height));
-
+    textsw->SetFont( wxFont( 9, wxFONTFAMILY_MODERN,
+		wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ));
 
 	int x, y;
 	textsw->SetSize( wxDefaultCoord, wxDefaultCoord, width, height);
