@@ -12,7 +12,7 @@
 #include <limits>
 #include <exception>
 #include <stdexcept>
-#include <stack>
+#include <deque>
 #include <iostream>
 #include <boost/utility.hpp>
 #include <boost/bind/placeholders.hpp>
@@ -139,6 +139,7 @@ namespace sx_emulator
 			s.in_interrupt = in_interrupt;
 			s.pc = get_pc();
 			s.stack = stack;
+			s.cycle_counter = cycle_counter;
 
 			return s;
 		}
@@ -151,6 +152,7 @@ namespace sx_emulator
 			in_interrupt = s.in_interrupt;
 			set_pc( s.pc);
 			stack = s.stack;
+			cycle_counter = s.cycle_counter;
 		}
 
 		template< typename Range>
@@ -214,7 +216,7 @@ namespace sx_emulator
 			if (!in_interrupt)
 			{
 				in_interrupt = true;
-				interrupt_state.program_counter = program_counter;
+				interrupt_state.pc = program_counter;
 				interrupt_state.w = w;
 				interrupt_state.fsr = ram( sx_ram::FSR);
 				interrupt_state.status = ram( sx_ram::STATUS);
@@ -294,7 +296,7 @@ namespace sx_emulator
 
 			if (stack.size() > sx_stack_size)
 			{
-				throw stack_overflow_exception( stack.top());
+				throw stack_overflow_exception( stack.back());
 			}
 		}
 
@@ -538,7 +540,7 @@ namespace sx_emulator
 			}
 
 			in_interrupt = false;
-			set_pc( interrupt_state.program_counter);
+			set_pc( interrupt_state.pc);
 			w = interrupt_state.w;
 			ram( sx_ram::FSR) = interrupt_state.fsr;
 			ram( sx_ram::STATUS) = interrupt_state.status;
@@ -614,15 +616,9 @@ namespace sx_emulator
 	private:
 
 		typedef sx_ram::register_t register_t;
-		typedef std::stack< sx_rom::address_t> stack_t;
-		struct stored_interrupt_state
-		{
-			sx_rom::address_t program_counter;
-			register_t w;
-			register_t status;
-			register_t fsr;
-		};
 
+		// deque instead of stack to make it easier to serialize.
+		typedef std::deque< sx_rom::address_t> stack_t;
 
 		register_t port_options[8][32];
 
@@ -672,8 +668,8 @@ namespace sx_emulator
 
 		address_t pop()
 		{
-			address_t value = stack.top();
-			stack.pop();
+			address_t value = stack.back();
+			stack.pop_back();
 			return value;
 		}
 
@@ -701,7 +697,7 @@ namespace sx_emulator
 
 		void push( address_t value)
 		{
-			stack.push( value);
+			stack.push_back( value);
 		}
 
 		register_t real_w;
@@ -722,14 +718,14 @@ namespace sx_emulator
 		stored_interrupt_state interrupt_state;
 		int program_counter; // program_counter is not a single register.
 		register_t &pc_register; // ...but is reflected in ram...
-		register_t &rtcc_register; 
+		register_t &rtcc_register;
 		sx_ram ram;
 		sx_rom rom;
 		stack_t stack;
 	};
 
 	/// This class implements the basic functions of the emulator.
-	/// The actual instructions are implemented by sx_controller_impl, while some 
+	/// The actual instructions are implemented by sx_controller_impl, while some
 	/// derived class must implement the fetch-decode-execute loop.
 	class basic_sx_controller : public sx_controller_impl, private memory_events
 	{
@@ -900,7 +896,7 @@ namespace sx_emulator
 							dec_pc();
 							break;
 						}
-						
+
 						// decode the instruction and execute it
 						decoder_t::feed(
 							instruction, *this
@@ -964,8 +960,8 @@ namespace sx_emulator
 				do_rtcc();
 
 			reset_nop_delay();
-			
-			// re-compile an instruction from real rom, in case there's a 
+
+			// re-compile an instruction from real rom, in case there's a
 			// breakpoint in the precompiled one.
 			compiler_type::slot_type precompiled;
 			typedef micro_emulator::instruction_decoder<
@@ -1032,7 +1028,7 @@ namespace sx_emulator
 		/// remove the breakpoint at the given address
 		void remove_breakpoint( address_t address)
 		{
-			// just recompile the instruction at the given rom location into the 
+			// just recompile the instruction at the given rom location into the
 			// shadow rom.
 			compile( address, get_rom()(address));
 		}

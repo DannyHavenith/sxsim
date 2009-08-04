@@ -8,6 +8,9 @@
 
 #include <boost/python.hpp>
 #include <boost/python/object.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+
 #include "listing_parser.hpp"
 #include "sx_simulator.hpp"
 #include "sx_state.hpp"
@@ -18,6 +21,8 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+
+
 
 std::ostream &operator<<(std::ostream &strm, const sx_state &state)
 {
@@ -61,6 +66,22 @@ listing_info ParseListingFromFilename( const std::string &name)
 bool load_rom( sx_simulator &sim, const listing_info &listing)
 {
 	return sim.load_rom( listing.instructions);
+}
+
+void save_state(sx_state &state, const std::string &filename)
+{
+	using namespace boost::archive;
+	std::ofstream file( filename.c_str());
+	xml_oarchive arch( file);
+	arch << BOOST_SERIALIZATION_NVP( state);
+}
+
+void load_state(sx_state &state, const std::string &filename)
+{
+	using namespace boost::archive;
+	std::ifstream file( filename.c_str());
+	xml_iarchive arch( file);
+	arch >> BOOST_SERIALIZATION_NVP( state);
 }
 
 void set_memory_handler( sx_simulator &sim, int address, boost::python::object function_object)
@@ -115,6 +136,8 @@ BOOST_PYTHON_MODULE(pysix)
 
     class_< sx_state, bases< sx_light_state > >( "sx_state" )
         .def_readwrite( "ram", &sx_state::ram )
+        .def( "save", &save_state)
+        .def( "load", &load_state)
 		;
 
 	class_< sx_simulator >( "Emulator", init< >() )

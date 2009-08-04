@@ -12,7 +12,9 @@
 #include <algorithm>
 #include <boost/range.hpp>
 #include <boost/function.hpp>
-namespace sx_emulator 
+#include <boost/serialization/nvp.hpp>
+
+namespace sx_emulator
 {
 
 	class sx_rom
@@ -96,7 +98,7 @@ namespace sx_emulator
 			memory[FSR] = (memory[FSR] & 0x1f) | (bank << 5);
 		}
 
-		void reset() 
+		void reset()
 		{
 			std::fill_n(memory, memory_size, 0x5A);
 		}
@@ -128,14 +130,14 @@ namespace sx_emulator
 
 		register_t get_absolute( address_t address) const
 		{
-			return memory[ absolute_to_internal( address)]; 
+			return memory[ absolute_to_internal( address)];
 		}
 
 		void set_absolute( address_t address, register_t value)
 		{
 			memory[ absolute_to_internal( address)] = value;
 		}
-		
+
 		/// translate from 0x00-0x1F to an actual memory location.
 		/// internal memory locations are 0x00-0x1F, 0x30-0x3f, 0x50-0x5f etc.
 		address_t limited_to_internal( address_t limited) const
@@ -144,9 +146,16 @@ namespace sx_emulator
 					absolute_to_internal(memory[FSR])
 				:	(limited + ((limited & 0x10)?(0xe0 & memory[FSR]):0));
 		}
+
+		template<typename Archive>
+		void serialize( Archive &ar, unsigned int)
+		{
+			ar & BOOST_SERIALIZATION_NVP( memory);
+		}
+
 	private:
 
-		static address_t absolute_to_internal( address_t maddress) 
+		static address_t absolute_to_internal( address_t maddress)
 		{
 			return (maddress&0x10)?maddress:(maddress & 0x0f);
 		}

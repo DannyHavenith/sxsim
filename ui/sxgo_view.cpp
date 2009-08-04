@@ -78,6 +78,7 @@ void sxgo_view::ChangeRam( wxCommandEvent &event)
 	MyFrame::GetMainFrame()->UpdateAll( *SafeGetDocument());
 }
 
+/// Someone doubleclicked on a row in the listing, set or reset a breakpoint.
 void sxgo_view::DoubleClick( wxGridEvent &event)
 {
 	if (event.GetCol() == 0)
@@ -126,6 +127,7 @@ bool sxgo_view::OnClose(bool deleteWindow)
 	return true;
 }
 
+/// perform one instruction.
 void sxgo_view::SingleStep(wxCommandEvent& WXUNUSED(event))
 {
 	sxgo_document *doc = (sxgo_document *)GetDocument();
@@ -140,6 +142,7 @@ void sxgo_view::SingleStep(wxCommandEvent& WXUNUSED(event))
 	MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText(_("Paused"));
 }
 
+/// pause execution of the program.
 void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
 {
 	running = false;
@@ -147,6 +150,7 @@ void sxgo_view::Pause(wxCommandEvent& WXUNUSED(event))
 
 }
 
+/// stop executing (if running) and fully reset the emulator
 void sxgo_view::Stop(wxCommandEvent& WXUNUSED(event))
 {
 	if (running)
@@ -201,6 +205,7 @@ void sxgo_view::OnIdle(wxIdleEvent& event)
 	}
 }
 
+// update all views on this document.
 void sxgo_view::UpdateAll()
 {
 	sxgo_document *doc = SafeGetDocument();
@@ -213,9 +218,9 @@ void sxgo_view::UpdateAll()
 	}
 }
 
-//
-// run for a fraction of a second.
-//
+///
+/// run for a fraction of a second.
+/// This method is typically called from OnIdle.
 void sxgo_view::RunSome( bool first_run)
 {
 	sxgo_document *doc = SafeGetDocument();
@@ -259,6 +264,7 @@ void sxgo_view::RunSome( bool first_run)
 	MyFrame::GetMainFrame()->UpdateAll( *doc);
 }
 
+/// on update, set the frame title and the font
 void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)
 {
 
