@@ -75,37 +75,7 @@ wxDocMDIParentFrame(manager, frame, wxID_ANY, title, pos, size, type, _T("myFram
 	SetIcon(wxIcon(sample_xpm));
 
 	// create menu
-	wxMenuBar* mb = new wxMenuBar;
-
-	wxMenu* file_menu = new wxMenu;
-	file_menu->Append( wxID_OPEN);
-	file_menu->Append(wxID_EXIT, _("Exit"));
-
-	//m_perspectives_menu = new wxMenu;
-	//m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
-	//m_perspectives_menu->Append(ID_CopyPerspectiveCode, _("Copy Perspective Data To Clipboard"));
-	//m_perspectives_menu->AppendSeparator();
-	//m_perspectives_menu->Append(ID_FirstPerspective+0, _("Default Startup"));
-	//m_perspectives_menu->Append(ID_FirstPerspective+1, _("All Panes"));
-    wxMenu *run_menu = new wxMenu;
-    run_menu->Append( ID_Stop, wxT("Stop\tS"));
-    run_menu->Append( ID_Pause, wxT("Pause\tP"));
-    run_menu->Append( ID_SingleStep, wxT("Single step\tT"));
-    run_menu->Append( ID_Run, wxT("Run\tR"));
-
-
-	wxMenu* help_menu = new wxMenu;
-	help_menu->Append(wxID_ABOUT, _("About..."));
-
-
-
-	mb->Append(file_menu, _("File"));
-//	mb->Append(m_perspectives_menu, _("Perspectives"));
-
-    mb->Append( run_menu, _("Run"));
-	mb->Append(help_menu, _("Help"));
-
-	SetMenuBar(mb);
+	SetMenuBar( CreateFrameMenuBar());
 
 	CreateStatusBar();
 	GetStatusBar()->SetStatusText(_("Ready"));
@@ -248,3 +218,31 @@ void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 	wxMessageBox(_("sxgo! A fast SX28 emulator. Copyright 2006-2009 Danny Havenith"), _("About sxgo!"), wxOK, this);
 }
 
+wxMenuBar *MyFrame::CreateFrameMenuBar()
+{
+	wxMenuBar* mb = new wxMenuBar;
+
+	wxMenu* file_menu = new wxMenu;
+	file_menu->Append( wxID_OPEN);
+	file_menu->Append(wxID_EXIT, _("Exit"));
+
+	//m_perspectives_menu = new wxMenu;
+	//m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
+	//m_perspectives_menu->Append(ID_CopyPerspectiveCode, _("Copy Perspective Data To Clipboard"));
+	//m_perspectives_menu->AppendSeparator();
+	//m_perspectives_menu->Append(ID_FirstPerspective+0, _("Default Startup"));
+	//m_perspectives_menu->Append(ID_FirstPerspective+1, _("All Panes"));
+
+
+	wxMenu* help_menu = new wxMenu;
+	help_menu->Append(wxID_ABOUT, _("About..."));
+
+
+
+	mb->Append(file_menu, _("File"));
+//	mb->Append(m_perspectives_menu, _("Perspectives"));
+
+	mb->Append(help_menu, _("Help"));
+
+    return mb;
+}

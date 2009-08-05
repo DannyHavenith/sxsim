@@ -34,6 +34,7 @@ ADD_EXECUTABLE(sxgoui WIN32
 	sxgo_ram_window.hpp
 	sxgo_variables_window.hpp
 	sxgo_label_window.hpp
+	sxgo_event_definitions.hpp
 	)
 	
    TARGET_LINK_LIBRARIES(sxgoui ${wxWidgets_LIBRARIES} ${Boost_SYSTEM_LIBRARY})

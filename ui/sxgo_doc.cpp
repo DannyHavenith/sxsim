@@ -6,11 +6,22 @@
 
 #include <string>
 #include <sstream> // for istringstream
+
+#include "wx/menuitem.h"
+#include "wx/menu.h"
+
 #include "sxgo_doc.hpp"
 #include "sxgo_view.hpp"
+#include "sxgo_frame.hpp"
 #include "sx_simulator.hpp"
+#include "sxgo_event_definitions.hpp"
 
 IMPLEMENT_DYNAMIC_CLASS(sxgo_document, wxDocument)
+
+BEGIN_EVENT_TABLE(sxgo_document, wxDocument)
+//	EVT_MENU(ID_Stop, sxgo_view::Stop)
+//	EVT_COMMAND(wxID_ANY, EVT_CHANGE_RAMVALUE, sxgo_view::ChangeRam)
+END_EVENT_TABLE()
 
 using namespace std;
 
@@ -111,4 +122,25 @@ void sxgo_document::SetState( const sx_simulator::state &new_state)
 void sxgo_document::Reset()
 {
 	simulator_ptr->reset();
+}
+
+wxMenuBar *sxgo_document::CreateDocMenuBar()
+{
+    wxMenuBar *menu_bar = MyFrame::CreateFrameMenuBar();
+
+    wxMenu *file = new wxMenu();
+    file->Append(sxgo_event_definitions::ID_Load_State, _T("Load &state"));
+    file->Append(sxgo_event_definitions::ID_Save_State, _T("Save s&tate"));
+
+    //menu_bar->Append( file, _T("&State"));
+
+    wxMenu *run_menu = new wxMenu;
+    run_menu->Append( sxgo_event_definitions::ID_Stop, wxT("Stop\tS"));
+    run_menu->Append( sxgo_event_definitions::ID_Pause, wxT("Pause\tP"));
+    run_menu->Append( sxgo_event_definitions::ID_SingleStep, wxT("Single step\tT"));
+    run_menu->Append( sxgo_event_definitions::ID_Run, wxT("Run\tR"));
+
+    menu_bar->Insert(1, run_menu, _T("&Run"));
+
+    return menu_bar;
 }

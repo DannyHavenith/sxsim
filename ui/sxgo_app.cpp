@@ -52,6 +52,8 @@ wxMDIChildFrame *MyApp::CreateChildFrame(wxDocument *doc, wxView *view)
 	subframe->SetIcon(wxIcon(_T("doc.xbm")));
 #endif
 
+    subframe->SetMenuBar( sxgo_document::CreateDocMenuBar());
+
 	return subframe;
 }
 

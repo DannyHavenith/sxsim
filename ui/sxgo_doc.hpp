@@ -44,9 +44,12 @@ public:
 		return simulator_ptr;
 	}
 
+    static wxMenuBar *CreateDocMenuBar();
+
 private:
 	listing_info listing;
 	boost::scoped_ptr< sx_simulator> simulator_ptr;
+    DECLARE_EVENT_TABLE()
 };
 
 #endif //SXGO_DOC_HPP

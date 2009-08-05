@@ -7,6 +7,7 @@
 /// wxWindows class for the main frame of this application.
 
 #include "wx/aui/aui.h"
+#include "wx/docmdi.h"
 #include "sxgo_event_definitions.hpp"
 
 class wxMenu;
@@ -31,6 +32,7 @@ public:
 
 	wxAuiManager &GetUIManager() { return m_mgr;}
 	void UpdateAll( const sxgo_document &);
+    static wxMenuBar *CreateFrameMenuBar();
 
 private:
 

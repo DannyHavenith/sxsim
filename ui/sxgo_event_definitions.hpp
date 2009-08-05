@@ -12,6 +12,8 @@ struct sxgo_event_definitions
 		ID_Run,
 		ID_Stop,
 		ID_Pause,
+        ID_Load_State,
+        ID_Save_State,
 		ID_FirstPerspective = ID_CreateTree+1000
 	};
 };
