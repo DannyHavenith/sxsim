@@ -102,6 +102,7 @@ namespace sx_emulator
 	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
 		typedef sx_ram::address_t address_t;
+		struct breakpoint_exception {};
 
 		sx_controller_impl()
 			:real_w(0), w( real_w), m(0), wdt(0),
@@ -589,7 +590,9 @@ namespace sx_emulator
 
 		void execute( const breakpoint &)
 		{
-			// do nothing. others do sane things here.
+			// note that some implementations catch breakpoints before they get executed
+			dec_pc();
+			throw breakpoint_exception();
 		}
 
 
@@ -1020,9 +1023,7 @@ namespace sx_emulator
 		/// set a breakpoint at a given address
 		void set_breakpoint( address_t address)
 		{
-			static const ins_notag<precompiled_sx_controller> breakpoint_caller( &precompiled_sx_controller::throw_breakpoint);
-			const instruction_interface< precompiled_sx_controller> *interface_ptr = &breakpoint_caller;
-			precompiled[address] = compiler_type::slot_type( interface_ptr);
+				compile( address, BREAKPOINT);
 		}
 
 		/// remove the breakpoint at the given address
@@ -1036,11 +1037,6 @@ namespace sx_emulator
 	private:
 		typedef sx_compiler< precompiled_sx_controller> compiler_type;
 
-		void throw_breakpoint()
-		{
-			dec_pc();
-			throw breakpoint_exception();
-		}
 
 		/// compile an sx instruction into a function pointer
 		void compile( address_t address, sx_rom::register_t instruction)
@@ -1064,7 +1060,6 @@ namespace sx_emulator
 		}
 
 		compiler_type::slot_type precompiled[ sx_emulator::sx_rom::memory_size];
-		struct breakpoint_exception {};
 
 	};
 }

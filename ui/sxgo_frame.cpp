@@ -53,8 +53,8 @@
 MyFrame *MyFrame::main_frame = 0;
 
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
-EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
-EVT_SIZE(MyFrame::OnSize)
+//EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
+//EVT_SIZE(MyFrame::OnSize)
 EVT_MENU(wxID_EXIT, MyFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
 EVT_MENU_RANGE(MyFrame::ID_FirstPerspective, MyFrame::ID_FirstPerspective+1000,
@@ -161,7 +161,8 @@ void MyFrame::OnEraseBackground(wxEraseEvent& event)
 
 void MyFrame::OnSize(wxSizeEvent& event)
 {
-	event.Skip();
+	//event.Skip();
+	wxFrame::OnSize( event);
 }
 
 void MyFrame::OnUpdateUI(wxUpdateUIEvent& event)
