@@ -97,7 +97,7 @@ namespace sx_emulator
 	/// This class implements the actual sx instruction set.
 	///
 	/// This class implements the actual emulation functions and nothing more.
-	/// it is up to some base class to implement the fetch-decode-and call cycle, or to implement
+	/// it is up to some derived class to implement the fetch-decode-and call cycle, or to implement
 	/// other fancy stuff, like memory events, frequency counting, pre-compilation, etc.
 	struct sx_controller_impl :  public sx_flags_definition, public boost::noncopyable
 	{
@@ -489,7 +489,7 @@ namespace sx_emulator
 			case 5:
 			case 6:
 			case 7:
-				port_options[arg_cregister][m] = w;
+				port_options[arg_cregister][m%32] = w;
 				break;
 			};
 		}
@@ -647,7 +647,8 @@ namespace sx_emulator
 		void  sleep()
 		{
 			sleeping = true;
-			set_nop_delay( std::numeric_limits< time_counter_t>::max());
+            dec_pc();
+            throw breakpoint_exception();
 		}
 
 		static int bitmask( int bit)
@@ -811,9 +812,12 @@ namespace sx_emulator
 		}
 
 		/// set a breakpoint at a given address
-		void set_breakpoint( address_t address)
+        /// returns true iff the address already contained a breakpoint.
+		bool set_breakpoint( address_t address)
 		{
+            bool result = shadow_rom( address) == BREAKPOINT;
 			shadow_rom.set( address, BREAKPOINT);
+            return result;
 		}
 
 		/// remove the breakpoint at the given address
@@ -821,6 +825,7 @@ namespace sx_emulator
 		{
 			shadow_rom.set( address, get_rom()( address));
 		}
+
 		/// run one clock cycle/instruction
 		size_t tick()
 		{
@@ -967,10 +972,14 @@ namespace sx_emulator
 			// re-compile an instruction from real rom, in case there's a
 			// breakpoint in the precompiled one.
 			compiler_type::slot_type precompiled;
+
+            // a decoder type that decodes sx_instructions and translates them to 
+            // calls to the compiler
 			typedef micro_emulator::instruction_decoder<
 				sx_instruction_list,
 				compiler_type
 			> compiler_decoder_type;
+
 			compiler_type c( precompiled);
 			compiler_decoder_type::feed( get_rom()( count_freq(inc_pc())), c);
 
@@ -1021,9 +1030,12 @@ namespace sx_emulator
 		}
 
 		/// set a breakpoint at a given address
-		void set_breakpoint( address_t address)
+		bool set_breakpoint( address_t address)
 		{
-				compile( address, BREAKPOINT);
+			compile( address, BREAKPOINT);
+
+            bool already_a_breakpoint = precompiled[address].points_to( &ins0< precompiled_sx_controller, breakpoint>::execute);
+            return already_a_breakpoint;
 		}
 
 		/// remove the breakpoint at the given address
@@ -1041,6 +1053,8 @@ namespace sx_emulator
 		/// compile an sx instruction into a function pointer
 		void compile( address_t address, sx_rom::register_t instruction)
 		{
+            // a decoder type that decodes sx instructions (from the sx_instruction_list)
+            // and translates them to calls to the compiler (the compiler_type)
 			typedef micro_emulator::instruction_decoder<
 				sx_instruction_list,
 				compiler_type

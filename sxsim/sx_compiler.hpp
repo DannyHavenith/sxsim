@@ -54,14 +54,15 @@ struct ins2
 template< typename implementation>
 struct compiled_instruction
 {
-	typedef typename instruction_interface<implementation>::type interface_type;
+    // typedef for the function interface of the 'precompiled' functions.
+    typedef void (function_type)( unsigned short, unsigned short, implementation *);
 
 	compiled_instruction()
 		:f(0),a1(0), a2(0)
 	{
 	}
 
-	explicit compiled_instruction( const interface_type *interface_, unsigned short arg1 = 0, unsigned short arg2 = 0)
+	explicit compiled_instruction( function_type *interface_, unsigned short arg1 = 0, unsigned short arg2 = 0)
 		:f(interface_),a1(arg1), a2( arg2)
 	{
 	}
@@ -71,8 +72,13 @@ struct compiled_instruction
 		f( a1, a2, imp);
 	}
 
+    bool points_to( function_type *comp) const
+    {
+        return f == comp;
+    }
+
 private:
-	interface_type *f;
+	function_type *f;
 	unsigned short a1;
 	unsigned short a2;
 };

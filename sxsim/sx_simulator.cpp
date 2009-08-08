@@ -12,6 +12,10 @@
 
 #include <iostream>
 #include <fstream>
+
+#include <boost/foreach.hpp>
+#include <boost/bind.hpp>
+
 #include "listing_parser.hpp"
 #include "sx_instruction_list.hpp"
 #include "instruction_decoder.hpp"
@@ -165,3 +169,29 @@ void sx_simulator::set_state( const sx_simulator::state &new_state)
 	emulator->set_state( new_state);
 }
 
+void sx_simulator::set_temporary_breakpoint( address_type address)
+{
+
+    if (!emulator->set_breakpoint( address))
+    {
+        add_todo( address);
+    }
+}
+
+void sx_simulator::set_temporary_breakpoint_after_call( sx_simulator::address_type address)
+{
+
+}
+
+void sx_simulator::add_todo( sx_simulator::address_type address)
+{
+    todo.push_back( address);
+}
+
+void sx_simulator::run_todos()
+{
+    BOOST_FOREACH( address_type address, todo)
+    {
+        emulator->remove_breakpoint( address);
+    }
+}
