@@ -8,6 +8,8 @@
 #include <sstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include "wx/menu.h"
+#include "sxgo_event_definitions.hpp"
 #include "sxgo_ram_window.hpp"
 #include "sx_simulator.hpp"
 
@@ -163,4 +165,11 @@ void sxgo_ram_window::Update(const sx_simulator::state &state)
 	{
 		SetCellBackgroundColour( row, bank + 1, *wxLIGHT_GREY);
 	}
+}
+
+wxMenu *sxgo_ram_window::CreatePopupMenu()
+{
+    wxMenu *menu = new wxMenu;
+    menu->Append(sxgo_event_definitions::ID_Set_Ram_Breakpoint, _T("Ram Breakpoint"),wxT(""), wxITEM_CHECK);
+    return menu;
 }

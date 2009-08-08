@@ -24,6 +24,7 @@ public:
 
 		void Update( const sx_simulator::state &state);
 		void ChangeValue( wxGridEvent &event);
+        wxMenu *CreatePopupMenu();
 		DECLARE_EVENT_TABLE()
 };
 

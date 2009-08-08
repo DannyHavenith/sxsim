@@ -124,6 +124,9 @@ void sxgo_document::Reset()
 	simulator_ptr->reset();
 }
 
+/// Create a menu bar with menu items that this document can handle
+/// This will first create the standard frame menu bar and then add document
+/// specific items to it.
 wxMenuBar *sxgo_document::CreateDocMenuBar()
 {
     wxMenuBar *menu_bar = MyFrame::CreateFrameMenuBar();

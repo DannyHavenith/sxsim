@@ -81,14 +81,11 @@ void sxgo_view::ChangeRam( wxCommandEvent &event)
 /// Someone doubleclicked on a row in the listing, set or reset a breakpoint.
 void sxgo_view::DoubleClick( wxGridEvent &event)
 {
-	if (event.GetCol() == 0)
-	{
-		int line = event.GetRow();
-		unsigned short address = SafeGetDocument()->GetListing().GetNearestAddress( line);
-		line = SafeGetDocument()->GetListing().GetLine( address);
-		bool set = textsw->ToggleBreakpoint( line);
-		SafeGetDocument()->SetBreakpoint( address, set);
-	}
+	int line = event.GetRow();
+	unsigned short address = SafeGetDocument()->GetListing().GetNearestAddress( line);
+	line = SafeGetDocument()->GetListing().GetLine( address);
+	bool set = textsw->ToggleBreakpoint( line);
+	SafeGetDocument()->SetBreakpoint( address, set);
 }
 
 bool sxgo_view::OnCreate(wxDocument *doc, long WXUNUSED(flags) )
@@ -182,9 +179,8 @@ void sxgo_view::Run(wxCommandEvent& event)
 }
 
 //
-// Run for a fraction of a second and request
-// more idle events.
-//
+/// Run for a fraction of a second and request
+/// more idle events.
 void sxgo_view::OnIdle(wxIdleEvent& event)
 {
 	if (running)
@@ -238,11 +234,15 @@ void sxgo_view::RunSome( bool first_run)
 	if (doc->Run( run_count) != 0)
 	{
 		// we hit a breakpoint
-		std::string status_text =
-			"Breakpoint hit at address " + boost::lexical_cast< std::string>( doc->GetState().pc);
-	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( status_text.c_str(), wxConvUTF8));
-		running = false;
 		unsigned short address = doc->GetState().pc;
+
+        std::stringstream strm;
+        strm << "Breakpoint hit at address " << std::hex << address << 'H';
+	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( wxString( strm.str().c_str(), wxConvUTF8));
+
+        running = false;
+
+        // jump to the active line and reset the profiling shades.
 		int line = doc->GetListing().GetLine(address);
 		textsw->ClearProfile();
 		textsw->JumpToLine( line);
@@ -252,6 +252,7 @@ void sxgo_view::RunSome( bool first_run)
 	    MyFrame::GetMainFrame()->GetStatusBar()->SetStatusText( _( "Running"));
 	    if (first_run || ++profile_refresh_counter > profile_refresh_treshold)
 	    {
+            // show profiling shades (that show how often a certain line was touched in the past run)
 			sxgo_document::profile_type profile = doc->GetProfile();
 			textsw->ShowProfile( profile, first_run);
 			profile_refresh_counter = 0;
@@ -268,7 +269,6 @@ void sxgo_view::RunSome( bool first_run)
 /// on update, set the frame title and the font
 void sxgo_view::OnUpdate(wxView *sender, wxObject *hint)
 {
-
 	sxgo_document *doc = (sxgo_document *)GetDocument();
 	frame->SetTitle(SimplifyTitle( doc->GetFilename()));
 	textsw->SetListing( doc->GetListing());

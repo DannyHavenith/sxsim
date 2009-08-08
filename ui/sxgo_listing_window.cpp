@@ -68,6 +68,7 @@ void sxgo_listing_window::ShowProfile( const sxgo_listing_window::profile_type &
 	profile_type::const_iterator i;
 
 	// determine the unique counts, to optimally assign gradient categories.
+    // in other words, all lines that have the same line count will fall in the same gradient.
 	typedef std::map< unsigned long, unsigned short> unique_counts_map;
 	unique_counts_map unique_counts;
 	for (i = profile.begin(); i != profile.end(); ++i)
@@ -120,6 +121,7 @@ bool sxgo_listing_window::FadeProfile()
 	return false;
 }
 
+/// Clear the profile colours, make all line backgrounds white again.
 void sxgo_listing_window::ClearProfile()
 {
 	if (previous_profile.empty()) return;
@@ -132,6 +134,7 @@ void sxgo_listing_window::ClearProfile()
 	JumpToLine( current_line);
 }
 
+/// Scroll the listing window to make sure that the given line is visible.
 void sxgo_listing_window::JumpToLine( unsigned short line)
 {
 	MakeCellVisible( line, 1);
@@ -141,6 +144,7 @@ void sxgo_listing_window::JumpToLine( unsigned short line)
 	Refresh();
 }
 
+/// Show or hide a breakpoint marker at the given line
 bool sxgo_listing_window::ToggleBreakpoint( int line)
 {
 	wxString val = GetCellValue( line, 0);
