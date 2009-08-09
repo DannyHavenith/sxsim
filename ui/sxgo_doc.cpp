@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream> // for istringstream
 
+#include <boost/random.hpp>
 #include "wx/menuitem.h"
 #include "wx/menu.h"
 
@@ -25,7 +26,19 @@ END_EVENT_TABLE()
 
 using namespace std;
 
+namespace 
+{
+boost::mt19937 rng;
+boost::uniform_int<> full_range(std::numeric_limits<int>::min() ,std::numeric_limits<int>::max()); 
+boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+           id_generator(rng, full_range);             // glues randomness with mapping
 
+}
+
+sxgo_document::sxgo_document()
+:id( id_generator())
+{
+}
 bool sxgo_document::OnSaveDocument(const wxString& filename)
 {
 	return true;

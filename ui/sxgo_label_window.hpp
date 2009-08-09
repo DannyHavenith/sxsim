@@ -17,7 +17,7 @@ class sxgo_label_window : public wxTreeCtrl
 public:
 	explicit sxgo_label_window( wxWindow *parent)
 		:wxTreeCtrl( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxTR_HIDE_ROOT),
-		m_last_document(0)
+		m_last_document(0), m_last_id(0)
 	{
 		SetMinSize( wxSize( 150, 100));
 	}
@@ -31,6 +31,7 @@ private:
 
 	void DoUpdate( const sxgo_document *doc);
 	const sxgo_document *m_last_document;
+    int m_last_id; // id of last document
 };
 
 #endif //SXGO_LABEL_WINDOW_HPP

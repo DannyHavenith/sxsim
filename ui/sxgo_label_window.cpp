@@ -45,10 +45,11 @@ void sxgo_label_window::LabelActivated(wxTreeEvent& event)
 
 void sxgo_label_window::Update( const sxgo_document *doc)
 {
-	if ( doc != m_last_document)
+	if ( doc != m_last_document || doc->GetId() != m_last_id)
 	{
 		DoUpdate(doc);
 		m_last_document = doc;
+        m_last_id = doc->GetId();
 	}
 }
 
@@ -64,13 +65,18 @@ void sxgo_label_window::DoUpdate( const sxgo_document *doc)
 	for (
 		listing_info::jumplabel_container_type::const_iterator i = info.jump_labels.begin();
 		i != info.jump_labels.end();
-	++i)
+	    ++i)
 	{
-		wxTreeItemId id = AppendItem( root, wxString( i->name.c_str(),wxConvUTF8),-1, -1,
-			new item_data(i->line));
+		wxTreeItemId id = 
+            AppendItem( 
+                root, 
+                wxString( i->name.c_str(),wxConvUTF8),
+                -1, -1,
+			    new item_data(i->line)
+                );
 		for ( listing_info::rom_label_container_type::const_iterator j = i->minor_labels.begin();
-			j != i->minor_labels.end();
-			++j)
+			  j != i->minor_labels.end();
+			  ++j)
 		{
 			AppendItem( id, wxString( j->first.c_str(), wxConvUTF8), -1, -1,
 				new item_data( j->second));

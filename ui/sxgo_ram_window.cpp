@@ -14,10 +14,12 @@
 #include "sx_simulator.hpp"
 
 DEFINE_EVENT_TYPE(EVT_CHANGE_RAMVALUE)
+DEFINE_EVENT_TYPE(EVT_TOGGLE_RAM_BREAKPOINT)
 
 
 BEGIN_EVENT_TABLE(sxgo_ram_window, wxGrid)
 	EVT_GRID_CELL_CHANGE( sxgo_ram_window::ChangeValue)
+    EVT_GRID_CELL_RIGHT_CLICK(sxgo_ram_window::ToggleBreakpoint)
 END_EVENT_TABLE()
 
 
@@ -142,6 +144,24 @@ void sxgo_ram_window::ChangeValue( wxGridEvent &event)
 
 }
 
+void sxgo_ram_window::ToggleBreakpoint( wxGridEvent &event)
+{
+    wxCommandEvent new_event( EVT_TOGGLE_RAM_BREAKPOINT, GetId() );
+    new_event.SetEventObject( this);
+	int col = event.GetCol();
+	int row = event.GetRow();
+    if (col == 0)
+    {
+        new_event.SetInt( row);
+    }
+    else
+    {
+        new_event.SetInt( 16 + row + 32*(col -1));
+    }
+
+    GetEventHandler()->ProcessEvent( new_event);
+}
+
 void sxgo_ram_window::Update(const sx_simulator::state &state)
 {
 
@@ -166,10 +186,11 @@ void sxgo_ram_window::Update(const sx_simulator::state &state)
 		SetCellBackgroundColour( row, bank + 1, *wxLIGHT_GREY);
 	}
 }
-
+/* not yet
 wxMenu *sxgo_ram_window::CreatePopupMenu()
 {
     wxMenu *menu = new wxMenu;
     menu->Append(sxgo_event_definitions::ID_Set_Ram_Breakpoint, _T("Ram Breakpoint"),wxT(""), wxITEM_CHECK);
     return menu;
 }
+*/

@@ -10,6 +10,7 @@
 #include "wx/grid.h"
 
 DECLARE_EVENT_TYPE(EVT_CHANGE_RAMVALUE, -1)
+DECLARE_EVENT_TYPE(EVT_TOGGLE_RAM_BREAKPOINT, -1)
 
 class sxgo_ram_window : public wxGrid
 {
@@ -24,7 +25,8 @@ public:
 
 		void Update( const sx_simulator::state &state);
 		void ChangeValue( wxGridEvent &event);
-        wxMenu *CreatePopupMenu();
+        void ToggleBreakpoint( wxGridEvent &event);
+
 		DECLARE_EVENT_TABLE()
 };
 

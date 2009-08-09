@@ -23,6 +23,8 @@ public:
 	typedef std::vector< std::pair<unsigned short, unsigned long> > profile_type;
 	DECLARE_DYNAMIC_CLASS(sxgo_document)
 
+    sxgo_document();
+
 	virtual bool OnSaveDocument(const wxString& filename);
 
 	// implement for both wxInputStream and std::istream to deal with
@@ -46,7 +48,15 @@ public:
 
     static wxMenuBar *CreateDocMenuBar();
 
+    /// return some pseudo-unique id. This is to recognize different documents
+    /// which have been created on different moments (but which could be at the same address).
+    int GetId() const
+    {
+        return id;
+    }
+
 private:
+    const int id;
 	listing_info listing;
 	boost::scoped_ptr< sx_simulator> simulator_ptr;
     DECLARE_EVENT_TABLE()
