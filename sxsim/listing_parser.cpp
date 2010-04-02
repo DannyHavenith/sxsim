@@ -19,21 +19,28 @@ using namespace std;
 using namespace boost;
 using namespace boost::xpressive;
 
+struct listing_value_out_of_range : std::runtime_error 
 
-/// convert a hex string to an integer, but throw and exception if the 
-/// integeger is higher than, or equal to a given past-the-end value
-unsigned short hex_to_int(const string &str, unsigned short past_the_end = std::numeric_limits<unsigned short>::max())
+
+
 {
-    unsigned short num;
-    istringstream i(str);
-    i >> hex >> num;
-    if ( num >= past_the_end)
+    listing_value_out_of_range()
+        :std::runtime_error( "during lst-parsing a number (probably an adddres) was out of range")
     {
-        throw std::out_of_range( "value " + str + " is out of range");
     }
-    return num;
-}
+};
 
+unsigned short hex_to_int(const string &str, unsigned short max_value)
+{
+	unsigned short num;
+	istringstream i(str);
+	i >> hex >> num;
+    if (num >= max_value)
+    {
+        throw listing_value_out_of_range();
+    }
+	return num;
+}
 
 struct major_rom_label_matches
 {
@@ -156,38 +163,38 @@ listing_info ParseListingFile( istream &listing)
     int current_source = 0;
     listing_info::major_rom_label *current_major_label = 0;
 
-    while (getline( listing, buffer))
-    {
+	while (getline( listing, buffer))
+	{
         try
         {
-            // if we find a regular line with assembly code,
-            // add the code to the 'instructions' array and relate the address
-            // to the current line in the listing.
-            if (!buffer.empty() && regex_match( buffer, match, e))
-            {
-                if (match[1])
-                {
-                    unsigned short address = hex_to_int( match[1], listing_info::rom_size);
-                    result.address_to_line[ address] = current_source;
-                    last_source = current_source;
+		// if we find a regular line with assembly code,
+		// add the code to the 'instructions' array and relate the address
+		// to the current line in the listing.
+		if (!buffer.empty() && regex_match( buffer, match, e))
+		{
+			if (match[1])
+			{
+				unsigned short address = hex_to_int( match[1], listing_info::rom_size);
+				result.address_to_line[ address] = current_source;
+       
 
-                    int n = 2;
-                    while (n<6 && match[n])
-                    {
-                        unsigned short instruction = hex_to_int( match[n]);
-                        result.instructions[ address] = instruction;
-                        result.address_to_line[ address] = last_source;
-                        ++address;
-                        ++n;
-                    }
-                }
-            }
+				int n = 2;
+				while (n<6 && match[n])
+				{
+					unsigned short instruction = hex_to_int( match[n], listing_info::rom_size);
+					result.instructions[ address] = instruction;
+					result.address_to_line[ address] = last_source;
+					++address;
+					++n;
+				}
+			}
+		}
 
-            // if we find a data label (DS directive) add it to the info.
-            if ( regex_match( buffer, match, ds))
-            {
+		// if we find a data label (DS directive) add it to the info.
+		if ( regex_match( buffer, match, ds))
+		{
                 result.data_labels[ match[2]]= hex_to_int( match[1], listing_info::rom_size);
-            }
+		}
 
             // if we find a label of any sorts, add it to the label information
             if ( regex_match( buffer, match, labels))
@@ -208,7 +215,7 @@ listing_info ParseListingFile( istream &listing)
             }
 
             result.lines.push_back( buffer);
-
+        
         }
         catch( std::out_of_range &e)
         {

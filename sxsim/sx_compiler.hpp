@@ -84,8 +84,7 @@ private:
 };
 
 /// \brief class template that can translate sx-instructions to
-/// instances that will call a handler with the right arguments.
-///
+/// functon pointers that will call a handler with the right arguments.
 /// This class template is used to translate a rom full of sx-instructions into an array full
 /// of member function pointers each member function points to the implementation of the corresponding
 /// instruction.
