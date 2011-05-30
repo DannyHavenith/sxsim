@@ -1,0 +1,17 @@
+=SXGo!=
+
+These are the sources to the SXGo! parallax SX emulator. 
+The design is documented on the following page:
+
+[http://rurandom.org/justintime/index.php?title=Design_of_sxgo]
+
+===Building===
+To get this to build on your system, you will need:
+* Cmake as a cross platform make (I'm using 2.6) [http://www.cmake.org]
+* WxWidgets for the UI (I'm using version 2.8.10) [http://www.wxwindows.org/]
+* The Boost C++ Libraries for boost.python, boost.mpl and much more (1.39, but any fairly recent version should do) [http://www.boost.org]
+
+For compilers I use:
+* Visual C++ 9.0 Express edition on Windows [http://www.microsoft.com/eXPress/download/]. It's important to note that there is a problem with the 'redistributables' for this version of the compiler: the provided manifest shows a different version number than what the generated executables or dlls require. See [http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=362504 this bug report] (and I won't comment on MS's handling of this particular one)
+* G++ (4.3) on Linux. This is the one that is installed by default on Ubuntu Linux 9.04
+
